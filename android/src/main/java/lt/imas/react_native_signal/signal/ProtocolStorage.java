@@ -48,6 +48,7 @@ public class ProtocolStorage implements SignalProtocolStore {
     private String SESSIONS_JSON_FILENAME = "sessions.json";
     private String IDENTITES_JSON_FILENAME = "identites.json";
     private String LOCAL_JSON_FILENAME = "user.json";
+    // TODO: read and store by username
 
     public ProtocolStorage(Context context) {
         this.context = context;
@@ -192,6 +193,7 @@ public class ProtocolStorage implements SignalProtocolStore {
     public boolean isTrustedIdentity(SignalProtocolAddress address, IdentityKey identityKey, Direction direction) {
         String data = readFromStorage(IDENTITES_JSON_FILENAME);
         return true;
+        // TODO: remove force true
 //        if (data == null || data.isEmpty()) return false;
 //        try {
 //            JSONObject dataJSONO = new JSONObject(data);
@@ -226,6 +228,7 @@ public class ProtocolStorage implements SignalProtocolStore {
         return null;
     }
 
+    // TODO: keep for later improvements
 //    public PreKeyPublic loadRandomPreKey() {
 //        Connection conn = GetSQLConnection.getConn();
 //        PreKeyRecord record = null;
@@ -250,7 +253,6 @@ public class ProtocolStorage implements SignalProtocolStore {
 //
 //        return pubKey;
 //    }
-
 
     @Override
     public void storePreKey(int preKeyId, PreKeyRecord record) {
@@ -307,6 +309,7 @@ public class ProtocolStorage implements SignalProtocolStore {
     @Override
     public List<Integer> getSubDeviceSessions(String s) {
         List<Integer> results = new LinkedList<>();
+        // TODO: keep for later improvements
 //        String data = readFromStorage(SESSIONS_JSON_FILENAME);
 //        if (data == null || data.isEmpty()) return results;
 //        try {
@@ -367,6 +370,7 @@ public class ProtocolStorage implements SignalProtocolStore {
 
     @Override
     public void deleteAllSessions(String name) {
+        // TODO: search sessions through array by name
 //        String data = readFromStorage(SESSIONS_JSON_FILENAME);
 //        if (data == null || data.isEmpty()) data = "{}";
 //        try {
