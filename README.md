@@ -1,0 +1,1 @@
+# React Native module for Signal Protocol messaging

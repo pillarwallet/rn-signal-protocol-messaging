@@ -1,0 +1,6 @@
+{
+  "name": "rn-signal-protocol-messaging",
+  "version": "1.0.0",
+  "description": "React Native module for Signal Protocol messaging",
+  "main": "index.js"
+}
