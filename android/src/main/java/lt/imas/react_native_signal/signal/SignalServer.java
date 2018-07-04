@@ -24,17 +24,19 @@ import okhttp3.Response;
 import okio.Buffer;
 import timber.log.Timber;
 
-public class ServerApiClient {
-    private static final String BASE_URL = "https://pillar-chat-service.herokuapp.com";
+public class SignalServer {
     public static final String URL_ACCOUNTS = "/v1/accounts";
     public static final String URL_KEYS = "/v2/keys";
     public static final String URL_MESSAGES = "/v1/messages";
-    private static String signalUsername;
-    private static String signalPassword;
+    public static final String URL_ACCOUNTS_BOOTSTRAP = "/v1/accounts/bootstrap";
+    private static String username;
+    private static String password;
+    private static String host;
 
-    public ServerApiClient(String username, String password){
-        signalUsername = username;
-        signalPassword = password;
+    public SignalServer(String host, String username, String password){
+        this.host = host;
+        this.username = username;
+        this.password = password;
     }
 
     public static OkHttpClient call(String url, String method, JSONObject requestJSONO, Callback responseHandler) {
@@ -45,7 +47,28 @@ public class ServerApiClient {
         return call(url, method, new JSONObject(), responseHandler, true);
     }
 
+    public static int requestServerTimestamp() throws IOException {
+        int timestamp = 0;
+        OkHttpClient client = new OkHttpClient();
+        Request request = new Request.Builder().url(getFullApiUrl(URL_ACCOUNTS_BOOTSTRAP)).build();
+        Response response = client.newCall(request).execute();
+        if (response.isSuccessful()){
+            final ServerResponse serverResponse = new ServerResponse(response);
+            timestamp = serverResponse.getResponseJSONObject().optInt("timestamp", 0);
+        }
+        return timestamp;
+    }
+
     public static OkHttpClient call(String url, String method, JSONObject requestJSONO, Callback responseHandler, boolean async) {
+        int timestamp = 0;
+        try {
+            timestamp = requestServerTimestamp();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        if (timestamp == 0) return null;
+
         OkHttpClient.Builder clientBuilder = new OkHttpClient().newBuilder();
 
         method = method != null ? method.toLowerCase().trim() : "";
@@ -62,10 +85,9 @@ public class ServerApiClient {
 
         RequestBody requestBody = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), requestJSONO.toString());
 
-        long currentUnixTime = System.currentTimeMillis() / 1000L;
-        String credential = Credentials.basic(signalUsername, signalPassword);
+        String credential = Credentials.basic(username, password);
 
-        requestBuilder.addHeader("Token-Timestamp", String.valueOf(currentUnixTime));
+        requestBuilder.addHeader("Token-Timestamp", String.valueOf(timestamp));
         requestBuilder.addHeader("Authorization", credential).build();
         requestBuilder.addHeader("Token-ID-Address", "address");
         requestBuilder.addHeader("Token-Signature", "signature");
@@ -100,7 +122,7 @@ public class ServerApiClient {
                 @Override
                 public void onResponse(Call call, Response response) {
                     final ServerResponse serverResponse = new ServerResponse(response);
-                    ServerApiClient.mainThreadCallback(new Runnable() {
+                    SignalServer.mainThreadCallback(new Runnable() {
                         @Override
                         public void run() {
                             Timber.d("API RESPONSE DEFAULT CALLBACK: ", serverResponse.getResponseJSONObject().toString());
@@ -123,12 +145,11 @@ public class ServerApiClient {
             }
         }
 
-
         return client;
     }
 
     private static String getFullApiUrl(String target_url) {
-        return BASE_URL + target_url;
+        return host + target_url;
     }
 
     public static void mainThreadCallback(Runnable task) {

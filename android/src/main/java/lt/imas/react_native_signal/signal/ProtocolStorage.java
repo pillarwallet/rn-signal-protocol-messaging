@@ -24,22 +24,11 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.sql.Connection;
-import java.sql.Driver;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
 import lt.imas.react_native_signal.helpers.Base64;
-import timber.log.Timber;
-
-import static android.content.Context.MODE_PRIVATE;
-import static org.spongycastle.asn1.x500.style.RFC4519Style.st;
 
 public class ProtocolStorage implements SignalProtocolStore {
     private Context context;
@@ -48,14 +37,13 @@ public class ProtocolStorage implements SignalProtocolStore {
     private String SESSIONS_JSON_FILENAME = "sessions.json";
     private String IDENTITES_JSON_FILENAME = "identites.json";
     private String LOCAL_JSON_FILENAME = "user.json";
-    // TODO: read and store by username
 
     public ProtocolStorage(Context context) {
         this.context = context;
     }
 
     private String readFromStorage(String fileName) {
-        String path = context.getFilesDir().getAbsolutePath() + "/" + fileName;
+        String path = context.getFilesDir().getAbsolutePath() + "/signal/" + fileName;
         File file = new File(path);
         if (file.exists()){
             try {
@@ -81,7 +69,7 @@ public class ProtocolStorage implements SignalProtocolStore {
 
     private void writeToStorageFile(String fileName, String data) {
         try {
-            FileOutputStream fos = context.openFileOutput(fileName, Context.MODE_PRIVATE);
+            FileOutputStream fos = context.openFileOutput("signal/" + fileName, Context.MODE_PRIVATE);
             if (data != null) fos.write(data.getBytes());
             fos.close();
         } catch (IOException e) {
@@ -89,9 +77,14 @@ public class ProtocolStorage implements SignalProtocolStore {
         }
     }
 
-    // debug only!
-    public void resetLocal(){
-        writeToStorageFile(LOCAL_JSON_FILENAME, "{}");
+    public void deleteAll(){
+        File dir = new File(context.getFilesDir().getAbsolutePath() + "/signal");
+        if (dir.isDirectory()){
+            String[] children = dir.list();
+            for (String aChildren : children) {
+                new File(dir, aChildren).delete();
+            }
+        }
     }
 
     public boolean isLocalRegistered(){
@@ -193,7 +186,7 @@ public class ProtocolStorage implements SignalProtocolStore {
     public boolean isTrustedIdentity(SignalProtocolAddress address, IdentityKey identityKey, Direction direction) {
         String data = readFromStorage(IDENTITES_JSON_FILENAME);
         return true;
-        // TODO: remove force true
+//        TODO: remove force true
 //        if (data == null || data.isEmpty()) return false;
 //        try {
 //            JSONObject dataJSONO = new JSONObject(data);
@@ -228,7 +221,7 @@ public class ProtocolStorage implements SignalProtocolStore {
         return null;
     }
 
-    // TODO: keep for later improvements
+//    TODO: keep for later improvements
 //    public PreKeyPublic loadRandomPreKey() {
 //        Connection conn = GetSQLConnection.getConn();
 //        PreKeyRecord record = null;
@@ -309,7 +302,7 @@ public class ProtocolStorage implements SignalProtocolStore {
     @Override
     public List<Integer> getSubDeviceSessions(String s) {
         List<Integer> results = new LinkedList<>();
-        // TODO: keep for later improvements
+//        TODO: keep for later improvements
 //        String data = readFromStorage(SESSIONS_JSON_FILENAME);
 //        if (data == null || data.isEmpty()) return results;
 //        try {
@@ -337,7 +330,6 @@ public class ProtocolStorage implements SignalProtocolStore {
     @Override
     public void storeSession(SignalProtocolAddress address, SessionRecord record) {
         String data = readFromStorage(SESSIONS_JSON_FILENAME);
-        Timber.d("STORING SESSIONS: %s", data);
         if (data == null || data.isEmpty()) data = "{}";
         try {
             JSONObject dataJSONO = new JSONObject(data);
@@ -370,7 +362,7 @@ public class ProtocolStorage implements SignalProtocolStore {
 
     @Override
     public void deleteAllSessions(String name) {
-        // TODO: search sessions through array by name
+//        TODO: keep for later improvements: search sessions through array by name
 //        String data = readFromStorage(SESSIONS_JSON_FILENAME);
 //        if (data == null || data.isEmpty()) data = "{}";
 //        try {
