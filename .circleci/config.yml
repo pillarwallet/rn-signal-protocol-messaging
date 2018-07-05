@@ -1,0 +1,29 @@
+version: 2
+jobs:
+  build:
+    working_directory: ~/rn-signal-protocol-messaging
+    docker:
+      - image: circleci/node:8.9.4
+    steps:
+      - checkout
+      - run:
+          name: Append circleCI build number to version
+          command: |
+            git config user.email "devops@pillar.io"
+            git config user.name "Issabot"
+            npm version $(node -e "const currentVersion=require('./package.json').version; const firstTwoDots=currentVersion.substring(0, currentVersion.lastIndexOf('.')+1); console.log(firstTwoDots);")$CIRCLE_BUILD_NUM
+      - run:
+            name: Authenticate with registry
+            command: curl -u $ARTIFACTORY_PUBLISHING_USER:$ARTIFACTORY_PUBLISHING_PASSWORD https://pillarproject.jfrog.io/pillarproject/api/npm/auth >> ~/pillarwallet-nodejs-sdk/.npmrc
+      - run:
+          name: Publish Package to Artifactory
+          command: npm publish --registry https://pillarproject.jfrog.io/pillarproject/api/npm/npm/
+
+workflows:
+  version: 2
+  just_publish_to_artifactory:
+    jobs:
+      - build
+          filters:
+            branches:
+              only: master
