@@ -21,9 +21,9 @@ jobs:
 
 workflows:
   version: 2
-  just_publish_to_artifactory:
+  publish:
     jobs:
-      - build
+      - build:
           filters:
             branches:
               only: master
