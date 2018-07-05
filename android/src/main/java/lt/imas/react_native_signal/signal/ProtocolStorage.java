@@ -449,4 +449,16 @@ public class ProtocolStorage implements SignalProtocolStore {
             e.printStackTrace();
         }
     }
+
+    public int getLastPreKeyIndex() {
+        String data = readFromStorage(PRE_KEYS_JSON_FILENAME);
+        if (data == null || data.isEmpty()) return 0;
+        try {
+            JSONObject dataJSONO = new JSONObject(data);
+            return dataJSONO.length();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
 }

@@ -228,9 +228,14 @@ public class SignalClient {
                     @Override
                     public void run() {
                         Timber.d(serverResponse.getResponseJSONObject().toString());
-                        promise.resolve("ok");
-                        // TODO: check count and request more
-                        registerPreKeys(promise, 0, 100);
+                        int preKeyCount = serverResponse.getResponseJSONObject().optInt("count", 0);
+                        if (preKeyCount <= 10) {
+                            int count = 100 - preKeyCount;
+                            ProtocolStorage protocolStorage = new ProtocolStorage(context);
+                            registerPreKeys(promise, protocolStorage.getLastPreKeyIndex(), count);
+                        } else {
+                            promise.resolve("ok");
+                        }
                     }
                 });
             }
@@ -319,14 +324,16 @@ public class SignalClient {
                                         PreKeySignalMessage signalMessage = new PreKeySignalMessage(Base64.decodeWithoutPadding(messageString));
                                         byte[] messageBytes = sessionCipher.decrypt(signalMessage);
                                         String messageBodyString = new String(messageBytes, "UTF-8");
+                                        int serverTimestamp = messageJSONO.optInt("timestamp", 0);
+                                        int currentUnixTime = Integer.parseInt(String.valueOf(System.currentTimeMillis()/1000L));
                                         newMessageJSONO.put("content", messageBodyString);
                                         newMessageJSONO.put("username", address.getName());
                                         newMessageJSONO.put("device", address.getDeviceId());
-                                        newMessageJSONO.put("serverTimestamp", 0);
-                                        newMessageJSONO.put("savedTimestamp", 0);
+                                        newMessageJSONO.put("serverTimestamp", serverTimestamp);
+                                        newMessageJSONO.put("savedTimestamp", currentUnixTime);
                                         messageStorage.storeMessage(address.getName(), newMessageJSONO);
                                         receivedMessagesJSONA.put(newMessageJSONO);
-                                        // TODO: send API delivery report (DELETE remote pending)
+                                        signalServer.call(SignalServer.URL_RECEIPT + "/" + username + "/" + serverTimestamp, "DELETE", null, null, false);
                                     }
                                 }
                             }
