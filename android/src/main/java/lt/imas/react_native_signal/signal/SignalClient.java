@@ -375,64 +375,77 @@ public class SignalClient {
         });
     }
 
-    public void sendMessage(String username, String messageString, final Promise promise) {
-        ProtocolStorage signalProtocolStore = new ProtocolStorage(context);
-        SignalProtocolAddress address = new SignalProtocolAddress(username, 1);
-        SessionCipher sessionCipher = new SessionCipher(signalProtocolStore, address);
-        JSONObject requestJSONO = new JSONObject();
-        JSONObject messageBodyJSONO = new JSONObject();
-        try {
-            int timestamp = SignalServer.requestServerTimestamp();
-            messageBodyJSONO.put("type", "message");
-            messageBodyJSONO.put("body", new JSONObject().put("message", messageString));
-            CiphertextMessage message = sessionCipher.encrypt(messageBodyJSONO.toString().getBytes("UTF-8"));
-            JSONArray messagesJSONA = new JSONArray();
-            JSONObject messageJSONO = new JSONObject();
-            messageJSONO.put("type", 1);
-            messageJSONO.put("destination", username);
-            messageJSONO.put("content", Base64.encodeBytesWithoutPadding(String.valueOf(signalProtocolStore.getLocalRegistrationId()).getBytes()));
-            messageJSONO.put("timestamp", timestamp);
-            messageJSONO.put("destinationDeviceId", 1);
-            messageJSONO.put("destinationRegistrationId", sessionCipher.getRemoteRegistrationId());
-            messageJSONO.put("body", Base64.encodeBytesWithoutPadding(message.serialize()));
-            messagesJSONA.put(messageJSONO);
-            requestJSONO.put("messages", messagesJSONA);
-            SignalServer.call(SignalServer.URL_MESSAGES + "/" + username, "PUT", requestJSONO, new Callback() {
-                @Override
-                public void onFailure(Call call, final IOException e) {
-                    SignalServer.mainThreadCallback(new Runnable() {
-                        @Override
-                        public void run() {
-                            promise.reject(ERR_SERVER_FAILED, e.getMessage());
-                            Timber.d("Signal server failed: %s", e.getMessage());
-                        }
-                    });
-                }
+    public void sendMessage(final String username, final String messageString, final Promise promise) {
+        signalServer.requestServerTimestamp(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                promise.reject(ERR_NATIVE_FAILED, e.getMessage());
+            }
 
-                @Override
-                public void onResponse(Call call, Response response) {
-                    final ServerResponse serverResponse = new ServerResponse(response);
-                    SignalServer.mainThreadCallback(new Runnable() {
-                        @Override
-                        public void run() {
-                            Timber.d(serverResponse.getResponseJSONObject().toString());
-                            promise.resolve("ok");
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                final ServerResponse serverResponse = new ServerResponse(response);
+                SignalServer.mainThreadCallback(new Runnable() {
+                    @Override
+                    public void run() {
+                        int timestamp = serverResponse.getResponseJSONObject().optInt("timestamp", 0);
+                        ProtocolStorage signalProtocolStore = new ProtocolStorage(context);
+                        SignalProtocolAddress address = new SignalProtocolAddress(username, 1);
+                        SessionCipher sessionCipher = new SessionCipher(signalProtocolStore, address);
+                        JSONObject requestJSONO = new JSONObject();
+                        JSONObject messageBodyJSONO = new JSONObject();
+                        try {
+                            messageBodyJSONO.put("type", "message");
+                            messageBodyJSONO.put("body", new JSONObject().put("message", messageString));
+                            CiphertextMessage message = sessionCipher.encrypt(messageBodyJSONO.toString().getBytes("UTF-8"));
+                            JSONArray messagesJSONA = new JSONArray();
+                            JSONObject messageJSONO = new JSONObject();
+                            messageJSONO.put("type", 1);
+                            messageJSONO.put("destination", username);
+                            messageJSONO.put("content", Base64.encodeBytesWithoutPadding(String.valueOf(signalProtocolStore.getLocalRegistrationId()).getBytes()));
+                            messageJSONO.put("timestamp", timestamp);
+                            messageJSONO.put("destinationDeviceId", 1);
+                            messageJSONO.put("destinationRegistrationId", sessionCipher.getRemoteRegistrationId());
+                            messageJSONO.put("body", Base64.encodeBytesWithoutPadding(message.serialize()));
+                            messagesJSONA.put(messageJSONO);
+                            requestJSONO.put("messages", messagesJSONA);
+                            SignalServer.call(SignalServer.URL_MESSAGES + "/" + username, "PUT", requestJSONO, new Callback() {
+                                @Override
+                                public void onFailure(Call call, final IOException e) {
+                                    SignalServer.mainThreadCallback(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            promise.reject(ERR_SERVER_FAILED, e.getMessage());
+                                            Timber.d("Signal server failed: %s", e.getMessage());
+                                        }
+                                    });
+                                }
+
+                                @Override
+                                public void onResponse(Call call, Response response) {
+                                    final ServerResponse serverResponse = new ServerResponse(response);
+                                    SignalServer.mainThreadCallback(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            Timber.d(serverResponse.getResponseJSONObject().toString());
+                                            promise.resolve("ok");
+                                        }
+                                    });
+                                }
+                            }, true, timestamp);
+                        } catch (JSONException e) {
+                            promise.reject(ERR_NATIVE_FAILED, e.getMessage());
+                            e.printStackTrace();
+                        } catch (UntrustedIdentityException e) {
+                            promise.reject(ERR_NATIVE_FAILED, e.getMessage());
+                            e.printStackTrace();
+                        } catch (UnsupportedEncodingException e) {
+                            promise.reject(ERR_NATIVE_FAILED, e.getMessage());
+                            e.printStackTrace();
                         }
-                    });
-                }
-            });
-        } catch (JSONException e) {
-            promise.reject(ERR_NATIVE_FAILED, e.getMessage());
-            e.printStackTrace();
-        } catch (UntrustedIdentityException e) {
-            promise.reject(ERR_NATIVE_FAILED, e.getMessage());
-            e.printStackTrace();
-        } catch (UnsupportedEncodingException e) {
-            promise.reject(ERR_NATIVE_FAILED, e.getMessage());
-            e.printStackTrace();
-        } catch (IOException e) {
-            promise.reject(ERR_NATIVE_FAILED, e.getMessage());
-            e.printStackTrace();
-        }
+                    }
+                });
+            };
+        });
     }
 }

@@ -48,28 +48,14 @@ public class SignalServer {
         return call(url, method, new JSONObject(), responseHandler, true);
     }
 
-    public static int requestServerTimestamp() throws IOException {
-        int timestamp = 0;
+    public static OkHttpClient requestServerTimestamp(Callback callback) {
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder().url(getFullApiUrl(URL_ACCOUNTS_BOOTSTRAP)).build();
-        Response response = client.newCall(request).execute();
-        if (response.isSuccessful()){
-            final ServerResponse serverResponse = new ServerResponse(response);
-            timestamp = serverResponse.getResponseJSONObject().optInt("timestamp", 0);
-        }
-        return timestamp;
+        client.newCall(request).enqueue(callback);
+        return client;
     }
 
-    public static OkHttpClient call(String url, String method, JSONObject requestJSONO, Callback responseHandler, boolean async) {
-        int timestamp = 0;
-        try {
-            timestamp = requestServerTimestamp();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        if (timestamp == 0) return null;
-
+    public static OkHttpClient call(String url, String method, JSONObject requestJSONO, Callback responseHandler, boolean async, int timestamp) {
         OkHttpClient.Builder clientBuilder = new OkHttpClient().newBuilder();
 
         method = method != null ? method.toLowerCase().trim() : "";
@@ -117,7 +103,7 @@ public class SignalServer {
             responseHandler = new Callback() {
                 @Override
                 public void onFailure(Call call, IOException e) {
-                    Timber.d("API RESPONSE DEFAULT CALLBACK: %s", e.getMessage(), call);
+                    Timber.d("API RESPONSE DEFAULT CALLBACK: %s", e.getMessage());
                 }
 
                 @Override
@@ -126,7 +112,7 @@ public class SignalServer {
                     SignalServer.mainThreadCallback(new Runnable() {
                         @Override
                         public void run() {
-                            Timber.d("API RESPONSE DEFAULT CALLBACK: ", serverResponse.getResponseJSONObject().toString());
+                            Timber.d("API RESPONSE DEFAULT CALLBACK: %s", serverResponse.getResponseJSONObject().toString());
                         }
                     });
                 }
@@ -147,6 +133,27 @@ public class SignalServer {
         }
 
         return client;
+    }
+
+    public static OkHttpClient call(final String url, final String method, final JSONObject requestJSONO, final Callback responseHandler, final boolean async) {
+        return requestServerTimestamp(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                Timber.d("API RESPONSE DEFAULT CALLBACK: %s", e.getMessage());
+            }
+
+            @Override
+            public void onResponse(final Call call, Response response) throws IOException {
+                final ServerResponse serverResponse = new ServerResponse(response);
+                SignalServer.mainThreadCallback(new Runnable() {
+                    @Override
+                    public void run() {
+                        int timestamp = serverResponse.getResponseJSONObject().optInt("timestamp", 0);
+                        call(url, method, requestJSONO, responseHandler, async, timestamp);
+                    }
+                });
+            }
+        });
     }
 
     private static String getFullApiUrl(String target_url) {

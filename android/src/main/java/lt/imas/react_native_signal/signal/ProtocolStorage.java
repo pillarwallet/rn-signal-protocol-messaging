@@ -69,7 +69,9 @@ public class ProtocolStorage implements SignalProtocolStore {
 
     private void writeToStorageFile(String fileName, String data) {
         try {
-            FileOutputStream fos = context.openFileOutput("signal/" + fileName, Context.MODE_PRIVATE);
+            String path = context.getFilesDir().getAbsolutePath() + "/signal/" + fileName;
+            File file = new File(path);
+            FileOutputStream fos = new FileOutputStream(file, false);
             if (data != null) fos.write(data.getBytes());
             fos.close();
         } catch (IOException e) {
