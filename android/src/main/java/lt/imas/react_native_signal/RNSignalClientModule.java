@@ -8,6 +8,9 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
 
 import org.whispersystems.libsignal.SignalProtocolAddress;
+import org.whispersystems.libsignal.state.SessionRecord;
+
+import java.util.ArrayList;
 
 import lt.imas.react_native_signal.signal.MessageStorage;
 import lt.imas.react_native_signal.signal.SignalClient;
@@ -93,15 +96,14 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void getReceivedMessagesByContact(String username, final Promise promise){
+    public void getChatByContact(String username, final Promise promise){
         MessageStorage messageStorage = new MessageStorage(getReactApplicationContext());
         promise.resolve(messageStorage.getContactMessages(username));
     }
 
     @ReactMethod
-    public void getUnreadMessagesCount(final Promise promise){
-        MessageStorage messageStorage = new MessageStorage(getReactApplicationContext());
-        promise.resolve(messageStorage.getContactMessages(username));
+    public void getUnreadMessagesCountByContact(String username, final Promise promise){
+        signalClient.getContactMessages(username, promise, false);
     }
 
     @ReactMethod

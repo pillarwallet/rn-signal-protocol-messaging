@@ -24,6 +24,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -299,6 +300,31 @@ public class ProtocolStorage implements SignalProtocolStore {
             e.printStackTrace();
         }
         return record;
+    }
+
+
+    public ArrayList<SessionRecord> loadAllSessions() {
+        String data = readFromStorage(SESSIONS_JSON_FILENAME);
+        ArrayList<SessionRecord> records = new ArrayList();
+        if (data == null || data.isEmpty()) return records;
+        try {
+            JSONObject dataJSONO = new JSONObject(data);
+            Iterator<?> keys = dataJSONO.keys();
+            while (keys.hasNext()){
+                String key = (String)keys.next();
+                if (dataJSONO.get(key) instanceof String){
+                    String encodedBytesString = dataJSONO.getString(key);
+                    byte[] sessionBytes = Base64.decodeWithoutPadding(encodedBytesString);
+                    SessionRecord sessionRecord = new SessionRecord(sessionBytes);
+                    records.add(sessionRecord);
+                }
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return records;
     }
 
     @Override

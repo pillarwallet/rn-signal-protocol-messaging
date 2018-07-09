@@ -30,9 +30,9 @@ public class SignalServer {
     public static final String URL_MESSAGES = "/v1/messages";
     public static final String URL_ACCOUNTS_BOOTSTRAP = "/v1/accounts/bootstrap";
     public static final String URL_RECEIPT = "/v1/receipt";
-    private static String username;
-    private static String password;
-    private static String host;
+    public static String username;
+    public static String password;
+    public static String host;
 
     public SignalServer(String host, String username, String password){
         this.host = host;

@@ -388,7 +388,7 @@ public class SignalClient {
                 SignalServer.mainThreadCallback(new Runnable() {
                     @Override
                     public void run() {
-                        int timestamp = serverResponse.getResponseJSONObject().optInt("timestamp", 0);
+                        final int timestamp = serverResponse.getResponseJSONObject().optInt("timestamp", 0);
                         ProtocolStorage signalProtocolStore = new ProtocolStorage(context);
                         SignalProtocolAddress address = new SignalProtocolAddress(username, 1);
                         SessionCipher sessionCipher = new SessionCipher(signalProtocolStore, address);
@@ -428,6 +428,18 @@ public class SignalClient {
                                         @Override
                                         public void run() {
                                             Timber.d(serverResponse.getResponseJSONObject().toString());
+                                            MessageStorage messageStorage = new MessageStorage(context);
+                                            JSONObject messageJSONO = new JSONObject();
+                                            try {
+                                                messageJSONO.put("content", messageString);
+                                                messageJSONO.put("username", signalServer.username);
+                                                messageJSONO.put("device", 1);
+                                                messageJSONO.put("serverTimestamp", timestamp);
+                                                messageJSONO.put("savedTimestamp", timestamp);
+                                                messageStorage.storeMessage(username, messageJSONO);
+                                            } catch (JSONException e) {
+                                                e.printStackTrace();
+                                            }
                                             promise.resolve("ok");
                                         }
                                     });
