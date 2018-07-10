@@ -30,6 +30,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import lt.imas.react_native_signal.helpers.Base64;
+import timber.log.Timber;
 
 public class ProtocolStorage implements SignalProtocolStore {
     private Context context;
@@ -44,7 +45,10 @@ public class ProtocolStorage implements SignalProtocolStore {
     }
 
     private String readFromStorage(String fileName) {
-        String path = context.getFilesDir().getAbsolutePath() + "/signal/" + fileName;
+        String dirPath = context.getFilesDir().getAbsolutePath() + "/signal/";
+        File dir = new File(dirPath);
+        dir.mkdirs();
+        String path = dirPath + fileName;
         File file = new File(path);
         if (file.exists()){
             try {
@@ -70,7 +74,10 @@ public class ProtocolStorage implements SignalProtocolStore {
 
     private void writeToStorageFile(String fileName, String data) {
         try {
-            String path = context.getFilesDir().getAbsolutePath() + "/signal/" + fileName;
+            String dirPath = context.getFilesDir().getAbsolutePath() + "/signal/";
+            File dir = new File(dirPath);
+            dir.mkdirs();
+            String path = dirPath + fileName;
             File file = new File(path);
             FileOutputStream fos = new FileOutputStream(file, false);
             if (data != null) fos.write(data.getBytes());
@@ -136,6 +143,7 @@ public class ProtocolStorage implements SignalProtocolStore {
         IdentityKeyPair identityKeyPair = null;
         try {
             String data = readFromStorage(LOCAL_JSON_FILENAME);
+            Timber.d(data);
             if (data == null || data.isEmpty()) return null;
             JSONObject dataJSONO = new JSONObject(data);
             byte[] keyPairBytes = Base64.decodeWithoutPadding(dataJSONO.getString("identityKeyPair"));

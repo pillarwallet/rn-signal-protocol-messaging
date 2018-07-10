@@ -37,7 +37,10 @@ public class MessageStorage {
     }
 
     private String readFromStorage(String fileName) {
-        String path = context.getFilesDir().getAbsolutePath() + "/messages/" + fileName;
+        String dirPath = context.getFilesDir().getAbsolutePath() + "/messages/";
+        File dir = new File(dirPath);
+        dir.mkdirs();
+        String path = dirPath + fileName;
         File file = new File(path);
         if (file.exists()){
             try {
@@ -63,7 +66,10 @@ public class MessageStorage {
 
     private void writeToStorageFile(String fileName, String data) {
         try {
-            String path = context.getFilesDir().getAbsolutePath() + "/messages/" + fileName;
+            String dirPath = context.getFilesDir().getAbsolutePath() + "/messages/";
+            File dir = new File(dirPath);
+            dir.mkdirs();
+            String path = dirPath + fileName;
             File file = new File(path);
             FileOutputStream fos = new FileOutputStream(file, false);
             if (data != null) fos.write(data.getBytes());
@@ -94,6 +100,9 @@ public class MessageStorage {
     }
 
     public void storeMessage(String username, JSONObject newMessagesJSONO){
+        String dirPath = context.getFilesDir().getAbsolutePath() + "/messages/" + username;
+        File dir = new File(dirPath);
+        dir.mkdirs();
         String userPath = username + "/" + MESSAGES_JSON_FILENAME;
         String data = readFromStorage(userPath);
         if (data == null || data.isEmpty()) data = "[]";
