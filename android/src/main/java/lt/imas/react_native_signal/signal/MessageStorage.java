@@ -37,14 +37,11 @@ public class MessageStorage {
     }
 
     private String readFromStorage(String fileName) {
-        String dirPath = context.getFilesDir().getAbsolutePath() + "/messages/";
-        File dir = new File(dirPath);
-        dir.mkdirs();
-        String path = dirPath + fileName;
-        File file = new File(path);
+        String dirPath = context.getFilesDir().getAbsolutePath() + "/messages";
+        File file = new File(dirPath, fileName);
         if (file.exists()){
             try {
-                FileInputStream fis = context.openFileInput(fileName);
+                FileInputStream fis = new FileInputStream(file);
                 InputStreamReader isr = new InputStreamReader(fis);
                 BufferedReader bufferedReader = new BufferedReader(isr);
                 StringBuilder sb = new StringBuilder();
@@ -66,13 +63,15 @@ public class MessageStorage {
 
     private void writeToStorageFile(String fileName, String data) {
         try {
-            String dirPath = context.getFilesDir().getAbsolutePath() + "/messages/";
-            File dir = new File(dirPath);
-            dir.mkdirs();
-            String path = dirPath + fileName;
-            File file = new File(path);
-            FileOutputStream fos = new FileOutputStream(file, false);
+            String dirPath = context.getFilesDir().getAbsolutePath() + "/messages";
+            File file = new File(dirPath, fileName);
+            file.mkdirs();
+            if (!file.exists()) {
+                file.createNewFile();
+            }
+            FileOutputStream fos = new FileOutputStream(file);
             if (data != null) fos.write(data.getBytes());
+            fos.flush();
             fos.close();
         } catch (IOException e) {
             e.printStackTrace();

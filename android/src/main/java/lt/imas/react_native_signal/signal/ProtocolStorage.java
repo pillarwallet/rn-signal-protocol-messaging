@@ -30,7 +30,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import lt.imas.react_native_signal.helpers.Base64;
-import timber.log.Timber;
 
 public class ProtocolStorage implements SignalProtocolStore {
     private Context context;
@@ -45,14 +44,11 @@ public class ProtocolStorage implements SignalProtocolStore {
     }
 
     private String readFromStorage(String fileName) {
-        String dirPath = context.getFilesDir().getAbsolutePath() + "/signal/";
-        File dir = new File(dirPath);
-        dir.mkdirs();
-        String path = dirPath + fileName;
-        File file = new File(path);
+        String dirPath = context.getFilesDir().getAbsolutePath() + "/signal";
+        File file = new File(dirPath, fileName);
         if (file.exists()){
             try {
-                FileInputStream fis = context.openFileInput(fileName);
+                FileInputStream fis = new FileInputStream(file);
                 InputStreamReader isr = new InputStreamReader(fis);
                 BufferedReader bufferedReader = new BufferedReader(isr);
                 StringBuilder sb = new StringBuilder();
@@ -74,13 +70,15 @@ public class ProtocolStorage implements SignalProtocolStore {
 
     private void writeToStorageFile(String fileName, String data) {
         try {
-            String dirPath = context.getFilesDir().getAbsolutePath() + "/signal/";
-            File dir = new File(dirPath);
-            dir.mkdirs();
-            String path = dirPath + fileName;
-            File file = new File(path);
-            FileOutputStream fos = new FileOutputStream(file, false);
+            String dirPath = context.getFilesDir().getAbsolutePath() + "/signal";
+            File file = new File(dirPath, fileName);
+            file.mkdirs();
+            if (!file.exists()) {
+                file.createNewFile();
+            }
+            FileOutputStream fos = new FileOutputStream(file);
             if (data != null) fos.write(data.getBytes());
+            fos.flush();
             fos.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -103,7 +101,9 @@ public class ProtocolStorage implements SignalProtocolStore {
         try {
             JSONObject dataJSONO = new JSONObject(data);
             return dataJSONO.has("identityKeyPair")
-                || dataJSONO.has("registrationId");
+                && !dataJSONO.isNull("identityKeyPair")
+                && dataJSONO.has("registrationId")
+                && !dataJSONO.isNull("registrationId");
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -115,7 +115,7 @@ public class ProtocolStorage implements SignalProtocolStore {
         if (data == null || data.isEmpty()) data = "{}";
         try {
             JSONObject dataJSONO = new JSONObject(data);
-            if (!dataJSONO.has("identityKeyPair")) {
+            if (!dataJSONO.has("identityKeyPair") || dataJSONO.isNull("identityKeyPair")) {
                 dataJSONO.put("identityKeyPair", Base64.encodeBytesWithoutPadding(identityKeyPair.serialize()));
                 writeToStorageFile(LOCAL_JSON_FILENAME, dataJSONO.toString());
             }
@@ -129,7 +129,7 @@ public class ProtocolStorage implements SignalProtocolStore {
         if (data == null || data.isEmpty()) data = "{}";
         try {
             JSONObject dataJSONO = new JSONObject(data);
-            if (!dataJSONO.has("registrationId")) {
+            if (!dataJSONO.has("registrationId") || dataJSONO.isNull("registrationId")) {
                 dataJSONO.put("registrationId", registrationId);
                 writeToStorageFile(LOCAL_JSON_FILENAME, dataJSONO.toString());
             }
@@ -143,7 +143,6 @@ public class ProtocolStorage implements SignalProtocolStore {
         IdentityKeyPair identityKeyPair = null;
         try {
             String data = readFromStorage(LOCAL_JSON_FILENAME);
-            Timber.d(data);
             if (data == null || data.isEmpty()) return null;
             JSONObject dataJSONO = new JSONObject(data);
             byte[] keyPairBytes = Base64.decodeWithoutPadding(dataJSONO.getString("identityKeyPair"));

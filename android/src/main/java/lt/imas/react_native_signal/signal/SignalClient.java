@@ -120,7 +120,6 @@ public class SignalClient {
                         SignalServer.mainThreadCallback(new Runnable() {
                             @Override
                             public void run() {
-                                Timber.d(serverResponse.getResponseJSONObject().toString());
                                 promise.resolve("ok");
                             }
                         });
@@ -227,7 +226,6 @@ public class SignalClient {
                 SignalServer.mainThreadCallback(new Runnable() {
                     @Override
                     public void run() {
-                        Timber.d(serverResponse.getResponseJSONObject().toString());
                         int preKeyCount = serverResponse.getResponseJSONObject().optInt("count", 0);
                         if (preKeyCount <= 10) {
                             int count = 100 - preKeyCount;
@@ -244,7 +242,10 @@ public class SignalClient {
 
     public void registerAccount(String username, final Promise promise){
         ProtocolStorage signalProtocolStore = new ProtocolStorage(context);
-        if (signalProtocolStore.isLocalRegistered()) return;
+        if (signalProtocolStore.isLocalRegistered()){
+            promise.resolve("ok");
+            return;
+        }
         JSONObject requestJSON = new JSONObject();
         int registrationId = KeyHelper.generateRegistrationId(true);
         signalProtocolStore.storeLocalRegistrationId(registrationId);
@@ -258,6 +259,7 @@ public class SignalClient {
             requestJSON.put("name", username);
             requestJSON.put("voice", false);
         } catch (JSONException e) {
+            promise.reject(ERR_NATIVE_FAILED, e.getMessage());
             e.printStackTrace();
         }
         SignalServer.call(SignalServer.URL_ACCOUNTS, "PUT", requestJSON, new Callback() {
@@ -278,7 +280,6 @@ public class SignalClient {
                 SignalServer.mainThreadCallback(new Runnable() {
                     @Override
                     public void run() {
-                        Timber.d(serverResponse.getResponseJSONObject().toString());
                         registerPreKeys(promise, 0, 100);
                     }
                 });
@@ -427,7 +428,6 @@ public class SignalClient {
                                     SignalServer.mainThreadCallback(new Runnable() {
                                         @Override
                                         public void run() {
-                                            Timber.d(serverResponse.getResponseJSONObject().toString());
                                             MessageStorage messageStorage = new MessageStorage(context);
                                             JSONObject messageJSONO = new JSONObject();
                                             try {
