@@ -1,9 +1,9 @@
 //
-//  swiftManagerBridge.m
-//  myAwesomeProject
+//  SignalMessagingSwiftBridge.m
+//  SignalMessagingSwift
 //
-//  Created by Mantas on 07/07/2018.
-//  Copyright © 2018 Facebook. All rights reserved.
+//  Created by Mantas on 09/07/2018.
+//  Copyright © 2018 Pillar. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>

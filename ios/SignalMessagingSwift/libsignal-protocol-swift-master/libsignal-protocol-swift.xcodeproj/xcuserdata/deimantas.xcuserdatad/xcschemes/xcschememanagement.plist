@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>SchemeUserState</key>
+	<dict>
+		<key>SignalModuleMap.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>82</integer>
+		</dict>
+		<key>libsignal-protocol-swift iOS.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>78</integer>
+		</dict>
+		<key>libsignal-protocol-swift macOS.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>79</integer>
+		</dict>
+		<key>libsignal-protocol-swift tvOS.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>80</integer>
+		</dict>
+		<key>libsignal-protocol-swift watchOS.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>81</integer>
+		</dict>
+	</dict>
+</dict>
+</plist>

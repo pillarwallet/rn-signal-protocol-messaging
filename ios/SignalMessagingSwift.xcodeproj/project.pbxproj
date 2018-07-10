@@ -1,0 +1,475 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		9573BEC820F3D6B700C720C3 /* MessagesStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9573BEBD20F3D6B600C720C3 /* MessagesStorage.swift */; };
+		9573BEC920F3D6B700C720C3 /* SenderKeyStorePillar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9573BEBE20F3D6B600C720C3 /* SenderKeyStorePillar.swift */; };
+		9573BECA20F3D6B700C720C3 /* MessageDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9573BEBF20F3D6B600C720C3 /* MessageDTO.swift */; };
+		9573BECB20F3D6B700C720C3 /* SignalServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9573BEC020F3D6B600C720C3 /* SignalServer.swift */; };
+		9573BECC20F3D6B700C720C3 /* SignedPreKeyStorePillar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9573BEC120F3D6B600C720C3 /* SignedPreKeyStorePillar.swift */; };
+		9573BECD20F3D6B700C720C3 /* IdentityKeyStorePillar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9573BEC220F3D6B600C720C3 /* IdentityKeyStorePillar.swift */; };
+		9573BECE20F3D6B700C720C3 /* ParsedMessageDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9573BEC320F3D6B600C720C3 /* ParsedMessageDTO.swift */; };
+		9573BECF20F3D6B700C720C3 /* SessionStorePillar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9573BEC420F3D6B600C720C3 /* SessionStorePillar.swift */; };
+		9573BED020F3D6B700C720C3 /* SignalClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9573BEC520F3D6B600C720C3 /* SignalClient.swift */; };
+		9573BED120F3D6B700C720C3 /* PreKeyStorePillar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9573BEC620F3D6B600C720C3 /* PreKeyStorePillar.swift */; };
+		9573BED220F3D6B700C720C3 /* ProtocolStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9573BEC720F3D6B700C720C3 /* ProtocolStorage.swift */; };
+		9573BED720F3DDA100C720C3 /* SignalMessagingSwiftBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = 9573BED620F3DDA100C720C3 /* SignalMessagingSwiftBridge.m */; };
+		95A5234320F47B8700EDA8BA /* RNSignalClientModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95A5234220F47B8700EDA8BA /* RNSignalClientModule.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		95A5233620F47B4300EDA8BA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 95A5232D20F47B4300EDA8BA /* libsignal-protocol-swift.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = CE1F0C35203467B3003F1C04;
+			remoteInfo = "libsignal-protocol-swift iOS";
+		};
+		95A5233820F47B4300EDA8BA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 95A5232D20F47B4300EDA8BA /* libsignal-protocol-swift.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = CE1F0C5420346830003F1C04;
+			remoteInfo = "libsignal-protocol-swift macOS";
+		};
+		95A5233A20F47B4300EDA8BA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 95A5232D20F47B4300EDA8BA /* libsignal-protocol-swift.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = CE1F0C612034685B003F1C04;
+			remoteInfo = "libsignal-protocol-swift tvOS";
+		};
+		95A5233C20F47B4300EDA8BA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 95A5232D20F47B4300EDA8BA /* libsignal-protocol-swift.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = CE1F0C6E20346875003F1C04;
+			remoteInfo = "libsignal-protocol-swift watchOS";
+		};
+		95A5233E20F47B4300EDA8BA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 95A5232D20F47B4300EDA8BA /* libsignal-protocol-swift.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = CE1F0C3E203467B3003F1C04;
+			remoteInfo = "libsignal-protocol-swiftTests";
+		};
+		95A5234020F47B5500EDA8BA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 95A5232D20F47B4300EDA8BA /* libsignal-protocol-swift.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = CE1F0C34203467B3003F1C04;
+			remoteInfo = "libsignal-protocol-swift iOS";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		958BF8F720F3CAD8003CF3A0 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "include/$(PRODUCT_NAME)";
+			dstSubfolderSpec = 16;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		9573BEBD20F3D6B600C720C3 /* MessagesStorage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MessagesStorage.swift; path = SignalMessagingSwift/Signal/MessagesStorage.swift; sourceTree = SOURCE_ROOT; };
+		9573BEBE20F3D6B600C720C3 /* SenderKeyStorePillar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = SenderKeyStorePillar.swift; path = SignalMessagingSwift/Signal/SenderKeyStorePillar.swift; sourceTree = SOURCE_ROOT; };
+		9573BEBF20F3D6B600C720C3 /* MessageDTO.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MessageDTO.swift; path = SignalMessagingSwift/Signal/MessageDTO.swift; sourceTree = SOURCE_ROOT; };
+		9573BEC020F3D6B600C720C3 /* SignalServer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = SignalServer.swift; path = SignalMessagingSwift/Signal/SignalServer.swift; sourceTree = SOURCE_ROOT; };
+		9573BEC120F3D6B600C720C3 /* SignedPreKeyStorePillar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = SignedPreKeyStorePillar.swift; path = SignalMessagingSwift/Signal/SignedPreKeyStorePillar.swift; sourceTree = SOURCE_ROOT; };
+		9573BEC220F3D6B600C720C3 /* IdentityKeyStorePillar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = IdentityKeyStorePillar.swift; path = SignalMessagingSwift/Signal/IdentityKeyStorePillar.swift; sourceTree = SOURCE_ROOT; };
+		9573BEC320F3D6B600C720C3 /* ParsedMessageDTO.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ParsedMessageDTO.swift; path = SignalMessagingSwift/Signal/ParsedMessageDTO.swift; sourceTree = SOURCE_ROOT; };
+		9573BEC420F3D6B600C720C3 /* SessionStorePillar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = SessionStorePillar.swift; path = SignalMessagingSwift/Signal/SessionStorePillar.swift; sourceTree = SOURCE_ROOT; };
+		9573BEC520F3D6B600C720C3 /* SignalClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = SignalClient.swift; path = SignalMessagingSwift/Signal/SignalClient.swift; sourceTree = SOURCE_ROOT; };
+		9573BEC620F3D6B600C720C3 /* PreKeyStorePillar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = PreKeyStorePillar.swift; path = SignalMessagingSwift/Signal/PreKeyStorePillar.swift; sourceTree = SOURCE_ROOT; };
+		9573BEC720F3D6B700C720C3 /* ProtocolStorage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ProtocolStorage.swift; path = SignalMessagingSwift/Signal/ProtocolStorage.swift; sourceTree = SOURCE_ROOT; };
+		9573BED520F3D7A700C720C3 /* SignalMessagingSwift-Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "SignalMessagingSwift-Bridging-Header.h"; sourceTree = "<group>"; };
+		9573BED620F3DDA100C720C3 /* SignalMessagingSwiftBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SignalMessagingSwiftBridge.m; sourceTree = "<group>"; };
+		958BF8F920F3CAD8003CF3A0 /* libSignalMessagingSwift.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libSignalMessagingSwift.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		95A5232D20F47B4300EDA8BA /* libsignal-protocol-swift.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "libsignal-protocol-swift.xcodeproj"; path = "SignalMessagingSwift/libsignal-protocol-swift-master/libsignal-protocol-swift.xcodeproj"; sourceTree = SOURCE_ROOT; };
+		95A5234220F47B8700EDA8BA /* RNSignalClientModule.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = RNSignalClientModule.swift; path = SignalMessagingSwift/Signal/RNSignalClientModule.swift; sourceTree = SOURCE_ROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		958BF8F620F3CAD8003CF3A0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		9573BEBC20F3D6A300C720C3 /* SwiftSignal */ = {
+			isa = PBXGroup;
+			children = (
+				95A5232D20F47B4300EDA8BA /* libsignal-protocol-swift.xcodeproj */,
+				9573BEC220F3D6B600C720C3 /* IdentityKeyStorePillar.swift */,
+				95A5234220F47B8700EDA8BA /* RNSignalClientModule.swift */,
+				9573BEBF20F3D6B600C720C3 /* MessageDTO.swift */,
+				9573BEBD20F3D6B600C720C3 /* MessagesStorage.swift */,
+				9573BEC320F3D6B600C720C3 /* ParsedMessageDTO.swift */,
+				9573BEC620F3D6B600C720C3 /* PreKeyStorePillar.swift */,
+				9573BEC720F3D6B700C720C3 /* ProtocolStorage.swift */,
+				9573BEBE20F3D6B600C720C3 /* SenderKeyStorePillar.swift */,
+				9573BEC420F3D6B600C720C3 /* SessionStorePillar.swift */,
+				9573BEC520F3D6B600C720C3 /* SignalClient.swift */,
+				9573BEC020F3D6B600C720C3 /* SignalServer.swift */,
+				9573BEC120F3D6B600C720C3 /* SignedPreKeyStorePillar.swift */,
+			);
+			path = SwiftSignal;
+			sourceTree = "<group>";
+		};
+		958BF8F020F3CAD8003CF3A0 = {
+			isa = PBXGroup;
+			children = (
+				958BF8FB20F3CAD8003CF3A0 /* SignalMessagingSwift */,
+				958BF8FA20F3CAD8003CF3A0 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		958BF8FA20F3CAD8003CF3A0 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				958BF8F920F3CAD8003CF3A0 /* libSignalMessagingSwift.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		958BF8FB20F3CAD8003CF3A0 /* SignalMessagingSwift */ = {
+			isa = PBXGroup;
+			children = (
+				9573BED520F3D7A700C720C3 /* SignalMessagingSwift-Bridging-Header.h */,
+				9573BED620F3DDA100C720C3 /* SignalMessagingSwiftBridge.m */,
+				9573BEBC20F3D6A300C720C3 /* SwiftSignal */,
+			);
+			path = SignalMessagingSwift;
+			sourceTree = "<group>";
+		};
+		95A5232E20F47B4300EDA8BA /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				95A5233720F47B4300EDA8BA /* SignalProtocol.framework */,
+				95A5233920F47B4300EDA8BA /* SignalProtocol.framework */,
+				95A5233B20F47B4300EDA8BA /* SignalProtocol.framework */,
+				95A5233D20F47B4300EDA8BA /* SignalProtocol.framework */,
+				95A5233F20F47B4300EDA8BA /* libsignal-protocol-swiftTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		958BF8F820F3CAD8003CF3A0 /* SignalMessagingSwift */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 958BF90220F3CAD8003CF3A0 /* Build configuration list for PBXNativeTarget "SignalMessagingSwift" */;
+			buildPhases = (
+				958BF8F520F3CAD8003CF3A0 /* Sources */,
+				958BF8F620F3CAD8003CF3A0 /* Frameworks */,
+				958BF8F720F3CAD8003CF3A0 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				95A5234120F47B5500EDA8BA /* PBXTargetDependency */,
+			);
+			name = SignalMessagingSwift;
+			productName = SignalMessagingSwift;
+			productReference = 958BF8F920F3CAD8003CF3A0 /* libSignalMessagingSwift.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		958BF8F120F3CAD8003CF3A0 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0930;
+				ORGANIZATIONNAME = Pillar;
+				TargetAttributes = {
+					958BF8F820F3CAD8003CF3A0 = {
+						CreatedOnToolsVersion = 9.3;
+						LastSwiftMigration = 0930;
+					};
+				};
+			};
+			buildConfigurationList = 958BF8F420F3CAD8003CF3A0 /* Build configuration list for PBXProject "SignalMessagingSwift" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 958BF8F020F3CAD8003CF3A0;
+			productRefGroup = 958BF8FA20F3CAD8003CF3A0 /* Products */;
+			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 95A5232E20F47B4300EDA8BA /* Products */;
+					ProjectRef = 95A5232D20F47B4300EDA8BA /* libsignal-protocol-swift.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				958BF8F820F3CAD8003CF3A0 /* SignalMessagingSwift */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		95A5233720F47B4300EDA8BA /* SignalProtocol.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = SignalProtocol.framework;
+			remoteRef = 95A5233620F47B4300EDA8BA /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		95A5233920F47B4300EDA8BA /* SignalProtocol.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = SignalProtocol.framework;
+			remoteRef = 95A5233820F47B4300EDA8BA /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		95A5233B20F47B4300EDA8BA /* SignalProtocol.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = SignalProtocol.framework;
+			remoteRef = 95A5233A20F47B4300EDA8BA /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		95A5233D20F47B4300EDA8BA /* SignalProtocol.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = SignalProtocol.framework;
+			remoteRef = 95A5233C20F47B4300EDA8BA /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		95A5233F20F47B4300EDA8BA /* libsignal-protocol-swiftTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = "libsignal-protocol-swiftTests.xctest";
+			remoteRef = 95A5233E20F47B4300EDA8BA /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
+/* Begin PBXSourcesBuildPhase section */
+		958BF8F520F3CAD8003CF3A0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9573BEC920F3D6B700C720C3 /* SenderKeyStorePillar.swift in Sources */,
+				9573BED120F3D6B700C720C3 /* PreKeyStorePillar.swift in Sources */,
+				9573BECF20F3D6B700C720C3 /* SessionStorePillar.swift in Sources */,
+				9573BEC820F3D6B700C720C3 /* MessagesStorage.swift in Sources */,
+				9573BECA20F3D6B700C720C3 /* MessageDTO.swift in Sources */,
+				9573BECE20F3D6B700C720C3 /* ParsedMessageDTO.swift in Sources */,
+				9573BED220F3D6B700C720C3 /* ProtocolStorage.swift in Sources */,
+				9573BECB20F3D6B700C720C3 /* SignalServer.swift in Sources */,
+				9573BECD20F3D6B700C720C3 /* IdentityKeyStorePillar.swift in Sources */,
+				9573BED720F3DDA100C720C3 /* SignalMessagingSwiftBridge.m in Sources */,
+				9573BED020F3D6B700C720C3 /* SignalClient.swift in Sources */,
+				9573BECC20F3D6B700C720C3 /* SignedPreKeyStorePillar.swift in Sources */,
+				95A5234320F47B8700EDA8BA /* RNSignalClientModule.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		95A5234120F47B5500EDA8BA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "libsignal-protocol-swift iOS";
+			targetProxy = 95A5234020F47B5500EDA8BA /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		958BF90020F3CAD8003CF3A0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.3;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		958BF90120F3CAD8003CF3A0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.3;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		958BF90320F3CAD8003CF3A0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 5J32DX293G;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/$(PROJECT_NAME)/$(SWIFT_MODULE_NAME)-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 3.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		958BF90420F3CAD8003CF3A0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 5J32DX293G;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/$(PROJECT_NAME)/$(SWIFT_MODULE_NAME)-Bridging-Header.h";
+				SWIFT_VERSION = 3.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		958BF8F420F3CAD8003CF3A0 /* Build configuration list for PBXProject "SignalMessagingSwift" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				958BF90020F3CAD8003CF3A0 /* Debug */,
+				958BF90120F3CAD8003CF3A0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		958BF90220F3CAD8003CF3A0 /* Build configuration list for PBXNativeTarget "SignalMessagingSwift" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				958BF90320F3CAD8003CF3A0 /* Debug */,
+				958BF90420F3CAD8003CF3A0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 958BF8F120F3CAD8003CF3A0 /* Project object */;
+}
