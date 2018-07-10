@@ -64,8 +64,9 @@ public class MessageStorage {
     private void writeToStorageFile(String fileName, String data) {
         try {
             String dirPath = context.getFilesDir().getAbsolutePath() + "/messages";
+            File dir = new File(dirPath);
+            dir.mkdirs();
             File file = new File(dirPath, fileName);
-            file.mkdirs();
             if (!file.exists()) {
                 file.createNewFile();
             }

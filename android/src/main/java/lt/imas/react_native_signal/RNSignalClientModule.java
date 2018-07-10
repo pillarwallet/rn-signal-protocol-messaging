@@ -107,7 +107,7 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void getChatByContact(String username, final Promise promise){
         MessageStorage messageStorage = new MessageStorage(getReactApplicationContext());
-        promise.resolve(messageStorage.getContactMessages(username));
+        promise.resolve(messageStorage.getContactMessages(username).toString());
     }
 
     @ReactMethod
