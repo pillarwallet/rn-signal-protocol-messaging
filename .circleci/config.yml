@@ -18,6 +18,11 @@ jobs:
       - run:
           name: Publish Package to Artifactory
           command: npm publish --registry https://pillarproject.jfrog.io/pillarproject/api/npm/npm/
+      - run:
+          name: Announce Publish
+          command: |
+            chmod +x .circleci/announcePublish.sh
+            .circleci/announcePublish.sh "Signal Protocol React Native module" "$(node -e "console.log(require('./package.json').name)")@$(node -e "console.log(require('./package.json').version)")"
 
 workflows:
   version: 2
