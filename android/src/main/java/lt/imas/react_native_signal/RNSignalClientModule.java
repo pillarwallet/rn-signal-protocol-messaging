@@ -77,7 +77,11 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void addContact(String username, Promise promise){
-        signalClient.requestPreKeys(username, promise);
+        ProtocolStorage protocolStorage = new ProtocolStorage(getReactApplicationContext());
+        SignalProtocolAddress address = new SignalProtocolAddress(username, 1);
+        if (!protocolStorage.containsSession(address)){
+            signalClient.requestPreKeys(username, promise);
+        }
     }
 
     @ReactMethod
