@@ -146,6 +146,7 @@ public class ProtocolStorage implements SignalProtocolStore {
             String data = readFromStorage(LOCAL_JSON_FILENAME);
             if (data == null || data.isEmpty()) return null;
             JSONObject dataJSONO = new JSONObject(data);
+            if (!dataJSONO.has("identityKeyPair") || dataJSONO.isNull("identityKeyPair")) return null;
             byte[] keyPairBytes = Base64.decodeWithoutPadding(dataJSONO.getString("identityKeyPair"));
             identityKeyPair = new IdentityKeyPair(keyPairBytes);
         } catch (JSONException e) {
@@ -165,6 +166,7 @@ public class ProtocolStorage implements SignalProtocolStore {
             String data = readFromStorage(LOCAL_JSON_FILENAME);
             if (data == null || data.isEmpty()) return localRegistrationId;
             JSONObject dataJSONO = new JSONObject(data);
+            if (!dataJSONO.has("registrationId") || dataJSONO.isNull("registrationId")) return localRegistrationId;
             localRegistrationId = dataJSONO.getInt("registrationId");
         } catch (JSONException e) {
             e.printStackTrace();
