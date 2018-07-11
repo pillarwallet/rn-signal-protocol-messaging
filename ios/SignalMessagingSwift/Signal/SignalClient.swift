@@ -43,6 +43,12 @@ class SignalClient: NSObject {
             failure(ERR_NATIVE_FAILED, "Store is invalid")
             return
         }
+        
+        guard store.identityKeyStore.localRegistrationId == nil else {
+            success("ok")
+            return
+        }
+        
         store.identityKeyStore.destroy()
         
         var registrationId: UInt32

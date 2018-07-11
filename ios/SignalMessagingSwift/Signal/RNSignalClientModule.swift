@@ -70,6 +70,11 @@ class RNSignalClientModule: NSObject {
     }
     
     @objc func addContact(_ username: String, _ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        let address = SignalAddress(name: username, deviceId: 1)
+        if self.signalClient.store?.sessionStore.containsSession(address) {
+            self.signalClient.store?.sessionStore.deleteSession(address)
+        }
+        
         self.signalClient.requestPreKeys(username: username, success: { (success) in
             resolve(success)
         }) { (error, message) in
@@ -82,7 +87,7 @@ class RNSignalClientModule: NSObject {
         resolve("ok")
     }
     
-    @objc func receiveNewMessageByContact(_ username: String, _ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc func receiveNewMessagesByContact(_ username: String, _ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         self.signalClient.getContactMessages(username: username, decodeAndSave: true, success: { (success) in
             resolve(success)
         }) { (error, message) in
@@ -90,20 +95,20 @@ class RNSignalClientModule: NSObject {
         }
     }
     
-    @objc func getReceivedMessagesByContact(_ username: String, _ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc func getChatByContact(_ username: String, _ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         let messages = MessagesStorage().getMessages(for: username).compactMap { (message) -> [String : Any]? in
             return message.dictionary
         }
         
-        resolve(messages)
+        resolve(messages.description)
     }
     
-    @objc func getUnreadMessagesCount(_ username: String, _ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc func getUnreadMessagesCountByContact(_ username: String, _ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         let count = MessagesStorage().getUnreadCount(for: username)
         resolve(count)
     }
     
-    @objc func sendMessage(_ receiver: String, message: String, _ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc func sendMessageByContact(_ username: String, message: String, _ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         self.signalClient.sendMessage(username: username, messageString: message, success: { (success) in
             resolve(success)
         }) { (error, message) in

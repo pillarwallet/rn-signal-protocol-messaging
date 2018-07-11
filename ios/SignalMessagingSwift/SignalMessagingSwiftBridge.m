@@ -17,9 +17,9 @@ RCT_EXTERN_METHOD(resetAccount: (RCTPromiseResolveBlock)resolve rejecter:(RCTPro
 RCT_EXTERN_METHOD(addContact:(NSString *)username resolve: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject);
 RCT_EXTERN_METHOD(deleteContact:(NSString *)username resolve: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject);
 
-RCT_EXTERN_METHOD(receiveNewMessageByContact:(NSString *)username resolve: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject);
-RCT_EXTERN_METHOD(getReceivedMessagesByContact:(NSString *)username resolve: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject;
-RCT_EXTERN_METHOD(getUnreadMessagesCount:(NSString *)username resolve: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject);
-RCT_EXTERN_METHOD(sendMessage:(NSString *)receiver messageString:(NSString *)messageString resolve: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject);
+RCT_EXTERN_METHOD(receiveNewMessagesByContact:(NSString *)username resolve: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject);
+RCT_EXTERN_METHOD(getChatByContact:(NSString *)username resolve: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject;
+RCT_EXTERN_METHOD(getUnreadMessagesCountByContact:(NSString *)username resolve: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject);
+RCT_EXTERN_METHOD(sendMessageByContact:(NSString *)username messageString:(NSString *)messageString resolve: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject);
 
 @end
