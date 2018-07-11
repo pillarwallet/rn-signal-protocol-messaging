@@ -36,7 +36,7 @@ class SignalClient: NSObject {
         return nil
     }
     
-   // RCTPromiseRejectBlock)(NSString *code, NSString *message, NSError *error);
+    // RCTPromiseRejectBlock)(NSString *code, NSString *message, NSError *error);
     
     func register(success: @escaping (_ success: String) -> Void, failure: @escaping (_ error: String, _ message: String) -> Void) {
         guard let store = self.store() else {
@@ -44,7 +44,7 @@ class SignalClient: NSObject {
             return
         }
         
-        guard store.identityKeyStore.localRegistrationId == nil else {
+        guard store.identityKeyStore.localRegistrationId() == nil else {
             success("ok")
             return
         }
@@ -73,8 +73,8 @@ class SignalClient: NSObject {
         
         self.signalServer.call(urlPath: URL_ACCOUNTS, method: .PUT, parameters: parameters, success: { (dict) in
             do {
-               try self.register(success: { (success) in
-                    success(success)
+                try self.registerPreKeys(store: store, success: { (response) in
+                    success(response)
                 }, failure: { (error, message) in
                     failure(error, message)
                 })

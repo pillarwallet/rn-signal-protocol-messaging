@@ -43,16 +43,25 @@ class RNSignalClientModule: NSObject {
     }
     
     func test() {
-        self.registerAccount { (response) in
-            self.addContact("mantas35", { (response) in
-                self.sendMessage("mantas35", message: "hello", { (response) in
+        
+        self.registerAccount({ (resolve) in
+            self.addContact("mantas20", { (respolve) in
+                self.sendMessageByContact("mantas20", message: "hello", { (resolve) in
+                    
+                }, rejecter: { (error, message, err) in
                     
                 })
                 
-                self.receiveNewMessageByContact("mantas35", { (response) in
+                self.receiveNewMessagesByContact("mantas20", { (resolve) in
+                    
+                }, rejecter: { (error, message, err) in
                     
                 })
+            }, rejecter: { (error, message, err) in
+                
             })
+        }) { (error, message, err) in
+            
         }
     }
     
@@ -60,7 +69,7 @@ class RNSignalClientModule: NSObject {
         self.signalClient.register(success: { (success) in
             resolve(success)
         }) { (error, message) in
-            reject(error, message)
+            reject(error, message, nil)
         }
     }
     
@@ -71,14 +80,14 @@ class RNSignalClientModule: NSObject {
     
     @objc func addContact(_ username: String, _ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         let address = SignalAddress(name: username, deviceId: 1)
-        if self.signalClient.store?.sessionStore.containsSession(address) {
-            self.signalClient.store?.sessionStore.deleteSession(address)
+        if let result = self.signalClient.store()?.sessionStore.containsSession(for: address), result == true {
+            self.signalClient.store()?.sessionStore.deleteSession(for: address)
         }
         
         self.signalClient.requestPreKeys(username: username, success: { (success) in
             resolve(success)
         }) { (error, message) in
-            reject(error, message)
+            reject(error, message, nil)
         }
     }
     
@@ -91,7 +100,7 @@ class RNSignalClientModule: NSObject {
         self.signalClient.getContactMessages(username: username, decodeAndSave: true, success: { (success) in
             resolve(success)
         }) { (error, message) in
-            reject(error, message)
+            reject(error, message, nil)
         }
     }
     
@@ -112,7 +121,7 @@ class RNSignalClientModule: NSObject {
         self.signalClient.sendMessage(username: username, messageString: message, success: { (success) in
             resolve(success)
         }) { (error, message) in
-            reject(error, message)
+            reject(error, message, nil)
         }
     }
 }
