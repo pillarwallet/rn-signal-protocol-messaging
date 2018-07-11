@@ -13,10 +13,14 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.whispersystems.libsignal.SignalProtocolAddress;
 import org.whispersystems.libsignal.state.SessionRecord;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 import lt.imas.react_native_signal.signal.MessageStorage;
 import lt.imas.react_native_signal.signal.SignalClient;
@@ -107,12 +111,31 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void getChatByContact(String username, final Promise promise){
         MessageStorage messageStorage = new MessageStorage(getReactApplicationContext());
-        promise.resolve(messageStorage.getContactMessages(username).toString());
+        JSONArray messagesJSONA = messageStorage.getContactMessages(username);
+        ArrayList<JSONObject> messagesList = new ArrayList<JSONObject>();
+        for (int i = 0; i < messagesJSONA.length(); i++) messagesList.add(messagesJSONA.optJSONObject(i));
+        Collections.sort(messagesList, new Comparator<JSONObject>() {
+            @Override
+            public int compare(JSONObject o1, JSONObject o2) {
+                long ts1 = o1.optLong("savedTimestamp");
+                long ts2 = o2.optLong("savedTimestamp");
+                return Long.compare(ts2, ts1);
+            }
+        });
+        messagesJSONA = new JSONArray(messagesList);
+        promise.resolve(messagesJSONA.toString());
     }
 
     @ReactMethod
     public void getUnreadMessagesCountByContact(String username, final Promise promise){
         signalClient.getContactMessages(username, promise, false);
+    }
+
+    @ReactMethod
+    public void getExistingChats(final Promise promise){
+        MessageStorage messageStorage = new MessageStorage(getReactApplicationContext());
+        JSONArray chatsJSONA = messageStorage.getExistingChats();
+        promise.resolve(chatsJSONA.toString());
     }
 
     @ReactMethod

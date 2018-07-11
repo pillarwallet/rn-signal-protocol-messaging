@@ -2,6 +2,8 @@ package lt.imas.react_native_signal.signal;
 
 import android.content.Context;
 
+import com.facebook.react.bridge.Promise;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -126,5 +128,26 @@ public class MessageStorage {
             e.printStackTrace();
         }
         return messagesJSONA;
+    }
+
+    public JSONArray getExistingChats() {
+        JSONArray chatsJSONA = new JSONArray();
+        String dirPath = context.getFilesDir().getAbsolutePath() + "/messages";
+        File directory = new File(dirPath);
+        File[] files = directory.listFiles();
+        for (int i = 0; i < files.length; i++){
+            String username = files[i].getName();
+            try {
+                JSONObject chatJSONO = new JSONObject();
+                JSONArray messagesJSONA = getContactMessages(username);
+                chatJSONO.put("username", username);
+                if (messagesJSONA.length() != 0) chatJSONO.put("lastMessage", messagesJSONA.get(messagesJSONA.length()-1));
+                chatJSONO.put("unread", 0);
+                chatsJSONA.put(chatJSONO);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        return chatsJSONA;
     }
 }
