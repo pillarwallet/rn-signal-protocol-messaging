@@ -3,6 +3,7 @@ package lt.imas.react_native_signal.signal;
 import android.content.Context;
 
 import com.facebook.react.bridge.Promise;
+import com.google.protobuf.ByteString;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -15,6 +16,7 @@ import org.whispersystems.libsignal.InvalidKeyIdException;
 import org.whispersystems.libsignal.InvalidMessageException;
 import org.whispersystems.libsignal.InvalidVersionException;
 import org.whispersystems.libsignal.LegacyMessageException;
+import org.whispersystems.libsignal.NoSessionException;
 import org.whispersystems.libsignal.SessionBuilder;
 import org.whispersystems.libsignal.SessionCipher;
 import org.whispersystems.libsignal.SignalProtocolAddress;
@@ -24,6 +26,8 @@ import org.whispersystems.libsignal.ecc.ECKeyPair;
 import org.whispersystems.libsignal.ecc.ECPublicKey;
 import org.whispersystems.libsignal.protocol.CiphertextMessage;
 import org.whispersystems.libsignal.protocol.PreKeySignalMessage;
+import org.whispersystems.libsignal.protocol.SignalMessage;
+import org.whispersystems.libsignal.protocol.SignalProtos;
 import org.whispersystems.libsignal.state.PreKeyBundle;
 import org.whispersystems.libsignal.state.PreKeyRecord;
 import org.whispersystems.libsignal.state.SignedPreKeyRecord;
@@ -177,17 +181,17 @@ public class SignalClient {
                             IdentityKey identityKey = new IdentityKey(Base64.decodeWithoutPadding(identityKeyString), 0);
 
                             PreKeyBundle preKeyBundle = new PreKeyBundle(
-                                    firstDevice.getInt("registrationId"),
-                                    firstDevice.getInt("deviceId"),
-                                    preKeyJSONO.getInt("keyId"),
-                                    preKeyPublic,
-                                    signedPreKeyJSONO.getInt("keyId"),
-                                    signedPreKeyPublic,
-                                    Base64.decodeWithoutPadding(signedPreKeySignature),
-                                    identityKey
+                                firstDevice.getInt("registrationId"),
+                                firstDevice.getInt("deviceId"),
+                                preKeyJSONO.getInt("keyId"),
+                                preKeyPublic,
+                                signedPreKeyJSONO.getInt("keyId"),
+                                signedPreKeyPublic,
+                                Base64.decodeWithoutPadding(signedPreKeySignature),
+                                identityKey
                             );
-                            promise.resolve("ok");
                             sessionBuilder.process(preKeyBundle);
+                            promise.resolve("ok");
                         } catch (JSONException e) {
                             promise.reject(ERR_NATIVE_FAILED, e.getMessage());
                             e.printStackTrace();
@@ -322,7 +326,7 @@ public class SignalClient {
                                     JSONObject newMessageJSONO = new JSONObject();
                                     if (decodeAndSave) {
                                         SessionCipher sessionCipher = new SessionCipher(signalProtocolStore, address);
-                                        PreKeySignalMessage signalMessage = new PreKeySignalMessage(Base64.decodeWithoutPadding(messageString));
+                                        SignalMessage signalMessage = new SignalMessage(Base64.decode(messageString));
                                         byte[] messageBytes = sessionCipher.decrypt(signalMessage);
                                         String messageBodyString = new String(messageBytes, "UTF-8");
                                         int serverTimestamp = messageJSONO.optInt("timestamp", 0);
@@ -334,7 +338,7 @@ public class SignalClient {
                                         newMessageJSONO.put("savedTimestamp", currentUnixTime);
                                         messageStorage.storeMessage(address.getName(), newMessageJSONO);
                                         receivedMessagesJSONA.put(newMessageJSONO);
-                                        signalServer.call(SignalServer.URL_RECEIPT + "/" + username + "/" + serverTimestamp, "DELETE", null, null, false);
+                                        signalServer.call(SignalServer.URL_MESSAGES + "/" + address.getName() + "/" + serverTimestamp, "DELETE", null, null, true, serverTimestamp);
                                     }
                                 }
                             }
@@ -348,26 +352,19 @@ public class SignalClient {
                         } catch (IOException e) {
                             promise.reject(ERR_NATIVE_FAILED, e.getMessage());
                             e.printStackTrace();
-                        } catch (InvalidVersionException e) {
-                            promise.reject(ERR_NATIVE_FAILED, e.getMessage());
-                            e.printStackTrace();
                         } catch (InvalidMessageException e) {
                             promise.reject(ERR_NATIVE_FAILED, e.getMessage());
                             e.printStackTrace();
                         } catch (DuplicateMessageException e) {
                             promise.reject(ERR_NATIVE_FAILED, e.getMessage());
                             e.printStackTrace();
-                        } catch (InvalidKeyException e) {
-                            promise.reject(ERR_NATIVE_FAILED, e.getMessage());
-                            e.printStackTrace();
                         } catch (UntrustedIdentityException e) {
-                            promise.reject(ERR_NATIVE_FAILED, e.getMessage());
-                            e.printStackTrace();
-                        } catch (InvalidKeyIdException e) {
                             promise.reject(ERR_NATIVE_FAILED, e.getMessage());
                             e.printStackTrace();
                         } catch (LegacyMessageException e) {
                             promise.reject(ERR_NATIVE_FAILED, e.getMessage());
+                            e.printStackTrace();
+                        } catch (NoSessionException e) {
                             e.printStackTrace();
                         }
                     }
@@ -396,9 +393,9 @@ public class SignalClient {
                         JSONObject requestJSONO = new JSONObject();
                         JSONObject messageBodyJSONO = new JSONObject();
                         try {
-                            messageBodyJSONO.put("type", "message");
-                            messageBodyJSONO.put("body", new JSONObject().put("message", messageString));
-                            CiphertextMessage message = sessionCipher.encrypt(messageBodyJSONO.toString().getBytes("UTF-8"));
+//                            messageBodyJSONO.put("type", "message");
+//                            messageBodyJSONO.put("body", new JSONObject().put("message", messageString));
+                            CiphertextMessage message = sessionCipher.encrypt(messageString.toString().getBytes("UTF-8"));
                             JSONArray messagesJSONA = new JSONArray();
                             JSONObject messageJSONO = new JSONObject();
                             messageJSONO.put("type", 1);
@@ -407,7 +404,7 @@ public class SignalClient {
                             messageJSONO.put("timestamp", timestamp);
                             messageJSONO.put("destinationDeviceId", 1);
                             messageJSONO.put("destinationRegistrationId", sessionCipher.getRemoteRegistrationId());
-                            messageJSONO.put("body", Base64.encodeBytesWithoutPadding(message.serialize()));
+                            messageJSONO.put("body", Base64.encodeBytes(message.serialize()));
                             messagesJSONA.put(messageJSONO);
                             requestJSONO.put("messages", messagesJSONA);
                             SignalServer.call(SignalServer.URL_MESSAGES + "/" + username, "PUT", requestJSONO, new Callback() {
@@ -452,7 +449,6 @@ public class SignalClient {
                             promise.reject(ERR_NATIVE_FAILED, e.getMessage());
                             e.printStackTrace();
                         } catch (UnsupportedEncodingException e) {
-                            promise.reject(ERR_NATIVE_FAILED, e.getMessage());
                             e.printStackTrace();
                         }
                     }
