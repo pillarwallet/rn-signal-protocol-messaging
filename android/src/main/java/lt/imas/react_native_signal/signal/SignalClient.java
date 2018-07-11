@@ -317,54 +317,73 @@ public class SignalClient {
                             ProtocolStorage signalProtocolStore = new ProtocolStorage(context);
                             MessageStorage messageStorage = new MessageStorage(context);
                             for (int i=0;i<messagesJSONA.length(); i++) {
-                                JSONObject messageJSONO = messagesJSONA.getJSONObject(i);
-                                String messageString = messageJSONO.getString("message");
-                                SignalProtocolAddress address = new SignalProtocolAddress(messageJSONO.getString("source"), 1);
-                                if (username.equals(address.getName()) && signalProtocolStore.containsSession(address)) {
-                                    int unreadCount = unreadJSONO.optInt(username, 0);
-                                    unreadJSONO.put(username, unreadCount+1);
-                                    JSONObject newMessageJSONO = new JSONObject();
-                                    if (decodeAndSave) {
-                                        SessionCipher sessionCipher = new SessionCipher(signalProtocolStore, address);
-                                        SignalMessage signalMessage = new SignalMessage(Base64.decode(messageString));
-                                        byte[] messageBytes = sessionCipher.decrypt(signalMessage);
-                                        String messageBodyString = new String(messageBytes, "UTF-8");
-                                        int serverTimestamp = messageJSONO.optInt("timestamp", 0);
-                                        int currentUnixTime = Integer.parseInt(String.valueOf(System.currentTimeMillis()/1000L));
-                                        newMessageJSONO.put("content", messageBodyString);
-                                        newMessageJSONO.put("username", address.getName());
-                                        newMessageJSONO.put("device", address.getDeviceId());
-                                        newMessageJSONO.put("serverTimestamp", serverTimestamp);
-                                        newMessageJSONO.put("savedTimestamp", currentUnixTime);
-                                        messageStorage.storeMessage(address.getName(), newMessageJSONO);
-                                        receivedMessagesJSONA.put(newMessageJSONO);
-                                        signalServer.call(SignalServer.URL_MESSAGES + "/" + address.getName() + "/" + serverTimestamp, "DELETE", null, null, true, serverTimestamp);
+                                try {
+                                    JSONObject messageJSONO = messagesJSONA.getJSONObject(i);
+                                    String messageString = messageJSONO.getString("message");
+                                    SignalProtocolAddress address = new SignalProtocolAddress(messageJSONO.getString("source"), 1);
+                                    if (username.equals(address.getName()) && signalProtocolStore.containsSession(address)) {
+                                        int unreadCount = unreadJSONO.optInt(username, 0);
+                                        unreadJSONO.put(username, unreadCount+1);
+                                        JSONObject newMessageJSONO = new JSONObject();
+                                        if (decodeAndSave) {
+                                            long serverTimestamp = messageJSONO.optLong("timestamp", 0);
+                                            if (messageString != null && !messageString.isEmpty()){
+                                                byte[] messageBytes = null;
+                                                SessionCipher sessionCipher = new SessionCipher(signalProtocolStore, address);
+                                                try {
+                                                    PreKeySignalMessage signalMessage = new PreKeySignalMessage(Base64.decode(messageString));
+                                                    messageBytes = sessionCipher.decrypt(signalMessage);
+                                                } catch (InvalidVersionException | InvalidMessageException | InvalidKeyException e) {
+                                                    SignalMessage signalMessage = new SignalMessage(Base64.decode(messageString));
+                                                    messageBytes = sessionCipher.decrypt(signalMessage);
+                                                }
+                                                if (messageBytes != null){
+                                                    String messageBodyString = new String(messageBytes, "UTF-8");
+                                                    int currentUnixTime = Integer.parseInt(String.valueOf(System.currentTimeMillis()/1000L));
+                                                    newMessageJSONO.put("content", messageBodyString);
+                                                    newMessageJSONO.put("username", address.getName());
+                                                    newMessageJSONO.put("device", address.getDeviceId());
+                                                    newMessageJSONO.put("serverTimestamp", serverTimestamp);
+                                                    newMessageJSONO.put("savedTimestamp", currentUnixTime);
+                                                    messageStorage.storeMessage(address.getName(), newMessageJSONO);
+                                                    receivedMessagesJSONA.put(newMessageJSONO);
+                                                }
+                                            }
+                                            signalServer.call(SignalServer.URL_MESSAGES + "/" + address.getName() + "/" + serverTimestamp, "DELETE", null, null, true);
+                                        }
                                     }
+                                } catch (JSONException e) {
+                                    promise.reject(ERR_NATIVE_FAILED, e.getMessage());
+                                    e.printStackTrace();
+                                } catch (IOException e) {
+                                    promise.reject(ERR_NATIVE_FAILED, e.getMessage());
+                                    e.printStackTrace();
+                                } catch (DuplicateMessageException e) {
+                                    promise.reject(ERR_NATIVE_FAILED, e.getMessage());
+                                    e.printStackTrace();
+                                } catch (UntrustedIdentityException e) {
+                                    promise.reject(ERR_NATIVE_FAILED, e.getMessage());
+                                    e.printStackTrace();
+                                } catch (InvalidKeyIdException e) {
+                                    promise.reject(ERR_NATIVE_FAILED, e.getMessage());
+                                    e.printStackTrace();
+                                } catch (LegacyMessageException e) {
+                                    promise.reject(ERR_NATIVE_FAILED, e.getMessage());
+                                    e.printStackTrace();
+                                } catch (InvalidMessageException e) {
+                                    promise.reject(ERR_NATIVE_FAILED, e.getMessage());
+                                    e.printStackTrace();
                                 }
                             }
                             JSONObject promiseJSONO = new JSONObject();
                             promiseJSONO.put("unreadCount", unreadJSONO);
                             if (receivedMessagesJSONA.length() != 0) promiseJSONO.put("messages", receivedMessagesJSONA);
-                            promise.resolve(promiseJSONO);
+                            promise.resolve(promiseJSONO.toString());
+                        } catch (NoSessionException e) {
+                            promise.reject(ERR_NATIVE_FAILED, e.getMessage());
+                            e.printStackTrace();
                         } catch (JSONException e) {
                             promise.reject(ERR_NATIVE_FAILED, e.getMessage());
-                            e.printStackTrace();
-                        } catch (IOException e) {
-                            promise.reject(ERR_NATIVE_FAILED, e.getMessage());
-                            e.printStackTrace();
-                        } catch (InvalidMessageException e) {
-                            promise.reject(ERR_NATIVE_FAILED, e.getMessage());
-                            e.printStackTrace();
-                        } catch (DuplicateMessageException e) {
-                            promise.reject(ERR_NATIVE_FAILED, e.getMessage());
-                            e.printStackTrace();
-                        } catch (UntrustedIdentityException e) {
-                            promise.reject(ERR_NATIVE_FAILED, e.getMessage());
-                            e.printStackTrace();
-                        } catch (LegacyMessageException e) {
-                            promise.reject(ERR_NATIVE_FAILED, e.getMessage());
-                            e.printStackTrace();
-                        } catch (NoSessionException e) {
                             e.printStackTrace();
                         }
                     }
@@ -393,9 +412,9 @@ public class SignalClient {
                         JSONObject requestJSONO = new JSONObject();
                         JSONObject messageBodyJSONO = new JSONObject();
                         try {
-//                            messageBodyJSONO.put("type", "message");
-//                            messageBodyJSONO.put("body", new JSONObject().put("message", messageString));
-                            CiphertextMessage message = sessionCipher.encrypt(messageString.toString().getBytes("UTF-8"));
+                            messageBodyJSONO.put("type", "message");
+                            messageBodyJSONO.put("body", new JSONObject().put("message", messageString));
+                            CiphertextMessage message = sessionCipher.encrypt(messageString.getBytes("UTF-8"));
                             JSONArray messagesJSONA = new JSONArray();
                             JSONObject messageJSONO = new JSONObject();
                             messageJSONO.put("type", 1);
