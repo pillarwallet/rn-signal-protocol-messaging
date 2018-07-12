@@ -31,6 +31,7 @@ import org.whispersystems.libsignal.protocol.SignalProtos;
 import org.whispersystems.libsignal.state.PreKeyBundle;
 import org.whispersystems.libsignal.state.PreKeyRecord;
 import org.whispersystems.libsignal.state.SignedPreKeyRecord;
+import org.whispersystems.libsignal.util.ByteUtil;
 import org.whispersystems.libsignal.util.KeyHelper;
 import org.whispersystems.libsignal.util.Medium;
 
@@ -80,7 +81,7 @@ public class SignalClient {
             for (PreKeyRecord preKeyRecord : preKeys){
                 preKeysJSONA.put(new JSONObject()
                         .put("keyId", preKeyRecord.getId())
-                        .put("publicKey", Base64.encodeBytesWithoutPadding(preKeyRecord.getKeyPair().getPublicKey().serialize()))
+                        .put("publicKey", Base64.encodeBytes(preKeyRecord.getKeyPair().getPublicKey().serialize()))
                 );
                 signalProtocolStore.storePreKey(preKeyRecord.getId(), preKeyRecord);
             }
@@ -97,14 +98,14 @@ public class SignalClient {
             if (lastResortKey != null) {
                 requestJSON.put("lastResortKey", new JSONObject()
                         .put("keyId", lastResortKey.getId())
-                        .put("publicKey", Base64.encodeBytesWithoutPadding(lastResortKey.getKeyPair().getPublicKey().serialize())
+                        .put("publicKey", Base64.encodeBytes(lastResortKey.getKeyPair().getPublicKey().serialize())
                         ));
                 requestJSON.put("preKeys", preKeysJSONA);
-                requestJSON.put("identityKey", Base64.encodeBytesWithoutPadding(identityKeyPair.getPublicKey().serialize()));
+                requestJSON.put("identityKey", Base64.encodeBytes(identityKeyPair.getPublicKey().serialize()));
                 requestJSON.put("signedPreKey", new JSONObject()
                         .put("keyId", signedPreKey.getId())
-                        .put("publicKey", Base64.encodeBytesWithoutPadding(signedPreKey.getKeyPair().getPublicKey().serialize()))
-                        .put("signature", Base64.encodeBytesWithoutPadding(signedPreKey.getSignature()))
+                        .put("publicKey", Base64.encodeBytes(signedPreKey.getKeyPair().getPublicKey().serialize()))
+                        .put("signature", Base64.encodeBytes(signedPreKey.getSignature()))
                 );
                 SignalServer.call(SignalServer.URL_KEYS, "PUT", requestJSON, new Callback() {
                     @Override
@@ -170,15 +171,15 @@ public class SignalClient {
 
                             JSONObject preKeyJSONO = firstDevice.getJSONObject("preKey");
                             String preKeyPublicString = preKeyJSONO.getString("publicKey");
-                            ECPublicKey preKeyPublic = Curve.decodePoint(Base64.decodeWithoutPadding(preKeyPublicString), 0);
+                            ECPublicKey preKeyPublic = Curve.decodePoint(Base64.decode(preKeyPublicString), 0);
 
                             JSONObject signedPreKeyJSONO = firstDevice.getJSONObject("signedPreKey");
                             String signedPreKeySignature = signedPreKeyJSONO.getString("signature");
                             String signedPreKeyPublicString = signedPreKeyJSONO.getString("publicKey");
-                            ECPublicKey signedPreKeyPublic = Curve.decodePoint(Base64.decodeWithoutPadding(signedPreKeyPublicString), 0);
+                            ECPublicKey signedPreKeyPublic = Curve.decodePoint(Base64.decode(signedPreKeyPublicString), 0);
 
                             String identityKeyString = responseJSONO.getString("identityKey");
-                            IdentityKey identityKey = new IdentityKey(Base64.decodeWithoutPadding(identityKeyString), 0);
+                            IdentityKey identityKey = new IdentityKey(Base64.decode(identityKeyString), 0);
 
                             PreKeyBundle preKeyBundle = new PreKeyBundle(
                                 firstDevice.getInt("registrationId"),
@@ -187,7 +188,7 @@ public class SignalClient {
                                 preKeyPublic,
                                 signedPreKeyJSONO.getInt("keyId"),
                                 signedPreKeyPublic,
-                                Base64.decodeWithoutPadding(signedPreKeySignature),
+                                Base64.decode(signedPreKeySignature),
                                 identityKey
                             );
                             sessionBuilder.process(preKeyBundle);
@@ -255,7 +256,7 @@ public class SignalClient {
         signalProtocolStore.storeLocalRegistrationId(registrationId);
         byte[] bytes = new byte[52];
         new SecureRandom().nextBytes(bytes);
-        String signalingKey = Base64.encodeBytesWithoutPadding(bytes);
+        String signalingKey = Base64.encodeBytes(bytes);
         try {
             requestJSON.put("signalingKey", signalingKey);
             requestJSON.put("fetchesMessages", true);
@@ -333,7 +334,7 @@ public class SignalClient {
                                                 try {
                                                     PreKeySignalMessage signalMessage = new PreKeySignalMessage(Base64.decode(messageString));
                                                     messageBytes = sessionCipher.decrypt(signalMessage);
-                                                } catch (InvalidVersionException | InvalidMessageException | InvalidKeyException e) {
+                                                } catch (LegacyMessageException | InvalidKeyIdException | UntrustedIdentityException | DuplicateMessageException | InvalidVersionException | InvalidMessageException | InvalidKeyException e) {
                                                     SignalMessage signalMessage = new SignalMessage(Base64.decode(messageString));
                                                     messageBytes = sessionCipher.decrypt(signalMessage);
                                                 }
@@ -362,9 +363,6 @@ public class SignalClient {
                                     promise.reject(ERR_NATIVE_FAILED, e.getMessage());
                                     e.printStackTrace();
                                 } catch (UntrustedIdentityException e) {
-                                    promise.reject(ERR_NATIVE_FAILED, e.getMessage());
-                                    e.printStackTrace();
-                                } catch (InvalidKeyIdException e) {
                                     promise.reject(ERR_NATIVE_FAILED, e.getMessage());
                                     e.printStackTrace();
                                 } catch (LegacyMessageException e) {
@@ -410,19 +408,16 @@ public class SignalClient {
                         SignalProtocolAddress address = new SignalProtocolAddress(username, 1);
                         SessionCipher sessionCipher = new SessionCipher(signalProtocolStore, address);
                         JSONObject requestJSONO = new JSONObject();
-                        JSONObject messageBodyJSONO = new JSONObject();
                         try {
-                            messageBodyJSONO.put("type", "message");
-                            messageBodyJSONO.put("body", new JSONObject().put("message", messageString));
                             CiphertextMessage message = sessionCipher.encrypt(messageString.getBytes("UTF-8"));
                             JSONArray messagesJSONA = new JSONArray();
                             JSONObject messageJSONO = new JSONObject();
                             messageJSONO.put("type", 1);
                             messageJSONO.put("destination", username);
-                            messageJSONO.put("content", Base64.encodeBytesWithoutPadding(String.valueOf(signalProtocolStore.getLocalRegistrationId()).getBytes()));
+                            messageJSONO.put("content", ""); //Base64.encodeBytes(String.valueOf(signalProtocolStore.getLocalRegistrationId()).getBytes()));
                             messageJSONO.put("timestamp", timestamp);
                             messageJSONO.put("destinationDeviceId", 1);
-                            messageJSONO.put("destinationRegistrationId", sessionCipher.getRemoteRegistrationId());
+                            messageJSONO.put("destinationRegistrationId", ""); //sessionCipher.getRemoteRegistrationId());
                             messageJSONO.put("body", Base64.encodeBytes(message.serialize()));
                             messagesJSONA.put(messageJSONO);
                             requestJSONO.put("messages", messagesJSONA);
