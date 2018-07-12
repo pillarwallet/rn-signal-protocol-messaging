@@ -117,7 +117,7 @@ public class ProtocolStorage implements SignalProtocolStore {
         try {
             JSONObject dataJSONO = new JSONObject(data);
             if (!dataJSONO.has("identityKeyPair") || dataJSONO.isNull("identityKeyPair")) {
-                dataJSONO.put("identityKeyPair", Base64.encodeBytesWithoutPadding(identityKeyPair.serialize()));
+                dataJSONO.put("identityKeyPair", Base64.encodeBytes(identityKeyPair.serialize()));
                 writeToStorageFile(LOCAL_JSON_FILENAME, dataJSONO.toString());
             }
         } catch (JSONException e) {
@@ -147,7 +147,7 @@ public class ProtocolStorage implements SignalProtocolStore {
             if (data == null || data.isEmpty()) return null;
             JSONObject dataJSONO = new JSONObject(data);
             if (!dataJSONO.has("identityKeyPair") || dataJSONO.isNull("identityKeyPair")) return null;
-            byte[] keyPairBytes = Base64.decodeWithoutPadding(dataJSONO.getString("identityKeyPair"));
+            byte[] keyPairBytes = Base64.decode(dataJSONO.getString("identityKeyPair"));
             identityKeyPair = new IdentityKeyPair(keyPairBytes);
         } catch (JSONException e) {
             e.printStackTrace();
@@ -184,7 +184,7 @@ public class ProtocolStorage implements SignalProtocolStore {
                 JSONObject dataJSONO = new JSONObject(data);
                 JSONObject addressJSONO = new JSONObject();
                 addressJSONO.put("address", address.toString());
-                addressJSONO.put("identityKey", Base64.encodeBytesWithoutPadding(identityKey.serialize()));
+                addressJSONO.put("identityKey", Base64.encodeBytes(identityKey.serialize()));
                 dataJSONO.put(address.toString(), addressJSONO);
                 writeToStorageFile(IDENTITES_JSON_FILENAME, dataJSONO.toString());
                 return true;
@@ -205,7 +205,7 @@ public class ProtocolStorage implements SignalProtocolStore {
 //            JSONObject dataJSONO = new JSONObject(data);
 //            if (dataJSONO.has(address.toString())){
 //                JSONObject addressJSONO = dataJSONO.getJSONObject(address.toString());
-//                byte[] identityKeyBytes = Base64.decodeWithoutPadding(addressJSONO.getString("identityKey"));
+//                byte[] identityKeyBytes = Base64.decode(addressJSONO.getString("identityKey"));
 //                return identityKey.serialize() == identityKeyBytes;
 //            }
 //        } catch (JSONException e) {
@@ -223,7 +223,7 @@ public class ProtocolStorage implements SignalProtocolStore {
         try {
             JSONObject dataJSONO = new JSONObject(data);
             if (dataJSONO.has(String.valueOf(preKeyId))){
-                byte[] preKeyBytes = Base64.decodeWithoutPadding(dataJSONO.getString(String.valueOf(preKeyId)));
+                byte[] preKeyBytes = Base64.decode(dataJSONO.getString(String.valueOf(preKeyId)));
                 return new PreKeyRecord(preKeyBytes);
             }
         } catch (JSONException e) {
@@ -266,7 +266,7 @@ public class ProtocolStorage implements SignalProtocolStore {
         if (data == null || data.isEmpty()) data = "{}";
         try {
             JSONObject dataJSONO = new JSONObject(data);
-            dataJSONO.put(String.valueOf(preKeyId), Base64.encodeBytesWithoutPadding(record.serialize()));
+            dataJSONO.put(String.valueOf(preKeyId), Base64.encodeBytes(record.serialize()));
             writeToStorageFile(PRE_KEYS_JSON_FILENAME, dataJSONO.toString());
         } catch (JSONException e) {
             e.printStackTrace();
@@ -301,7 +301,7 @@ public class ProtocolStorage implements SignalProtocolStore {
         try {
             JSONObject dataJSONO = new JSONObject(data);
             if (dataJSONO.has(address.toString())){
-                byte[] sessionBytes = Base64.decodeWithoutPadding(dataJSONO.getString(address.toString()));
+                byte[] sessionBytes = Base64.decode(dataJSONO.getString(address.toString()));
                 return new SessionRecord(sessionBytes);
             }
         } catch (JSONException e) {
@@ -324,7 +324,7 @@ public class ProtocolStorage implements SignalProtocolStore {
                 String key = (String)keys.next();
                 if (dataJSONO.get(key) instanceof String){
                     String encodedBytesString = dataJSONO.getString(key);
-                    byte[] sessionBytes = Base64.decodeWithoutPadding(encodedBytesString);
+                    byte[] sessionBytes = Base64.decode(encodedBytesString);
                     SessionRecord sessionRecord = new SessionRecord(sessionBytes);
                     records.add(sessionRecord);
                 }
@@ -371,7 +371,7 @@ public class ProtocolStorage implements SignalProtocolStore {
         if (data == null || data.isEmpty()) data = "{}";
         try {
             JSONObject dataJSONO = new JSONObject(data);
-            dataJSONO.put(address.toString(), Base64.encodeBytesWithoutPadding(record.serialize()));
+            dataJSONO.put(address.toString(), Base64.encodeBytes(record.serialize()));
             writeToStorageFile(SESSIONS_JSON_FILENAME, dataJSONO.toString());
         } catch (JSONException e) {
             e.printStackTrace();
@@ -421,7 +421,7 @@ public class ProtocolStorage implements SignalProtocolStore {
             try {
             JSONObject dataJSONO = new JSONObject(data);
             if (dataJSONO.has(String.valueOf(signedPreKeyId))){
-                byte[] preKeyBytes = Base64.decodeWithoutPadding(dataJSONO.getString(String.valueOf(signedPreKeyId)));
+                byte[] preKeyBytes = Base64.decode(dataJSONO.getString(String.valueOf(signedPreKeyId)));
                 return new SignedPreKeyRecord(preKeyBytes);
             }
         } catch (JSONException e) {
@@ -443,7 +443,7 @@ public class ProtocolStorage implements SignalProtocolStore {
             while (keys.hasNext()){
                 String key = (String)keys.next();
                 if (dataJSONO.get(key) instanceof String){
-                    byte[] preKeyBytes = Base64.decodeWithoutPadding(String.valueOf(dataJSONO.get(key)));
+                    byte[] preKeyBytes = Base64.decode(String.valueOf(dataJSONO.get(key)));
                     results.add(new SignedPreKeyRecord(preKeyBytes));
                 }
             }
@@ -461,7 +461,7 @@ public class ProtocolStorage implements SignalProtocolStore {
         if (data == null || data.isEmpty()) data = "{}";
         try {
             JSONObject dataJSONO = new JSONObject(data);
-            dataJSONO.put(String.valueOf(signedPreKeyId), Base64.encodeBytesWithoutPadding(record.serialize()));
+            dataJSONO.put(String.valueOf(signedPreKeyId), Base64.encodeBytes(record.serialize()));
             writeToStorageFile(SIGNED_PRE_KEYS_JSON_FILENAME, dataJSONO.toString());
         } catch (JSONException e) {
             e.printStackTrace();
