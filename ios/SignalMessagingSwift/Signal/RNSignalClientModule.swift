@@ -104,13 +104,13 @@ class RNSignalClientModule: NSObject {
     }
     
     @objc func getChatByContact(_ username: String, _ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        let sortedMessaged = MessagesStorage().getMessages(for: username).sorted { (messageOne, messageTwo) -> Bool in
+        let sortedMessages = MessagesStorage().getMessages(for: username).sorted { (messageOne, messageTwo) -> Bool in
             return messageOne.savedTimestamp > messageTwo.savedTimestamp
         }.compactMap { (message) -> [String : Any]? in
             return message.dictionary
         }
         
-        resolve(messages.description)
+        resolve(sortedMessages.description)
     }
     
     @objc func getExistingChats(_ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
