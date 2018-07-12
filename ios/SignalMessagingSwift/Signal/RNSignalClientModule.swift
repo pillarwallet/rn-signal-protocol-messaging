@@ -42,28 +42,6 @@ class RNSignalClientModule: NSObject {
         resolve("ok")
     }
     
-    func test() {
-        self.registerAccount({ (resolve) in
-            self.addContact("mantas20", { (respolve) in
-                self.sendMessageByContact("mantas20", message: "hello", { (resolve) in
-                    
-                }, rejecter: { (error, message, err) in
-                    
-                })
-                
-                self.receiveNewMessagesByContact("mantas20", { (resolve) in
-                    
-                }, rejecter: { (error, message, err) in
-                    
-                })
-            }, rejecter: { (error, message, err) in
-                
-            })
-        }) { (error, message, err) in
-            
-        }
-    }
-    
     @objc func registerAccount(_ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         self.signalClient.register(success: { (success) in
             resolve(success)
