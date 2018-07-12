@@ -101,7 +101,7 @@ class RNSignalClientModule: NSObject {
     }
     
     @objc func sendMessageByContact(_ username: String, messageString: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        self.signalClient.sendMessage(username: username, messageString: message, success: { (success) in
+        self.signalClient.sendMessage(username: username, messageString: messageString, success: { (success) in
             resolve(success)
         }) { (error, message) in
             reject(error, message, nil)
