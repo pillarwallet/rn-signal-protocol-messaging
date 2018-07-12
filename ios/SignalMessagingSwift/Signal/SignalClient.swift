@@ -155,49 +155,51 @@ class SignalClient: NSObject {
     func requestPreKeys(username: String, success: @escaping (_ success: String) -> Void, failure: @escaping (_ error: String, _ message: String) -> Void) {
         self.signalServer.call(urlPath: URL_KEYS + "/" + username + "/1", method: .GET, success: { (dict) in
             if let devices = dict["devices"] as? [[String : Any]] {
-                let identityKey = dict["identityKey"] as? String ?? ""
-                let identityData = Data(base64Encoded: identityKey) ?? Data()
-                let firstDevice = devices.first as? [String : Any] ?? [String : Any]()
-                
-                let deviceId = firstDevice["deviceId"] as? Int ?? 1
-                let registrationId = firstDevice["registrationId"] as? Int ?? 1
-                
-                let preKey = firstDevice["preKey"] as? [String : Any] ?? [String : Any]()
-                let preKeyId = preKey["keyId"] as? Int ?? 1
-                let preKeyDataString = preKey["publicKey"] as? String ?? ""
-                let preKeyData = Data(base64Encoded: preKeyDataString) ?? Data()
-                
-                let signedPreKey = firstDevice["signedPreKey"] as? [String : Any] ?? [String : Any]()
-                let signedPreKeyId = signedPreKey["keyId"] as? Int ?? 1
-                let signedPreKeyDataString = signedPreKey["publicKey"] as? String ?? ""
-                let signedPreKeyData = Data(base64Encoded: signedPreKeyDataString) ?? Data()
-                
-                let signatureString = signedPreKey["signature"] as? String ?? ""
-                let signature = Data(base64Encoded: signatureString) ?? Data()
-                
-                let bundle = SessionPreKeyBundle(registrationId: UInt32(registrationId), deviceId: 1, preKeyId: UInt32(preKeyId), preKey: preKeyData, signedPreKeyId: UInt32(signedPreKeyId), signedPreKey: signedPreKeyData, signature: signature, identityKey: identityData)
-                
-                guard let store = self.store() else {
-                    failure(ERR_NATIVE_FAILED, "store failed")
-                    return
+                if let identityKey: String = dict["identityKey"] as? String,
+                    let identityData = Data(base64Encoded: identityKey),
+                    let firstDevice = devices.first as? [String : Any],
+                    
+                    let deviceId = firstDevice["deviceId"] as? Int,
+                    let registrationId = firstDevice["registrationId"] as? Int,
+                    
+                    let preKey = firstDevice["preKey"] as? [String : Any],
+                    let preKeyId = preKey["keyId"] as? Int,
+                    let preKeyDataString = preKey["publicKey"] as? String,
+                    let preKeyData = Data(base64Encoded: preKeyDataString),
+                    
+                    let signedPreKey = firstDevice["signedPreKey"] as? [String : Any],
+                    let signedPreKeyId = signedPreKey["keyId"] as? Int,
+                    let signedPreKeyDataString = signedPreKey["publicKey"] as? String,
+                    let signedPreKeyData = Data(base64Encoded: signedPreKeyDataString),
+                    
+                    let signatureString = signedPreKey["signature"] as? String,
+                    let signature = Data(base64Encoded: signatureString) {
+                    
+                    let bundle = SessionPreKeyBundle(registrationId: UInt32(registrationId), deviceId: 1, preKeyId: UInt32(preKeyId), preKey: preKeyData, signedPreKeyId: UInt32(signedPreKeyId), signedPreKey: signedPreKeyData, signature: signature, identityKey: identityData)
+                    
+                    guard let store = self.store() else {
+                        failure(ERR_NATIVE_FAILED, "store failed")
+                        return
+                    }
+                    
+                    let address = SignalAddress(name: username, deviceId: 1)
+                    let sessionBuilder = SessionBuilder(for: address, in: store)
+                    
+                    do {
+                        try sessionBuilder.process(preKeyBundle: bundle)
+                    } catch {
+                        failure(ERR_NATIVE_FAILED, "\(error)")
+                    }
+                    
+                    success("ok")
+                } else {
+                    failure(ERR_SERVER_FAILED, "wrong data received")
                 }
-                
-                let address = SignalAddress(name: username, deviceId: 1)
-                let sessionBuilder = SessionBuilder(for: address, in: store)
-                
-                do {
-                    try sessionBuilder.process(preKeyBundle: bundle)
-                } catch {
-                    failure(ERR_NATIVE_FAILED, "\(error)")
-                }
-                
-                success("ok")
             }
         }) { (error) in
             failure(ERR_SERVER_FAILED, "\(error)")
         }
     }
-    
     
     func getContactMessages(username: String, decodeAndSave: Bool, success: @escaping (_ success: [String : Any]) -> Void, failure: @escaping (_ error: String, _ message: String) -> Void) {
         self.signalServer.call(urlPath: URL_MESSAGES, method: .GET, success: { (dict) in
