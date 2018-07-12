@@ -208,6 +208,22 @@ class SignalClient: NSObject {
         }
     }
     
+    func getAllContactMessages() -> [[String : Any]] {
+        var allMessages = [[String : Any]]()
+        MessagesStorage().getAllMessages().forEach { (key, value) in
+            var messageDict = [String : Any]()
+            messageDict["username"] = key
+            messageDict["unread"] = 0
+            if let dict = MessagesStorage().getMessages(for: key).last?.dictionary {
+                messageDict["lastMessage"] = dict
+            }
+            
+            allMessages.append(messageDict)
+        }
+        
+        return allMessages
+    }
+    
     private func parseMessages(username: String, decodeAndSave: Bool, messagesDictionary: [String : Any]) {
         guard let store = self.store() else {
             print(ERR_NATIVE_FAILED)

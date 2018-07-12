@@ -33,17 +33,16 @@ class RNSignalClientModule: NSObject {
         return true
     }
     
-    @objc func createClient(_ username: String, password: String, host: String) {
+    @objc func createClient(_ username: String, password: String, host: String, _ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         self.username = username
         self.password = password
         self.host = host
         self.signalClient = SignalClient(username: username, password: password, host: host)
         
-        //self.test()
+        resolve("ok")
     }
     
     func test() {
-        
         self.registerAccount({ (resolve) in
             self.addContact("mantas20", { (respolve) in
                 self.sendMessageByContact("mantas20", message: "hello", { (resolve) in
@@ -105,11 +104,17 @@ class RNSignalClientModule: NSObject {
     }
     
     @objc func getChatByContact(_ username: String, _ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        let messages = MessagesStorage().getMessages(for: username).compactMap { (message) -> [String : Any]? in
+        let sortedMessaged = MessagesStorage().getMessages(for: username).sorted { (messageOne, messageTwo) -> Bool in
+            return messageOne.savedTimestamp > messageTwo.savedTimestamp
+        }.compactMap { (message) -> [String : Any]? in
             return message.dictionary
         }
         
         resolve(messages.description)
+    }
+    
+    @objc func getExistingChats(_ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        resolve(self.signalClient.getAllContactMessages().description)
     }
     
     @objc func getUnreadMessagesCountByContact(_ username: String, _ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {

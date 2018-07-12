@@ -63,7 +63,7 @@ class MessagesStorage: ProtocolStorage {
     self.save(array: localJson, type: .MESSAGES_JSON_FILENAME)
   }
   
-  private func getAllMessages() -> [String : Any] {
+  func getAllMessages() -> [String : Any] {
     let localJson = self.get(for: .MESSAGES_JSON_FILENAME)
     guard let list = localJson["allMessages"] as? [String : Any] else {
       return [String : Any]()
