@@ -312,6 +312,13 @@ class SignalClient: NSObject {
         let params = ["messages" : [message]]
         
         self.signalServer.call(urlPath: URL_MESSAGES + "/" + username, method: .PUT, parameters: params, success: { (dict) in
+            let parsedMessage = ParsedMessageDTO()
+            parsedMessage.username = self.username
+            parsedMessage.device = 1
+            parsedMessage.serverTimestamp = self.currentTimestamp()
+            parsedMessage.savedTimestamp = self.currentTimestamp()
+            parsedMessage.content = messageString
+            MessagesStorage().save(message: parsedMessage, for: username)
             success("ok")
         }) { (error) in
             failure(ERR_SERVER_FAILED, "\(error)")
