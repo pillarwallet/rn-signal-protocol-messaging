@@ -33,7 +33,7 @@ class RNSignalClientModule: NSObject {
         return true
     }
     
-    @objc func createClient(_ username: String, password: String, host: String, _ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc func createClient(_ username: String, password: String, host: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         self.username = username
         self.password = password
         self.host = host
@@ -77,7 +77,7 @@ class RNSignalClientModule: NSObject {
         resolve("ok")
     }
     
-    @objc func addContact(_ username: String, _ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc func addContact(_ username: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         let address = SignalAddress(name: username, deviceId: 1)
         if let result = self.signalClient.store()?.sessionStore.containsSession(for: address), result == true {
             self.signalClient.store()?.sessionStore.deleteSession(for: address)
@@ -90,12 +90,12 @@ class RNSignalClientModule: NSObject {
         }
     }
     
-    @objc func deleteContact(_ username: String, _ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc func deleteContact(_ username: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         let result = self.signalClient.store()?.sessionStore.deleteSession(for: SignalAddress(name: username, deviceId: 1))
         resolve("ok")
     }
     
-    @objc func receiveNewMessagesByContact(_ username: String, _ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc func receiveNewMessagesByContact(_ username: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         self.signalClient.getContactMessages(username: username, decodeAndSave: true, success: { (success) in
             resolve(success)
         }) { (error, message) in
@@ -103,7 +103,7 @@ class RNSignalClientModule: NSObject {
         }
     }
     
-    @objc func getChatByContact(_ username: String, _ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc func getChatByContact(_ username: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         let sortedMessages = MessagesStorage().getMessages(for: username).sorted { (messageOne, messageTwo) -> Bool in
             return messageOne.savedTimestamp > messageTwo.savedTimestamp
         }.compactMap { (message) -> [String : Any]? in
@@ -117,12 +117,12 @@ class RNSignalClientModule: NSObject {
         resolve(self.signalClient.getAllContactMessages().description)
     }
     
-    @objc func getUnreadMessagesCountByContact(_ username: String, _ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc func getUnreadMessagesCountByContact(_ username: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         let count = MessagesStorage().getUnreadCount(for: username)
         resolve(count)
     }
     
-    @objc func sendMessageByContact(_ username: String, message: String, _ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc func sendMessageByContact(_ username: String, message: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         self.signalClient.sendMessage(username: username, messageString: message, success: { (success) in
             resolve(success)
         }) { (error, message) in
