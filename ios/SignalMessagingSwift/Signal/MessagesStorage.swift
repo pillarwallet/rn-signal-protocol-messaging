@@ -11,7 +11,7 @@ import UIKit
 class MessagesStorage: ProtocolStorage {
   
   func save(message: ParsedMessageDTO, for username: String) {
-    var localJson = self.get(for: .MESSAGES_JSON_FILENAME)
+    var localJson = self.getAllMessages()
     var userData = [String : Any]()
     if let userDataFile = localJson[username] as? [String : Any] {
       userData = userDataFile
@@ -25,7 +25,7 @@ class MessagesStorage: ProtocolStorage {
     parsedMessages.append(message.dictionary)
     userData["messages"] = parsedMessages
     localJson[username] = userData
-    self.save(array: localJson, type: .MESSAGES_JSON_FILENAME)
+    self.save(array: ["allMessages" : localJson], type: .MESSAGES_JSON_FILENAME)
   }
   
   func getMessages(for username: String) -> [ParsedMessageDTO] {
@@ -60,7 +60,7 @@ class MessagesStorage: ProtocolStorage {
     
     userData["unreadCount"] = count + currentCount
     localJson[username] = userData
-    self.save(array: localJson, type: .MESSAGES_JSON_FILENAME)
+    self.save(array: ["allMessages" : localJson], type: .MESSAGES_JSON_FILENAME)
   }
   
   func getAllMessages() -> [String : Any] {

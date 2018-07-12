@@ -88,11 +88,19 @@ class RNSignalClientModule: NSObject {
             return message.dictionary
         }
         
-        resolve(sortedMessages.description)
+        if let data = try? JSONSerialization.data(withJSONObject: sortedMessages, options: .prettyPrinted) {
+            let jsonSring = String(data: data, encoding: .utf8)
+            print(jsonSring)
+            resolve(jsonSring)
+        }
     }
     
     @objc func getExistingChats(_ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        resolve(self.signalClient.getAllContactMessages().description)
+        if let data = try? JSONSerialization.data(withJSONObject: self.signalClient.getAllContactMessages(), options: .prettyPrinted) {
+            let jsonSring = String(data: data, encoding: .utf8)
+            print(jsonSring)
+            resolve(jsonSring)
+        }
     }
     
     @objc func getUnreadMessagesCountByContact(_ username: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {

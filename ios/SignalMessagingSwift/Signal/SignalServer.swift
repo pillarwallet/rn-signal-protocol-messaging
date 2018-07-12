@@ -43,12 +43,14 @@ class SignalServer: NSObject {
     }
     
     var request = URLRequest(url: url)
-    request.setValue("\(Int(Date().timeIntervalSince1970))", forHTTPHeaderField: "Token-Timestamp")
-    request.setValue("address", forHTTPHeaderField: "Token-ID-Address")
-    request.setValue("signature", forHTTPHeaderField: "Token-Signature")
-    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    request.setValue("application/json", forHTTPHeaderField: "Accept")
     request.httpMethod = method.rawValue
+    if (method != .DELETE) {
+        request.setValue("\(Int(Date().timeIntervalSince1970))", forHTTPHeaderField: "Token-Timestamp")
+        request.setValue("address", forHTTPHeaderField: "Token-ID-Address")
+        request.setValue("signature", forHTTPHeaderField: "Token-Signature")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+    }
     
     let loginString = String(format: "%@:%@", self.signalUsername, self.signalPassword)
     let loginData = loginString.data(using: String.Encoding.utf8)!

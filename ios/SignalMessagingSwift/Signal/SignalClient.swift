@@ -261,21 +261,29 @@ class SignalClient: NSObject {
                 parsedMessage.serverTimestamp = message.timestamp
                 parsedMessage.savedTimestamp = self.currentTimestamp()
                 
+                self.signalServer.call(urlPath: "\(URL_MESSAGES)/\(username)/\(message.timestamp)", method: .DELETE, success: { (response) in }, failure: { (error) in })
+                
+                var preKeyData: Data? = nil
                 do {
-                    let cipher = CiphertextMessage(from: data)
-                    let preKeyData = try sessionCipher.decrypt(message: cipher)
-                    
-                    if let dict = try JSONSerialization.jsonObject(with: preKeyData, options: JSONSerialization.ReadingOptions.allowFragments) as? [String : Any] {
-                        if let body = dict["body"] as? [String : Any] {
-                            parsedMessage.content = body["message"] as? String ?? ""
-                        }
+                    let cipher = CiphertextMessage(type: .preKey, message: data)
+                    preKeyData = try sessionCipher.decrypt(message: cipher)
+                } catch {
+                    do {
+                        let cipher = CiphertextMessage(type: .signal, message: data)
+                        preKeyData = try sessionCipher.decrypt(message: cipher)
+                    } catch {
+                        print(ERR_NATIVE_FAILED)
+                        print("Error info: \(error)")
                     }
-                    
+                }
+                
+                if preKeyData != nil  {
+                    if let receivedMessage = String(data: preKeyData!, encoding: .utf8) {
+                        print(receivedMessage)
+                        parsedMessage.content = receivedMessage
+                    }
                     parsedMessages.append(parsedMessage)
                     MessagesStorage().save(message: parsedMessage, for: username)
-                } catch {
-                    print(ERR_NATIVE_FAILED)
-                    print("Error info: \(error)")
                 }
             }
         }
@@ -291,11 +299,14 @@ class SignalClient: NSObject {
         
         let address = SignalAddress(name: username, deviceId: 1)
         let sessionCipher = SessionCipher(for: address, in: store)
-        let messageBody: [String : Any] = ["type" : "message", "body" : ["message" : messageString]]
         var cipherTextMessage: CiphertextMessage
         
+        guard let data = messageString.data(using: .utf8) else {
+            failure(ERR_NATIVE_FAILED, "String encoding to bytes failed")
+            return
+        }
+        
         do {
-            let data = try JSONSerialization.data(withJSONObject: messageBody, options: .prettyPrinted)
             cipherTextMessage = try sessionCipher.encrypt(data)
         } catch {
             failure(ERR_NATIVE_FAILED, "\(error)")
@@ -309,7 +320,9 @@ class SignalClient: NSObject {
         message["timestamp"] = self.currentTimestamp()
         message["destinationDeviceId"] = 1
         message["destinationRegistrationId"] = ""
-        message["body"] = cipherTextMessage.data.base64EncodedString()
+        message["body"] = cipherTextMessage.message.base64EncodedString()
+        
+        print(cipherTextMessage.type.rawValue)
         
         let params = ["messages" : [message]]
         
