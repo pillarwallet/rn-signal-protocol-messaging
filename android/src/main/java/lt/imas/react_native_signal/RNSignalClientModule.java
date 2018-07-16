@@ -92,6 +92,8 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
         if (!protocolStorage.containsSession(address)){
             signalClient.requestPreKeys(username, promise);
 //            protocolStorage.deleteSession(address);
+        } else {
+            promise.resolve("ok");
         }
     }
 
