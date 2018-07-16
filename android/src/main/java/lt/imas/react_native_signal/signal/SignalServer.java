@@ -30,6 +30,7 @@ public class SignalServer {
     public static final String URL_MESSAGES = "/v1/messages";
     public static final String URL_ACCOUNTS_BOOTSTRAP = "/v1/accounts/bootstrap";
     public static final String URL_RECEIPT = "/v1/receipt";
+    public static final String URL_GCM = "/v1/accounts/gcm";
     public static String username;
     public static String password;
     public static String host;

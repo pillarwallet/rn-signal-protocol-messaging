@@ -69,6 +69,10 @@ class RNSignalClientModule: NSObject {
         }
     }
     
+    @objc func setFcmId(_ fcmId: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        resolve("ok")
+    }
+    
     @objc func deleteContact(_ username: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         let result = self.signalClient.store()?.sessionStore.deleteSession(for: SignalAddress(name: username, deviceId: 1))
         resolve("ok")

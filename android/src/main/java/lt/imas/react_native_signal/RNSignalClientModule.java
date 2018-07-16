@@ -146,4 +146,9 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
     public void sendMessageByContact(String username, String message, final Promise promise) {
         signalClient.sendMessage(username, message, promise);
     }
+
+    @ReactMethod
+    public void setFcmId(String fcmId, final Promise promise) {
+        signalClient.setFcmId(fcmId, promise);
+    }
 }

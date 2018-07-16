@@ -470,4 +470,33 @@ public class SignalClient {
             };
         });
     }
+
+    public void setFcmId(String fcmId, final Promise promise) {
+        if (fcmId != null && !fcmId.isEmpty()) {
+            JSONObject dataJSONO = new JSONObject();
+            try {
+                dataJSONO.put("gcmRegistrationId", fcmId);
+                SignalServer.call(SignalServer.URL_GCM, "PUT", dataJSONO, new Callback() {
+                    @Override
+                    public void onFailure(Call call, IOException e) {
+                        promise.reject(ERR_NATIVE_FAILED, e.getMessage());
+                    }
+
+                    @Override
+                    public void onResponse(Call call, Response response) throws IOException {
+                        SignalServer.mainThreadCallback(new Runnable() {
+                            @Override
+                            public void run() {
+                                promise.resolve("ok");
+                            }
+                        });
+                    }
+                });
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        } else {
+            promise.resolve("ok");
+        }
+    }
 }
