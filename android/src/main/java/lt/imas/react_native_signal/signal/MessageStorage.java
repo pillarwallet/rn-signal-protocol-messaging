@@ -135,17 +135,19 @@ public class MessageStorage {
         String dirPath = context.getFilesDir().getAbsolutePath() + "/messages";
         File directory = new File(dirPath);
         File[] files = directory.listFiles();
-        for (int i = 0; i < files.length; i++){
-            String username = files[i].getName();
-            try {
-                JSONObject chatJSONO = new JSONObject();
-                JSONArray messagesJSONA = getContactMessages(username);
-                chatJSONO.put("username", username);
-                if (messagesJSONA.length() != 0) chatJSONO.put("lastMessage", messagesJSONA.get(messagesJSONA.length()-1));
-                chatJSONO.put("unread", 0);
-                chatsJSONA.put(chatJSONO);
-            } catch (JSONException e) {
-                e.printStackTrace();
+        if (files != null && files.length > 0){
+            for (int i = 0; i < files.length; i++){
+                String username = files[i].getName();
+                try {
+                    JSONObject chatJSONO = new JSONObject();
+                    JSONArray messagesJSONA = getContactMessages(username);
+                    chatJSONO.put("username", username);
+                    if (messagesJSONA != null && messagesJSONA.length() != 0) chatJSONO.put("lastMessage", messagesJSONA.get(messagesJSONA.length()-1));
+                    chatJSONO.put("unread", 0);
+                    chatsJSONA.put(chatJSONO);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
         }
         return chatsJSONA;
