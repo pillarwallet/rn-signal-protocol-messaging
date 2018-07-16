@@ -57,14 +57,15 @@ class RNSignalClientModule: NSObject {
     
     @objc func addContact(_ username: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         let address = SignalAddress(name: username, deviceId: 1)
-        if let result = self.signalClient.store()?.sessionStore.containsSession(for: address), result == true {
+        if let result = self.signalClient.store()?.sessionStore.containsSession(for: address), result == false {
             _ = self.signalClient.store()?.sessionStore.deleteSession(for: address)
-        }
-        
-        self.signalClient.requestPreKeys(username: username, success: { (success) in
-            resolve(success)
-        }) { (error, message) in
-            reject(error, message, nil)
+            self.signalClient.requestPreKeys(username: username, success: { (success) in
+                resolve(success)
+            }) { (error, message) in
+                reject(error, message, nil)
+            }
+        } else {
+            resolve("ok")
         }
     }
     
