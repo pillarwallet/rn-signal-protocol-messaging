@@ -12,6 +12,8 @@ import UIKit
 let URL_ACCOUNTS = "/v1/accounts"
 let URL_KEYS = "/v2/keys"
 let URL_MESSAGES = "/v1/messages"
+let URL_GCM = "/v1/accounts/gcm"
+
 
 enum HTTPMethod: String {
   case PUT = "PUT"
