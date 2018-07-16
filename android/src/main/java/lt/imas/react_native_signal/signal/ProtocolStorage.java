@@ -380,7 +380,8 @@ public class ProtocolStorage implements SignalProtocolStore {
 
     @Override
     public boolean containsSession(SignalProtocolAddress address) {
-        return loadSession(address) != null;
+        SessionRecord record = loadSession(address);
+        return record != null && !record.isFresh();
     }
 
     @Override
