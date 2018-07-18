@@ -446,7 +446,7 @@ public class SignalClient {
                                                 messageJSONO.put("content", messageString);
                                                 messageJSONO.put("username", signalServer.username);
                                                 messageJSONO.put("device", 1);
-                                                messageJSONO.put("serverTimestamp", timestamp);
+                                                messageJSONO.put("serverTimestamp", timestamp * 1000);
                                                 messageJSONO.put("savedTimestamp", timestamp);
                                                 messageStorage.storeMessage(username, messageJSONO);
                                             } catch (JSONException e) {

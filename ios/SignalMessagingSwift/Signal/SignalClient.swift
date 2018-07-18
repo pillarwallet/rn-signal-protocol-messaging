@@ -225,6 +225,20 @@ class SignalClient: NSObject {
         
         return allMessages
     }
+
+
+    func saveFCMId(fcmId: String, success: @escaping () -> Void, failure: @escaping (_ error: String, _ message: String) -> Void) {
+        guard !fcmId.isEmpty && fcmId != nil else {
+            failure(ERR_SERVER_FAILED, "FCM id is empty or null")
+            return
+        }
+
+        self.signalServer.call(urlPath: URL_GCM, method: .PUT, parameters: ["gcmRegistrationId" : fcmId], success: { (success) in
+            success()
+        }) { (error) in
+            failure(ERR_SERVER_FAILED, "\(error)")
+        }
+    }
     
     private func parseMessages(username: String, decodeAndSave: Bool, messagesDictionary: [String : Any]) {
         guard let store = self.store() else {
@@ -330,7 +344,7 @@ class SignalClient: NSObject {
             let parsedMessage = ParsedMessageDTO()
             parsedMessage.username = self.username
             parsedMessage.device = 1
-            parsedMessage.serverTimestamp = self.currentTimestamp()
+            parsedMessage.serverTimestamp = self.currentTimestamp() * 1000
             parsedMessage.savedTimestamp = self.currentTimestamp()
             parsedMessage.content = messageString
             MessagesStorage().save(message: parsedMessage, for: username)
