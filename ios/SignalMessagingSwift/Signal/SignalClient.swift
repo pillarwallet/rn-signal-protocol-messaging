@@ -240,12 +240,12 @@ class SignalClient: NSObject {
     private func parseMessages(username: String, decodeAndSave: Bool, messagesDictionary: [String : Any]) -> [String : Any] {
         guard let store = self.store() else {
             print(ERR_NATIVE_FAILED)
-            return
+            return [String : Any]()
         }
         
         guard let messages = messagesDictionary["messages"] as? [[String : Any]] else {
             print(ERR_SERVER_FAILED)
-            return
+            return [String : Any]()
         }
         
         let address = SignalAddress(name: username, deviceId: 1)
@@ -254,7 +254,7 @@ class SignalClient: NSObject {
         guard store.sessionStore.containsSession(for: address) else {
             print(ERR_NATIVE_FAILED)
             print("no active sessions")
-            return
+            return [String : Any]()
         }
         
         var parsedMessages = [ParsedMessageDTO]()
