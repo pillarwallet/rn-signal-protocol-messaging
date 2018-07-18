@@ -131,8 +131,8 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void getUnreadMessagesCountByContact(String username, final Promise promise){
-        signalClient.getContactMessages(username, promise, false);
+    public void getUnreadMessagesCount(final Promise promise){
+        signalClient.getContactMessages("", promise, false);
     }
 
     @ReactMethod

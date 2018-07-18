@@ -321,10 +321,11 @@ public class SignalClient {
                                 try {
                                     JSONObject messageJSONO = messagesJSONA.getJSONObject(i);
                                     String messageString = messageJSONO.getString("message");
-                                    SignalProtocolAddress address = new SignalProtocolAddress(messageJSONO.getString("source"), 1);
+                                    String source = messageJSONO.getString("source");
+                                    SignalProtocolAddress address = new SignalProtocolAddress(source, 1);
+                                    int unreadCount = unreadJSONO.optInt(source, 0);
+                                    unreadJSONO.put(source, unreadCount+1);
                                     if (username.equals(address.getName()) && signalProtocolStore.containsSession(address)) {
-                                        int unreadCount = unreadJSONO.optInt(username, 0);
-                                        unreadJSONO.put(username, unreadCount+1);
                                         JSONObject newMessageJSONO = new JSONObject();
                                         if (decodeAndSave) {
                                             long serverTimestamp = messageJSONO.optLong("timestamp", 0);

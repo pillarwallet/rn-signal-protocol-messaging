@@ -70,11 +70,7 @@ class RNSignalClientModule: NSObject {
     }
     
     @objc func setFcmId(_ fcmId: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        self.signalClient.saveFCMId(fcmId: fcmId, success: {
-            resolve("ok")
-        }) { (error, message) in
-            reject(error, message, nil)
-        }
+        resolve("ok")
     }
     
     @objc func deleteContact(_ username: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
@@ -112,8 +108,8 @@ class RNSignalClientModule: NSObject {
         }
     }
     
-    @objc func getUnreadMessagesCountByContact(_ username: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        let count = MessagesStorage().getUnreadCount(for: username)
+    @objc func getUnreadMessagesCount(_ resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        let count = MessagesStorage().getUnreadCount(for: "")
         resolve(count)
     }
     

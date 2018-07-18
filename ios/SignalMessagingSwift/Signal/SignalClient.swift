@@ -36,6 +36,8 @@ class SignalClient: NSObject {
         return nil
     }
     
+    // RCTPromiseRejectBlock)(NSString *code, NSString *message, NSError *error);
+    
     func register(success: @escaping (_ success: String) -> Void, failure: @escaping (_ error: String, _ message: String) -> Void) {
         guard let store = self.store() else {
             failure(ERR_NATIVE_FAILED, "Store is invalid")
@@ -222,19 +224,6 @@ class SignalClient: NSObject {
         }
         
         return allMessages
-    }
-    
-    func saveFCMId(fcmId: String, success: @escaping () -> Void, failure: @escaping (_ error: String, _ message: String) -> Void) {
-        guard !fcmId.isEmpty && fcmId != nil else {
-            failure(ERR_SERVER_FAILED, "FCM id is empty or null")
-            return
-        }
-        
-        self.signalServer.call(urlPath: URL_GCM, method: .PUT, parameters: ["gcmRegistrationId" : fcmId], success: { (success) in
-            success()
-        }) { (error) in
-            failure(ERR_SERVER_FAILED, "\(error)")
-        }
     }
     
     private func parseMessages(username: String, decodeAndSave: Bool, messagesDictionary: [String : Any]) {
