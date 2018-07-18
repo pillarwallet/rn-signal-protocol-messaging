@@ -36,8 +36,6 @@ class SignalClient: NSObject {
         return nil
     }
     
-    // RCTPromiseRejectBlock)(NSString *code, NSString *message, NSError *error);
-    
     func register(success: @escaping (_ success: String) -> Void, failure: @escaping (_ error: String, _ message: String) -> Void) {
         guard let store = self.store() else {
             failure(ERR_NATIVE_FAILED, "Store is invalid")
@@ -203,8 +201,8 @@ class SignalClient: NSObject {
     
     func getContactMessages(username: String, decodeAndSave: Bool, success: @escaping (_ success: [String : Any]) -> Void, failure: @escaping (_ error: String, _ message: String) -> Void) {
         self.signalServer.call(urlPath: URL_MESSAGES, method: .GET, success: { (dict) in
-            self.parseMessages(username: username, decodeAndSave: true, messagesDictionary: dict)
-            success(dict)
+            let dictionary = self.parseMessages(username: username, decodeAndSave: decodeAndSave, messagesDictionary: dict)
+            success(dictionary)
         }) { (error) in
             failure(ERR_SERVER_FAILED, "\(error)")
         }
@@ -226,7 +224,6 @@ class SignalClient: NSObject {
         return allMessages
     }
 
-
     func saveFCMId(fcmId: String, success: @escaping () -> Void, failure: @escaping (_ error: String, _ message: String) -> Void) {
         guard !fcmId.isEmpty && fcmId != nil else {
             failure(ERR_SERVER_FAILED, "FCM id is empty or null")
@@ -240,7 +237,7 @@ class SignalClient: NSObject {
         }
     }
     
-    private func parseMessages(username: String, decodeAndSave: Bool, messagesDictionary: [String : Any]) {
+    private func parseMessages(username: String, decodeAndSave: Bool, messagesDictionary: [String : Any]) -> [String : Any] {
         guard let store = self.store() else {
             print(ERR_NATIVE_FAILED)
             return
@@ -261,9 +258,12 @@ class SignalClient: NSObject {
         }
         
         var parsedMessages = [ParsedMessageDTO]()
+        var unread = [String : Any]()
         
         messages.forEach { (messageDict) in
             let message = MessageDTO(dictionary: messageDict)
+            let currentCount = unread[message.source] as? Int ?? 0
+            unread[message.source] = currentCount+1
             
             if username == message.source,
                 decodeAndSave,
@@ -303,6 +303,14 @@ class SignalClient: NSObject {
         }
         
         MessagesStorage().saveUnreadCount(for: username, count: parsedMessages.count)
+        
+        var finalDict = [String : Any]()
+        finalDict["unreadCount"] = unread
+        if (parsedMessages.count > 0) {
+            finalDict["messages"] = parsedMessages
+        }
+        
+        return finalDict
     }
     
     func sendMessage(username: String, messageString: String, success: @escaping (_ success: String) -> Void, failure: @escaping (_ error: String, _ message: String) -> Void) {
@@ -355,12 +363,3 @@ class SignalClient: NSObject {
     }
     
 }
-
-
-
-
-
-
-
-
-

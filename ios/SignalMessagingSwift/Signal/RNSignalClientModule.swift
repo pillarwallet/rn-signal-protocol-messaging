@@ -112,9 +112,17 @@ class RNSignalClientModule: NSObject {
         }
     }
     
-    @objc func getUnreadMessagesCount(_ resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        let count = MessagesStorage().getUnreadCount(for: "")
-        resolve(count)
+    @objc func getUnreadMessagesCount(_ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        self.signalClient.getContactMessages(username: "", decodeAndSave: false, success: { (dict) in
+            if let data = try? JSONSerialization.data(withJSONObject: dict, options: .prettyPrinted) {
+                let jsonSring = String(data: data, encoding: .utf8)
+                resolve(jsonSring)
+            } else {
+                reject("error", "serialization error in getUnreadMessagesCount", nil)
+            }
+        }) { (error, message) in
+            reject(error, message, nil)
+        }
     }
     
     @objc func sendMessageByContact(_ username: String, messageString: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
