@@ -230,7 +230,7 @@ class SignalClient: NSObject {
             return
         }
 
-        self.signalServer.call(urlPath: URL_GCM, method: .PUT, parameters: ["gcmRegistrationId" : fcmId], success: { (success) in
+        self.signalServer.call(urlPath: URL_GCM, method: .PUT, parameters: ["gcmRegistrationId" : fcmId], success: { (result) in
             success()
         }) { (error) in
             failure(ERR_SERVER_FAILED, "\(error)")
