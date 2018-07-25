@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		691307102107F5B900B3C1FD /* SignalProtocol.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 95A5233720F47B4300EDA8BA /* SignalProtocol.framework */; };
 		9573BEC820F3D6B700C720C3 /* MessagesStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9573BEBD20F3D6B600C720C3 /* MessagesStorage.swift */; };
 		9573BEC920F3D6B700C720C3 /* SenderKeyStorePillar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9573BEBE20F3D6B600C720C3 /* SenderKeyStorePillar.swift */; };
 		9573BECA20F3D6B700C720C3 /* MessageDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9573BEBF20F3D6B600C720C3 /* MessageDTO.swift */; };
@@ -103,12 +104,20 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				691307102107F5B900B3C1FD /* SignalProtocol.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		6913070A2107F5B900B3C1FD /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		9573BEBC20F3D6A300C720C3 /* SwiftSignal */ = {
 			isa = PBXGroup;
 			children = (
@@ -134,6 +143,7 @@
 			children = (
 				958BF8FB20F3CAD8003CF3A0 /* SignalMessagingSwift */,
 				958BF8FA20F3CAD8003CF3A0 /* Products */,
+				6913070A2107F5B900B3C1FD /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
