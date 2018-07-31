@@ -251,12 +251,6 @@ class SignalClient: NSObject {
         let address = SignalAddress(name: username, deviceId: 1)
         let sessionCipher = SessionCipher(for: address, in: store)
         
-        guard store.sessionStore.containsSession(for: address) else {
-            print(ERR_NATIVE_FAILED)
-            print("no active sessions")
-            return [String : Any]()
-        }
-        
         var parsedMessages = [ParsedMessageDTO]()
         var unread = [String : Any]()
         
@@ -267,6 +261,7 @@ class SignalClient: NSObject {
             
             if username == message.source,
                 decodeAndSave,
+                store.sessionStore.containsSession(for: address),
                 let data = message.messageData() {
                 
                 let parsedMessage = ParsedMessageDTO()
