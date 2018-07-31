@@ -173,39 +173,6 @@ class SignalClient: NSObject {
         }
     }
     
-//    public void checkRemotePreKeys(final Promise promise){
-//    SignalServer.call(SignalServer.URL_KEYS, "GET", new Callback() {
-//    @Override
-//    public void onFailure(Call call, final IOException e) {
-//    SignalServer.mainThreadCallback(new Runnable() {
-//    @Override
-//    public void run() {
-//    promise.reject(ERR_SERVER_FAILED, e.getMessage());
-//    Timber.d("Signal server failed: %s", e.getMessage());
-//    }
-//    });
-//    }
-//
-//    @Override
-//    public void onResponse(Call call, Response response) {
-//    final ServerResponse serverResponse = new ServerResponse(response);
-//    SignalServer.mainThreadCallback(new Runnable() {
-//    @Override
-//    public void run() {
-//    int preKeyCount = serverResponse.getResponseJSONObject().optInt("count", 0);
-//    if (preKeyCount <= 10) {
-//    int count = 100 - preKeyCount;
-//    ProtocolStorage protocolStorage = new ProtocolStorage(context);
-//    registerPreKeys(promise, protocolStorage.getLastPreKeyIndex(), count);
-//    } else {
-//    promise.resolve("ok");
-//    }
-//    }
-//    });
-//    }
-//    });
-//    }
-    
     func requestPreKeys(username: String, success: @escaping (_ success: String) -> Void, failure: @escaping (_ error: String, _ message: String) -> Void) {
         self.signalServer.call(urlPath: URL_KEYS + "/" + username + "/1", method: .GET, success: { (dict) in
             if let devices = dict["devices"] as? [[String : Any]] {
