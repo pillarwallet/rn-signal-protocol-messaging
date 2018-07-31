@@ -50,6 +50,17 @@ class ProtocolStorage: NSObject {
         return nil
     }
     
+    func storeLocalUsername(username: String) {
+        var localJson = self.get(for: .LOCAL_JSON_FILENAME)
+        localJson["username"] = username
+        self.save(array: localJson, type: .LOCAL_JSON_FILENAME)
+    }
+    
+    func getLocalUsername() -> String {
+        let localJson = self.get(for: .LOCAL_JSON_FILENAME)
+        return localJson["username"] as? String ?? ""
+    }
+    
     func destroyAll() {
         let manager = FileManager.default
         let url = manager.urls(for: .documentDirectory, in: .userDomainMask).first! as NSURL

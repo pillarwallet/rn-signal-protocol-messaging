@@ -39,7 +39,17 @@ class RNSignalClientModule: NSObject {
         self.host = host
         self.signalClient = SignalClient(username: username, password: password, host: host)
         
-        resolve("ok")
+        if ProtocolStorage().getLocalUsername() == username && ProtocolStorage().isLocalRegistered() {
+            self.signalClient.checkPreKeys()
+            resolve("ok")
+        } else {
+            ProtocolStorage().destroyAll()
+            self.signalClient.register(success: { (success) in
+                resolve(success)
+            }) { (error, message) in
+                reject(error, message, nil)
+            }
+        }
     }
     
     @objc func registerAccount(_ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
