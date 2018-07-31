@@ -247,6 +247,10 @@ public class SignalClient {
 
     public void registerAccount(String username, final Promise promise){
         ProtocolStorage signalProtocolStore = new ProtocolStorage(context);
+        if (signalProtocolStore.isLocalRegistered()){
+            promise.resolve("ok");
+            return;
+        }
         JSONObject requestJSON = new JSONObject();
         int registrationId = KeyHelper.generateRegistrationId(true);
         signalProtocolStore.storeLocalUsername(username);
