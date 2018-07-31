@@ -111,6 +111,20 @@ public class ProtocolStorage implements SignalProtocolStore {
         return false;
     }
 
+    public void storeLocalUsername(String username){
+        String data = readFromStorage(LOCAL_JSON_FILENAME);
+        if (data == null || data.isEmpty()) data = "{}";
+        try {
+            JSONObject dataJSONO = new JSONObject(data);
+            if (!dataJSONO.has("username") || dataJSONO.isNull("username")) {
+                dataJSONO.put("username", username);
+                writeToStorageFile(LOCAL_JSON_FILENAME, dataJSONO.toString());
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void storeIdentityKeyPair(IdentityKeyPair identityKeyPair){
         String data = readFromStorage(LOCAL_JSON_FILENAME);
         if (data == null || data.isEmpty()) data = "{}";
@@ -172,6 +186,20 @@ public class ProtocolStorage implements SignalProtocolStore {
             e.printStackTrace();
         }
         return localRegistrationId;
+    }
+
+    public String getLocalUsername() {
+        String localUsername = "";
+        try {
+            String data = readFromStorage(LOCAL_JSON_FILENAME);
+            if (data == null || data.isEmpty()) return localUsername;
+            JSONObject dataJSONO = new JSONObject(data);
+            if (!dataJSONO.has("username") || dataJSONO.isNull("username")) return localUsername;
+            localUsername = dataJSONO.getString("username");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return localUsername;
     }
 
     @Override

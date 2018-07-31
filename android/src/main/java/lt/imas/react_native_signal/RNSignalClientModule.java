@@ -63,10 +63,13 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
             signalServer = new SignalServer(this.host, this.username, this.password);
             signalClient = new SignalClient(getReactApplicationContext(), signalServer);
             ProtocolStorage protocolStorage = new ProtocolStorage(getReactApplicationContext());
-            if (protocolStorage.isLocalRegistered()){
+            if (protocolStorage.getLocalUsername().equals(this.username) && protocolStorage.isLocalRegistered()){
                 signalClient.checkRemotePreKeys(promise);
             } else {
-                promise.resolve("ok");
+                MessageStorage messageStorage = new MessageStorage(getReactApplicationContext());
+                protocolStorage.deleteAll();
+                messageStorage.deleteAll();
+                registerAccount(promise);
             }
         }
     }
