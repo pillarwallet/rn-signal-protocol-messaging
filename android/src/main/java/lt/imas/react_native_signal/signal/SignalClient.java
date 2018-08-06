@@ -495,6 +495,7 @@ public class SignalClient {
                     }
                 });
             } catch (JSONException e) {
+                promise.reject(ERR_NATIVE_FAILED, e.getMessage());
                 e.printStackTrace();
             }
         } else {
