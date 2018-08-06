@@ -170,7 +170,6 @@ class SignalClient: NSObject {
 
                 })
             } catch {
-                failure(ERR_NATIVE_FAILED, "\(error)")
             }
         }) { (error) in
 
