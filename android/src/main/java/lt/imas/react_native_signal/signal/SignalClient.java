@@ -3,7 +3,6 @@ package lt.imas.react_native_signal.signal;
 import android.content.Context;
 
 import com.facebook.react.bridge.Promise;
-import com.google.protobuf.ByteString;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -27,11 +26,9 @@ import org.whispersystems.libsignal.ecc.ECPublicKey;
 import org.whispersystems.libsignal.protocol.CiphertextMessage;
 import org.whispersystems.libsignal.protocol.PreKeySignalMessage;
 import org.whispersystems.libsignal.protocol.SignalMessage;
-import org.whispersystems.libsignal.protocol.SignalProtos;
 import org.whispersystems.libsignal.state.PreKeyBundle;
 import org.whispersystems.libsignal.state.PreKeyRecord;
 import org.whispersystems.libsignal.state.SignedPreKeyRecord;
-import org.whispersystems.libsignal.util.ByteUtil;
 import org.whispersystems.libsignal.util.KeyHelper;
 import org.whispersystems.libsignal.util.Medium;
 
@@ -355,34 +352,22 @@ public class SignalClient {
                                             signalServer.call(SignalServer.URL_MESSAGES + "/" + address.getName() + "/" + serverTimestamp, "DELETE", null, null, true);
                                         }
                                     }
-                                } catch (JSONException e) {
+                                } catch (JSONException
+                                        | IOException
+                                        | DuplicateMessageException
+                                        | UntrustedIdentityException
+                                        | LegacyMessageException
+                                        | InvalidMessageException e) {
                                     promise.reject(ERR_NATIVE_FAILED, e.getMessage());
                                     e.printStackTrace();
-                                } catch (IOException e) {
-                                    promise.reject(ERR_NATIVE_FAILED, e.getMessage());
-                                    e.printStackTrace();
-                                } catch (DuplicateMessageException e) {
-                                    promise.reject(ERR_NATIVE_FAILED, e.getMessage());
-                                    e.printStackTrace();
-                                } catch (UntrustedIdentityException e) {
-                                    promise.reject(ERR_NATIVE_FAILED, e.getMessage());
-                                    e.printStackTrace();
-                                } catch (LegacyMessageException e) {
-                                    promise.reject(ERR_NATIVE_FAILED, e.getMessage());
-                                    e.printStackTrace();
-                                } catch (InvalidMessageException e) {
-                                    promise.reject(ERR_NATIVE_FAILED, e.getMessage());
-                                    e.printStackTrace();
+                                    return;
                                 }
                             }
                             JSONObject promiseJSONO = new JSONObject();
                             promiseJSONO.put("unreadCount", unreadJSONO);
                             if (receivedMessagesJSONA.length() != 0) promiseJSONO.put("messages", receivedMessagesJSONA);
                             promise.resolve(promiseJSONO.toString());
-                        } catch (NoSessionException e) {
-                            promise.reject(ERR_NATIVE_FAILED, e.getMessage());
-                            e.printStackTrace();
-                        } catch (JSONException e) {
+                        } catch (NoSessionException | JSONException e) {
                             promise.reject(ERR_NATIVE_FAILED, e.getMessage());
                             e.printStackTrace();
                         }

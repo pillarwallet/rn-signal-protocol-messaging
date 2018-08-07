@@ -2,19 +2,9 @@ package lt.imas.react_native_signal.signal;
 
 import android.content.Context;
 
-import com.facebook.react.bridge.Promise;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.whispersystems.libsignal.IdentityKey;
-import org.whispersystems.libsignal.IdentityKeyPair;
-import org.whispersystems.libsignal.InvalidKeyException;
-import org.whispersystems.libsignal.SignalProtocolAddress;
-import org.whispersystems.libsignal.state.PreKeyRecord;
-import org.whispersystems.libsignal.state.SessionRecord;
-import org.whispersystems.libsignal.state.SignalProtocolStore;
-import org.whispersystems.libsignal.state.SignedPreKeyRecord;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -23,12 +13,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-
-import lt.imas.react_native_signal.helpers.Base64;
-import timber.log.Timber;
 
 public class MessageStorage {
     private Context context;
