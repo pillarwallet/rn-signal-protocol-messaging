@@ -63,7 +63,7 @@ class ProtocolStorage: NSObject {
 
     func isLocalRegistered() -> Bool {
         let localJson = self.get(for: .LOCAL_JSON_FILENAME)
-        if localJson["identityKeyPair"] != nil && localJson["registrationId"] != nil {
+        if localJson["identityKeyPairPublicKey"] != nil && localJson["registrationId"] != nil {
     	        return true;
         }
         return false;
