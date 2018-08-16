@@ -112,7 +112,8 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
         MessageStorage messageStorage = new MessageStorage(getReactApplicationContext());
         JSONArray messagesJSONA = messageStorage.getContactMessages(username);
         ArrayList<JSONObject> messagesList = new ArrayList<JSONObject>();
-        for (int i = 0; i < messagesJSONA.length(); i++) messagesList.add(messagesJSONA.optJSONObject(i));
+        for (int i = 0; i < messagesJSONA.length(); i++)
+            messagesList.add(messagesJSONA.optJSONObject(i));
         Collections.sort(messagesList, new Comparator<JSONObject>() {
             @Override
             public int compare(JSONObject o1, JSONObject o2) {

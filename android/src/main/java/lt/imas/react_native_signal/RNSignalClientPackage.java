@@ -15,7 +15,7 @@ public final class RNSignalClientPackage implements ReactPackage {
     @Override
     public List<NativeModule> createNativeModules(
             ReactApplicationContext reactContext) {
-        List<NativeModule> modules = new ArrayList<NativeModule>();
+        List<NativeModule> modules = new ArrayList<>();
 
         modules.add(new RNSignalClientModule(reactContext));
 

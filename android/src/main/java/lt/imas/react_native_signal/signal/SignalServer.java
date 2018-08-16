@@ -172,7 +172,7 @@ public class SignalServer {
             if (copy.body() == null) return "";
             copy.body().writeTo(buffer);
             return buffer.readUtf8();
-        } catch (final IOException e) {
+        } catch (IOException e) {
             return "";
         }
     }
