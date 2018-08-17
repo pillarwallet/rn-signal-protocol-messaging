@@ -1,7 +1,5 @@
 package lt.imas.react_native_signal.signal;
 
-import android.content.Context;
-
 import com.facebook.react.bridge.Promise;
 
 import org.json.JSONArray;
@@ -48,15 +46,16 @@ import static lt.imas.react_native_signal.RNSignalClientModule.ERR_SERVER_FAILED
 
 public class SignalClient {
     private SignalServer signalServer;
-    private Context context;
+    private ProtocolStorage signalProtocolStore;
+    private MessageStorage messageStorage;
 
-    public SignalClient(Context context, SignalServer signalServer) {
-        this.context = context;
+    public SignalClient(SignalServer signalServer, ProtocolStorage protocolStorage, MessageStorage messageStorage) {
         this.signalServer = signalServer;
+        this.signalProtocolStore = protocolStorage;
+        this.messageStorage = messageStorage;
     }
 
     public void registerPreKeys(final Promise promise, int start, int count){
-        ProtocolStorage signalProtocolStore = new ProtocolStorage(context);
         JSONObject requestJSON = new JSONObject();
         IdentityKeyPair identityKeyPair = signalProtocolStore.getIdentityKeyPair();
         if (signalProtocolStore.getIdentityKeyPair() == null) {
@@ -160,8 +159,7 @@ public class SignalClient {
                             JSONArray devicesJSONA = responseJSONO.getJSONArray("devices");
                             JSONObject firstDevice = devicesJSONA.getJSONObject(0);
 
-                            ProtocolStorage mySignalProtocolStore = new ProtocolStorage(context);
-                            SessionBuilder sessionBuilder = new SessionBuilder(mySignalProtocolStore, new SignalProtocolAddress(username, 1));
+                            SessionBuilder sessionBuilder = new SessionBuilder(signalProtocolStore, new SignalProtocolAddress(username, 1));
 
                             JSONObject preKeyJSONO = firstDevice.getJSONObject("preKey");
                             String preKeyPublicString = preKeyJSONO.getString("publicKey");
@@ -222,8 +220,7 @@ public class SignalClient {
                         int preKeyCount = serverResponse.getResponseJSONObject().optInt("count", 0);
                         if (preKeyCount <= 10) {
                             int count = 100 - preKeyCount;
-                            ProtocolStorage protocolStorage = new ProtocolStorage(context);
-                            registerPreKeys(promise, protocolStorage.getLastPreKeyIndex(), count);
+                            registerPreKeys(promise, signalProtocolStore.getLastPreKeyIndex(), count);
                         } else {
                             promise.resolve("ok");
                         }
@@ -234,7 +231,6 @@ public class SignalClient {
     }
 
     public void registerAccount(String username, final Promise promise){
-        ProtocolStorage signalProtocolStore = new ProtocolStorage(context);
         if (signalProtocolStore.isLocalRegistered()){
             promise.resolve("ok");
             return;
@@ -304,8 +300,6 @@ public class SignalClient {
                             JSONArray messagesJSONA = serverResponse.getResponseJSONObject().getJSONArray("messages");
                             JSONArray receivedMessagesJSONA = new JSONArray();
                             JSONObject unreadJSONO = new JSONObject();
-                            ProtocolStorage signalProtocolStore = new ProtocolStorage(context);
-                            MessageStorage messageStorage = new MessageStorage(context);
                             for (int i=0;i<messagesJSONA.length(); i++) {
                                 try {
                                     JSONObject messageJSONO = messagesJSONA.getJSONObject(i);
@@ -382,7 +376,6 @@ public class SignalClient {
                     @Override
                     public void run() {
                         final int timestamp = serverResponse.getResponseJSONObject().optInt("timestamp", 0);
-                        ProtocolStorage signalProtocolStore = new ProtocolStorage(context);
                         SignalProtocolAddress address = new SignalProtocolAddress(username, 1);
                         SessionCipher sessionCipher = new SessionCipher(signalProtocolStore, address);
                         JSONObject requestJSONO = new JSONObject();
@@ -417,7 +410,6 @@ public class SignalClient {
                                     SignalServer.mainThreadCallback(new Runnable() {
                                         @Override
                                         public void run() {
-                                            MessageStorage messageStorage = new MessageStorage(context);
                                             JSONObject messageJSONO = new JSONObject();
                                             try {
                                                 messageJSONO.put("content", messageString);

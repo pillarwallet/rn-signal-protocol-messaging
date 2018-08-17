@@ -25,8 +25,9 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
     public static final String ERR_SERVER_FAILED = "ERR_SERVER_FAILED";
     public static final String ERR_NATIVE_FAILED = "ERR_NATIVE_FAILED";
 
-    private SignalServer signalServer;
     private SignalClient signalClient;
+    private ProtocolStorage protocolStorage;
+    private MessageStorage messageStorage;
 
     private String username;
     private String password;
@@ -35,6 +36,10 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
     public RNSignalClientModule(ReactApplicationContext reactContext) {
         super(reactContext);
         Timber.plant(new Timber.DebugTree());
+
+        String absolutePath = getReactApplicationContext().getFilesDir().getAbsolutePath();
+        protocolStorage = new ProtocolStorage(absolutePath);
+        messageStorage = new MessageStorage(absolutePath);
     }
 
     @Override
@@ -52,13 +57,13 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
             this.username = config.getString("username");
             this.password = config.getString("password");
             this.host = config.getString("host");
-            signalServer = new SignalServer(this.host, this.username, this.password);
-            signalClient = new SignalClient(getReactApplicationContext(), signalServer);
-            ProtocolStorage protocolStorage = new ProtocolStorage(getReactApplicationContext());
+
+            SignalServer signalServer = new SignalServer(this.host, this.username, this.password);
+            signalClient = new SignalClient(signalServer, protocolStorage, messageStorage);
+
             if (protocolStorage.getLocalUsername().equals(this.username) && protocolStorage.isLocalRegistered()){
                 signalClient.checkRemotePreKeys(promise);
             } else {
-                MessageStorage messageStorage = new MessageStorage(getReactApplicationContext());
                 protocolStorage.deleteAll();
                 messageStorage.deleteAll();
                 registerAccount(promise);
@@ -73,8 +78,6 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void resetAccount(Promise promise){
-        ProtocolStorage protocolStorage = new ProtocolStorage(getReactApplicationContext());
-        MessageStorage messageStorage = new MessageStorage(getReactApplicationContext());
         protocolStorage.deleteAll();
         messageStorage.deleteAll();
         promise.resolve("ok");
@@ -82,7 +85,6 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void addContact(String username, Promise promise){
-        ProtocolStorage protocolStorage = new ProtocolStorage(getReactApplicationContext());
         SignalProtocolAddress address = new SignalProtocolAddress(username, 1);
         if (!protocolStorage.containsSession(address)){
             signalClient.requestPreKeys(username, promise);
@@ -94,8 +96,6 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void deleteContact(String username, Promise promise){
-        ProtocolStorage protocolStorage = new ProtocolStorage(getReactApplicationContext());
-        MessageStorage messageStorage = new MessageStorage(getReactApplicationContext());
         SignalProtocolAddress address = new SignalProtocolAddress(username, 1);
         protocolStorage.deleteSession(address);
         messageStorage.deleteContactMessages(username);
@@ -109,7 +109,6 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void getChatByContact(String username, final Promise promise){
-        MessageStorage messageStorage = new MessageStorage(getReactApplicationContext());
         JSONArray messagesJSONA = messageStorage.getContactMessages(username);
         ArrayList<JSONObject> messagesList = new ArrayList<JSONObject>();
         for (int i = 0; i < messagesJSONA.length(); i++)
@@ -133,7 +132,6 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void getExistingChats(final Promise promise){
-        MessageStorage messageStorage = new MessageStorage(getReactApplicationContext());
         JSONArray chatsJSONA = messageStorage.getExistingChats();
         promise.resolve(chatsJSONA.toString());
     }
