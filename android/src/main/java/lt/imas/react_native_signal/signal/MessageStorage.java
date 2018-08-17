@@ -9,7 +9,6 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -35,10 +34,7 @@ public class MessageStorage {
                 while ((line = bufferedReader.readLine()) != null) {
                     sb.append(line);
                 }
-                String data = sb.toString();
-                return data;
-            } catch (FileNotFoundException fileNotFound) {
-                return null;
+                return sb.toString();
             } catch (IOException ioException) {
                 return null;
             }
@@ -120,13 +116,14 @@ public class MessageStorage {
         File directory = new File(dirPath);
         File[] files = directory.listFiles();
         if (files != null && files.length > 0){
-            for (int i = 0; i < files.length; i++){
-                String username = files[i].getName();
+            for (File file : files) {
+                String username = file.getName();
                 try {
                     JSONObject chatJSONO = new JSONObject();
                     JSONArray messagesJSONA = getContactMessages(username);
                     chatJSONO.put("username", username);
-                    if (messagesJSONA != null && messagesJSONA.length() != 0) chatJSONO.put("lastMessage", messagesJSONA.get(messagesJSONA.length()-1));
+                    if (messagesJSONA != null && messagesJSONA.length() != 0)
+                        chatJSONO.put("lastMessage", messagesJSONA.get(messagesJSONA.length() - 1));
                     chatJSONO.put("unread", 0);
                     chatsJSONA.put(chatJSONO);
                 } catch (JSONException e) {

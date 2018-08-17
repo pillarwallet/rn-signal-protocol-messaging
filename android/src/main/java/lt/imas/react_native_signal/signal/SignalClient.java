@@ -130,10 +130,7 @@ public class SignalClient {
             } else {
                 promise.reject(ERR_NATIVE_FAILED, "lastResortKey failed");
             }
-        } catch (JSONException e) {
-            promise.reject(ERR_NATIVE_FAILED, e.getMessage());
-            e.printStackTrace();
-        } catch (InvalidKeyException e) {
+        } catch (JSONException | InvalidKeyException e) {
             promise.reject(ERR_NATIVE_FAILED, e.getMessage());
             e.printStackTrace();
         }
@@ -190,16 +187,10 @@ public class SignalClient {
                             );
                             sessionBuilder.process(preKeyBundle);
                             promise.resolve("ok");
-                        } catch (JSONException e) {
-                            promise.reject(ERR_NATIVE_FAILED, e.getMessage());
-                            e.printStackTrace();
-                        } catch (UntrustedIdentityException e) {
-                            promise.reject(ERR_NATIVE_FAILED, e.getMessage());
-                            e.printStackTrace();
-                        } catch (InvalidKeyException e) {
-                            promise.reject(ERR_NATIVE_FAILED, e.getMessage());
-                            e.printStackTrace();
-                        } catch (IOException e) {
+                        } catch (JSONException
+                                | UntrustedIdentityException
+                                | InvalidKeyException
+                                | IOException e) {
                             promise.reject(ERR_NATIVE_FAILED, e.getMessage());
                             e.printStackTrace();
                         }
@@ -443,10 +434,7 @@ public class SignalClient {
                                     });
                                 }
                             }, true, timestamp);
-                        } catch (JSONException e) {
-                            promise.reject(ERR_NATIVE_FAILED, e.getMessage());
-                            e.printStackTrace();
-                        } catch (UntrustedIdentityException e) {
+                        } catch (JSONException | UntrustedIdentityException e) {
                             promise.reject(ERR_NATIVE_FAILED, e.getMessage());
                             e.printStackTrace();
                         } catch (UnsupportedEncodingException e) {

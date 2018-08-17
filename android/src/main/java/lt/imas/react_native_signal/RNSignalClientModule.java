@@ -1,12 +1,5 @@
 package lt.imas.react_native_signal;
 
-import android.Manifest;
-import android.content.pm.PackageManager;
-import android.os.Build;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-
-import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -16,7 +9,6 @@ import com.facebook.react.bridge.ReadableMap;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.whispersystems.libsignal.SignalProtocolAddress;
-import org.whispersystems.libsignal.state.SessionRecord;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -120,7 +112,8 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
         MessageStorage messageStorage = new MessageStorage(getReactApplicationContext());
         JSONArray messagesJSONA = messageStorage.getContactMessages(username);
         ArrayList<JSONObject> messagesList = new ArrayList<JSONObject>();
-        for (int i = 0; i < messagesJSONA.length(); i++) messagesList.add(messagesJSONA.optJSONObject(i));
+        for (int i = 0; i < messagesJSONA.length(); i++)
+            messagesList.add(messagesJSONA.optJSONObject(i));
         Collections.sort(messagesList, new Comparator<JSONObject>() {
             @Override
             public int compare(JSONObject o1, JSONObject o2) {

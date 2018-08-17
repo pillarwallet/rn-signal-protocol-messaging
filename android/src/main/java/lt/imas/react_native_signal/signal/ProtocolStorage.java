@@ -1,16 +1,12 @@
 package lt.imas.react_native_signal.signal;
 
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.os.Build;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.whispersystems.libsignal.IdentityKey;
 import org.whispersystems.libsignal.IdentityKeyPair;
 import org.whispersystems.libsignal.InvalidKeyException;
-import org.whispersystems.libsignal.InvalidKeyIdException;
 import org.whispersystems.libsignal.SignalProtocolAddress;
 import org.whispersystems.libsignal.state.PreKeyRecord;
 import org.whispersystems.libsignal.state.SessionRecord;
@@ -20,7 +16,6 @@ import org.whispersystems.libsignal.state.SignedPreKeyRecord;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -56,10 +51,7 @@ public class ProtocolStorage implements SignalProtocolStore {
                 while ((line = bufferedReader.readLine()) != null) {
                     sb.append(line);
                 }
-                String data = sb.toString();
-                return data;
-            } catch (FileNotFoundException fileNotFound) {
-                return null;
+                return sb.toString();
             } catch (IOException ioException) {
                 return null;
             }
@@ -163,11 +155,9 @@ public class ProtocolStorage implements SignalProtocolStore {
             if (!dataJSONO.has("identityKeyPair") || dataJSONO.isNull("identityKeyPair")) return null;
             byte[] keyPairBytes = Base64.decode(dataJSONO.getString("identityKeyPair"));
             identityKeyPair = new IdentityKeyPair(keyPairBytes);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        } catch (InvalidKeyException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+        } catch (JSONException
+                | InvalidKeyException
+                | IOException e) {
             e.printStackTrace();
         }
         return identityKeyPair;
@@ -225,7 +215,7 @@ public class ProtocolStorage implements SignalProtocolStore {
 
     @Override
     public boolean isTrustedIdentity(SignalProtocolAddress address, IdentityKey identityKey, Direction direction) {
-        String data = readFromStorage(IDENTITES_JSON_FILENAME);
+//        String data = readFromStorage(IDENTITES_JSON_FILENAME);
         return true;
 //        TODO: remove force true
 //        if (data == null || data.isEmpty()) return false;
@@ -254,9 +244,7 @@ public class ProtocolStorage implements SignalProtocolStore {
                 byte[] preKeyBytes = Base64.decode(dataJSONO.getString(String.valueOf(preKeyId)));
                 return new PreKeyRecord(preKeyBytes);
             }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+        } catch (JSONException | IOException e) {
             e.printStackTrace();
         }
         return null;
@@ -332,9 +320,7 @@ public class ProtocolStorage implements SignalProtocolStore {
                 byte[] sessionBytes = Base64.decode(dataJSONO.getString(address.toString()));
                 return new SessionRecord(sessionBytes);
             }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+        } catch (JSONException | IOException e) {
             e.printStackTrace();
         }
         return record;
@@ -343,7 +329,7 @@ public class ProtocolStorage implements SignalProtocolStore {
 
     public ArrayList<SessionRecord> loadAllSessions() {
         String data = readFromStorage(SESSIONS_JSON_FILENAME);
-        ArrayList<SessionRecord> records = new ArrayList();
+        ArrayList<SessionRecord> records = new ArrayList<>();
         if (data == null || data.isEmpty()) return records;
         try {
             JSONObject dataJSONO = new JSONObject(data);
@@ -357,9 +343,7 @@ public class ProtocolStorage implements SignalProtocolStore {
                     records.add(sessionRecord);
                 }
             }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+        } catch (JSONException | IOException e) {
             e.printStackTrace();
         }
         return records;
@@ -447,15 +431,13 @@ public class ProtocolStorage implements SignalProtocolStore {
     public SignedPreKeyRecord loadSignedPreKey(int signedPreKeyId) {
         String data = readFromStorage(SIGNED_PRE_KEYS_JSON_FILENAME);
         if (data == null || data.isEmpty()) return null;
-            try {
+        try {
             JSONObject dataJSONO = new JSONObject(data);
             if (dataJSONO.has(String.valueOf(signedPreKeyId))){
                 byte[] preKeyBytes = Base64.decode(dataJSONO.getString(String.valueOf(signedPreKeyId)));
                 return new SignedPreKeyRecord(preKeyBytes);
             }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+        } catch (JSONException | IOException e) {
             e.printStackTrace();
         }
         return null;
@@ -476,9 +458,7 @@ public class ProtocolStorage implements SignalProtocolStore {
                     results.add(new SignedPreKeyRecord(preKeyBytes));
                 }
             }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+        } catch (JSONException | IOException e) {
             e.printStackTrace();
         }
         return results;
