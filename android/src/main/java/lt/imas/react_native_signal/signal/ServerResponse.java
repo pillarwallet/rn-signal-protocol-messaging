@@ -17,11 +17,17 @@ public class ServerResponse {
             String stringResponse = response.body().string();
             Log.i("API", "API RAW RESPONSE: " + stringResponse);
 
-            serverResponse = new JSONObject(stringResponse);
+            serverResponse = (isValidResponseCode(response.code()))
+                    ? new JSONObject(stringResponse)
+                    : new JSONObject();
         } catch (IOException | JSONException e) {
             e.printStackTrace();
             serverResponse = new JSONObject();
         }
+    }
+
+    private boolean isValidResponseCode(int code) {
+        return code >= 200 && code != 204 && code < 300;
     }
 
     public JSONObject getResponseJSONObject(){

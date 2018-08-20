@@ -45,6 +45,12 @@ import static lt.imas.react_native_signal.RNSignalClientModule.ERR_NATIVE_FAILED
 import static lt.imas.react_native_signal.RNSignalClientModule.ERR_SERVER_FAILED;
 
 public class SignalClient {
+    public final String URL_ACCOUNTS = "/v1/accounts";
+    public final String URL_KEYS = "/v2/keys";
+    public final String URL_MESSAGES = "/v1/messages";
+    public final String URL_RECEIPT = "/v1/receipt";
+    public final String URL_GCM = "/v1/accounts/gcm";
+
     private SignalServer signalServer;
     private ProtocolStorage signalProtocolStore;
     private MessageStorage messageStorage;
@@ -103,10 +109,10 @@ public class SignalClient {
                         .put("publicKey", Base64.encodeBytes(signedPreKey.getKeyPair().getPublicKey().serialize()))
                         .put("signature", Base64.encodeBytes(signedPreKey.getSignature()))
                 );
-                SignalServer.call(SignalServer.URL_KEYS, "PUT", requestJSON, new Callback() {
+                signalServer.call(URL_KEYS, "PUT", requestJSON, new Callback() {
                     @Override
                     public void onFailure(Call call, final IOException e) {
-                        SignalServer.mainThreadCallback(new Runnable() {
+                        signalServer.mainThreadCallback(new Runnable() {
                             @Override
                             public void run() {
                                 promise.reject(ERR_SERVER_FAILED, e.getMessage());
@@ -118,7 +124,7 @@ public class SignalClient {
                     @Override
                     public void onResponse(Call call, Response response) {
                         final ServerResponse serverResponse = new ServerResponse(response);
-                        SignalServer.mainThreadCallback(new Runnable() {
+                        signalServer.mainThreadCallback(new Runnable() {
                             @Override
                             public void run() {
                                 promise.resolve("ok");
@@ -136,10 +142,10 @@ public class SignalClient {
     }
 
     public void requestPreKeys(final String username, final Promise promise){
-        SignalServer.call(SignalServer.URL_KEYS + "/" + username + "/1", "GET", new Callback() {
+        signalServer.call(URL_KEYS + "/" + username + "/1", "GET", new Callback() {
             @Override
             public void onFailure(Call call, final IOException e) {
-                SignalServer.mainThreadCallback(new Runnable() {
+                signalServer.mainThreadCallback(new Runnable() {
                     @Override
                     public void run() {
                         promise.reject(ERR_SERVER_FAILED, e.getMessage());
@@ -151,7 +157,7 @@ public class SignalClient {
             @Override
             public void onResponse(Call call, Response response) {
                 final ServerResponse serverResponse = new ServerResponse(response);
-                SignalServer.mainThreadCallback(new Runnable() {
+                signalServer.mainThreadCallback(new Runnable() {
                     @Override
                     public void run() {
                         try {
@@ -199,10 +205,10 @@ public class SignalClient {
     }
 
     public void checkRemotePreKeys(final Promise promise){
-        SignalServer.call(SignalServer.URL_KEYS, "GET", new Callback() {
+        signalServer.call(URL_KEYS, "GET", new Callback() {
             @Override
             public void onFailure(Call call, final IOException e) {
-                SignalServer.mainThreadCallback(new Runnable() {
+                signalServer.mainThreadCallback(new Runnable() {
                     @Override
                     public void run() {
                         promise.reject(ERR_SERVER_FAILED, e.getMessage());
@@ -214,7 +220,7 @@ public class SignalClient {
             @Override
             public void onResponse(Call call, Response response) {
                 final ServerResponse serverResponse = new ServerResponse(response);
-                SignalServer.mainThreadCallback(new Runnable() {
+                signalServer.mainThreadCallback(new Runnable() {
                     @Override
                     public void run() {
                         int preKeyCount = serverResponse.getResponseJSONObject().optInt("count", 0);
@@ -252,10 +258,10 @@ public class SignalClient {
             promise.reject(ERR_NATIVE_FAILED, e.getMessage());
             e.printStackTrace();
         }
-        SignalServer.call(SignalServer.URL_ACCOUNTS, "PUT", requestJSON, new Callback() {
+        signalServer.call(URL_ACCOUNTS, "PUT", requestJSON, new Callback() {
             @Override
             public void onFailure(Call call, final IOException e) {
-                SignalServer.mainThreadCallback(new Runnable() {
+                signalServer.mainThreadCallback(new Runnable() {
                     @Override
                     public void run() {
                         promise.reject(ERR_SERVER_FAILED, e.getMessage());
@@ -267,7 +273,7 @@ public class SignalClient {
             @Override
             public void onResponse(Call call, Response response) {
                 final ServerResponse serverResponse = new ServerResponse(response);
-                SignalServer.mainThreadCallback(new Runnable() {
+                signalServer.mainThreadCallback(new Runnable() {
                     @Override
                     public void run() {
                         registerPreKeys(promise, 0, 100);
@@ -278,10 +284,10 @@ public class SignalClient {
     }
 
     public void getContactMessages(final String username, final Promise promise, final boolean decodeAndSave) {
-        SignalServer.call(SignalServer.URL_MESSAGES, "GET", new Callback() {
+        signalServer.call(URL_MESSAGES, "GET", new Callback() {
             @Override
             public void onFailure(Call call, final IOException e) {
-                SignalServer.mainThreadCallback(new Runnable() {
+                signalServer.mainThreadCallback(new Runnable() {
                     @Override
                     public void run() {
                         promise.reject(ERR_SERVER_FAILED, e.getMessage());
@@ -293,7 +299,7 @@ public class SignalClient {
             @Override
             public void onResponse(Call call, Response response) {
                 final ServerResponse serverResponse = new ServerResponse(response);
-                SignalServer.mainThreadCallback(new Runnable() {
+                signalServer.mainThreadCallback(new Runnable() {
                     @Override
                     public void run() {
                         try {
@@ -334,7 +340,7 @@ public class SignalClient {
                                                     receivedMessagesJSONA.put(newMessageJSONO);
                                                 }
                                             }
-                                            signalServer.call(SignalServer.URL_MESSAGES + "/" + address.getName() + "/" + serverTimestamp, "DELETE", null, null, true);
+                                            signalServer.call(URL_MESSAGES + "/" + address.getName() + "/" + serverTimestamp, "DELETE", null, null, true);
                                         }
                                     }
                                 } catch (JSONException
@@ -372,7 +378,7 @@ public class SignalClient {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 final ServerResponse serverResponse = new ServerResponse(response);
-                SignalServer.mainThreadCallback(new Runnable() {
+                signalServer.mainThreadCallback(new Runnable() {
                     @Override
                     public void run() {
                         final int timestamp = serverResponse.getResponseJSONObject().optInt("timestamp", 0);
@@ -392,10 +398,10 @@ public class SignalClient {
                             messageJSONO.put("body", Base64.encodeBytes(message.serialize()));
                             messagesJSONA.put(messageJSONO);
                             requestJSONO.put("messages", messagesJSONA);
-                            SignalServer.call(SignalServer.URL_MESSAGES + "/" + username, "PUT", requestJSONO, new Callback() {
+                            signalServer.call(URL_MESSAGES + "/" + username, "PUT", requestJSONO, new Callback() {
                                 @Override
                                 public void onFailure(Call call, final IOException e) {
-                                    SignalServer.mainThreadCallback(new Runnable() {
+                                    signalServer.mainThreadCallback(new Runnable() {
                                         @Override
                                         public void run() {
                                             promise.reject(ERR_SERVER_FAILED, e.getMessage());
@@ -407,7 +413,7 @@ public class SignalClient {
                                 @Override
                                 public void onResponse(Call call, Response response) {
                                     final ServerResponse serverResponse = new ServerResponse(response);
-                                    SignalServer.mainThreadCallback(new Runnable() {
+                                    signalServer.mainThreadCallback(new Runnable() {
                                         @Override
                                         public void run() {
                                             JSONObject messageJSONO = new JSONObject();
@@ -426,11 +432,11 @@ public class SignalClient {
                                     });
                                 }
                             }, true, timestamp);
-                        } catch (JSONException | UntrustedIdentityException e) {
+                        } catch (JSONException
+                                | UntrustedIdentityException
+                                | UnsupportedEncodingException e) {
+                            e.printStackTrace();
                             promise.reject(ERR_NATIVE_FAILED, e.getMessage());
-                            e.printStackTrace();
-                        } catch (UnsupportedEncodingException e) {
-                            e.printStackTrace();
                         }
                     }
                 });
@@ -443,7 +449,7 @@ public class SignalClient {
             JSONObject dataJSONO = new JSONObject();
             try {
                 dataJSONO.put("gcmRegistrationId", fcmId);
-                SignalServer.call(SignalServer.URL_GCM, "PUT", dataJSONO, new Callback() {
+                signalServer.call(URL_GCM, "PUT", dataJSONO, new Callback() {
                     @Override
                     public void onFailure(Call call, IOException e) {
                         promise.reject(ERR_NATIVE_FAILED, e.getMessage());
@@ -451,7 +457,7 @@ public class SignalClient {
 
                     @Override
                     public void onResponse(Call call, Response response) throws IOException {
-                        SignalServer.mainThreadCallback(new Runnable() {
+                        signalServer.mainThreadCallback(new Runnable() {
                             @Override
                             public void run() {
                                 promise.resolve("ok");
@@ -460,8 +466,8 @@ public class SignalClient {
                     }
                 });
             } catch (JSONException e) {
-                promise.reject(ERR_NATIVE_FAILED, e.getMessage());
                 e.printStackTrace();
+                promise.reject(ERR_NATIVE_FAILED, e.getMessage());
             }
         } else {
             promise.resolve("ok");

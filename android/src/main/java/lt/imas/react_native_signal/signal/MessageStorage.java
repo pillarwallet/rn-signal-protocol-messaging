@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 public class MessageStorage {
-    private String MESSAGES_JSON_FILENAME = "messages.json";
+    private final String MESSAGES_JSON_FILENAME = "messages.json";
     private String absolutePath;
 
     public MessageStorage(String  absolutePath) {
