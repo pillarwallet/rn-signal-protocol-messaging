@@ -30,8 +30,6 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
     private MessageStorage messageStorage;
 
     private String username;
-    private String password;
-    private String host;
 
     public RNSignalClientModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -54,14 +52,15 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
                 || !config.hasKey("password")) {
             promise.reject(ERR_WRONG_CONFIG, "Wrong config provided.");
         } else {
-            this.username = config.getString("username");
-            this.password = config.getString("password");
-            this.host = config.getString("host");
+            String password = config.getString("password");
+            String host = config.getString("host");
 
-            SignalServer signalServer = new SignalServer(this.host, this.username, this.password);
+            username = config.getString("username");
+
+            SignalServer signalServer = new SignalServer(host, username, password);
             signalClient = new SignalClient(signalServer, protocolStorage, messageStorage);
 
-            if (protocolStorage.getLocalUsername().equals(this.username) && protocolStorage.isLocalRegistered()){
+            if (protocolStorage.getLocalUsername().equals(username) && protocolStorage.isLocalRegistered()){
                 signalClient.checkRemotePreKeys(promise);
             } else {
                 protocolStorage.deleteAll();
@@ -110,7 +109,7 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void getChatByContact(String username, final Promise promise){
         JSONArray messagesJSONA = messageStorage.getContactMessages(username);
-        ArrayList<JSONObject> messagesList = new ArrayList<JSONObject>();
+        ArrayList<JSONObject> messagesList = new ArrayList<>();
         for (int i = 0; i < messagesJSONA.length(); i++)
             messagesList.add(messagesJSONA.optJSONObject(i));
         Collections.sort(messagesList, new Comparator<JSONObject>() {

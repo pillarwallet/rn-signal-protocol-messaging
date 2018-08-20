@@ -85,14 +85,12 @@ public class SignalServer {
             case "put":
                 requestBuilder.put(requestBody);
                 break;
-            default:
-                break;
         }
 
         OkHttpClient client = clientBuilder.build();
         Request request = requestBuilder.build();
 
-        Timber.e("API REQUEST METHOD: " + method);
+        Timber.d("API REQUEST METHOD: " + method);
         Timber.d("API REQUEST URL: " + url);
         Timber.d("API REQUEST BODY: " + bodyToString(request));
 
@@ -153,8 +151,8 @@ public class SignalServer {
         });
     }
 
-    private String getFullApiUrl(String target_url) {
-        return host + target_url;
+    private String getFullApiUrl(String targetUrl) {
+        return host + targetUrl;
     }
 
     public void mainThreadCallback(Runnable task) {

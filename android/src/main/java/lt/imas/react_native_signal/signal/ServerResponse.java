@@ -15,13 +15,14 @@ public class ServerResponse {
     public ServerResponse(Response response){
         try {
             String stringResponse = response.body().string();
+            Log.i("API", "ServerResponse: " + response);
             Log.i("API", "API RAW RESPONSE: " + stringResponse);
 
             serverResponse = (isValidResponseCode(response.code()))
                     ? new JSONObject(stringResponse)
                     : new JSONObject();
         } catch (IOException | JSONException e) {
-            e.printStackTrace();
+            Log.e("API", "ServerResponse", e);
             serverResponse = new JSONObject();
         }
     }
