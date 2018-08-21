@@ -1,7 +1,5 @@
 package lt.imas.react_native_signal.signal;
 
-import android.content.Context;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.whispersystems.libsignal.IdentityKey;
@@ -27,19 +25,20 @@ import java.util.List;
 import lt.imas.react_native_signal.helpers.Base64;
 
 public class ProtocolStorage implements SignalProtocolStore {
-    private Context context;
     private String PRE_KEYS_JSON_FILENAME = "prekeys.json";
     private String SIGNED_PRE_KEYS_JSON_FILENAME = "signed_prekeys.json";
     private String SESSIONS_JSON_FILENAME = "sessions.json";
     private String IDENTITES_JSON_FILENAME = "identites.json";
     private String LOCAL_JSON_FILENAME = "user.json";
 
-    public ProtocolStorage(Context context) {
-        this.context = context;
+    private String absolutePath;
+
+    public ProtocolStorage(String  absolutePath) {
+        this.absolutePath = absolutePath;
     }
 
     private String readFromStorage(String fileName) {
-        String dirPath = context.getFilesDir().getAbsolutePath() + "/signal";
+        String dirPath = absolutePath + "/signal";
         File file = new File(dirPath, fileName);
         if (file.exists()){
             try {
@@ -62,7 +61,7 @@ public class ProtocolStorage implements SignalProtocolStore {
 
     private void writeToStorageFile(String fileName, String data) {
         try {
-            String dirPath = context.getFilesDir().getAbsolutePath() + "/signal";
+            String dirPath = absolutePath + "/signal";
             File dir = new File(dirPath);
             dir.mkdirs();
             File file = new File(dirPath, fileName);
@@ -79,7 +78,7 @@ public class ProtocolStorage implements SignalProtocolStore {
     }
 
     public void deleteAll(){
-        File dir = new File(context.getFilesDir().getAbsolutePath() + "/signal");
+        File dir = new File(absolutePath + "/signal");
         if (dir.isDirectory()){
             String[] children = dir.list();
             for (String aChildren : children) {

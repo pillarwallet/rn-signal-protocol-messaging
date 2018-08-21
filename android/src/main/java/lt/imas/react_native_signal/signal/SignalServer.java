@@ -25,15 +25,11 @@ import okio.Buffer;
 import timber.log.Timber;
 
 public class SignalServer {
-    public static final String URL_ACCOUNTS = "/v1/accounts";
-    public static final String URL_KEYS = "/v2/keys";
-    public static final String URL_MESSAGES = "/v1/messages";
-    public static final String URL_ACCOUNTS_BOOTSTRAP = "/v1/accounts/bootstrap";
-    public static final String URL_RECEIPT = "/v1/receipt";
-    public static final String URL_GCM = "/v1/accounts/gcm";
-    public static String username;
-    public static String password;
-    public static String host;
+    public final String URL_ACCOUNTS_BOOTSTRAP = "/v1/accounts/bootstrap";
+
+    public String username;
+    public String password;
+    public String host;
 
     public SignalServer(String host, String username, String password){
         this.host = host;
@@ -41,22 +37,22 @@ public class SignalServer {
         this.password = password;
     }
 
-    public static OkHttpClient call(String url, String method, JSONObject requestJSONO, Callback responseHandler) {
+    public OkHttpClient call(String url, String method, JSONObject requestJSONO, Callback responseHandler) {
         return call(url, method, requestJSONO, responseHandler, true);
     }
 
-    public static OkHttpClient call(String url, String method, Callback responseHandler) {
+    public OkHttpClient call(String url, String method, Callback responseHandler) {
         return call(url, method, new JSONObject(), responseHandler, true);
     }
 
-    public static OkHttpClient requestServerTimestamp(Callback callback) {
+    public OkHttpClient requestServerTimestamp(Callback callback) {
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder().url(getFullApiUrl(URL_ACCOUNTS_BOOTSTRAP)).build();
         client.newCall(request).enqueue(callback);
         return client;
     }
 
-    public static OkHttpClient call(String url, String method, JSONObject requestJSONO, Callback responseHandler, boolean async, int timestamp) {
+    public OkHttpClient call(String url, String method, JSONObject requestJSONO, Callback responseHandler, boolean async, int timestamp) {
         OkHttpClient.Builder clientBuilder = new OkHttpClient().newBuilder();
 
         method = method != null ? method.toLowerCase().trim() : "";
@@ -89,14 +85,12 @@ public class SignalServer {
             case "put":
                 requestBuilder.put(requestBody);
                 break;
-            default:
-                break;
         }
 
         OkHttpClient client = clientBuilder.build();
         Request request = requestBuilder.build();
 
-        Timber.e("API REQUEST METHOD: " + method);
+        Timber.d("API REQUEST METHOD: " + method);
         Timber.d("API REQUEST URL: " + url);
         Timber.d("API REQUEST BODY: " + bodyToString(request));
 
@@ -110,7 +104,7 @@ public class SignalServer {
                 @Override
                 public void onResponse(Call call, Response response) {
                     final ServerResponse serverResponse = new ServerResponse(response);
-                    SignalServer.mainThreadCallback(new Runnable() {
+                    mainThreadCallback(new Runnable() {
                         @Override
                         public void run() {
                             Timber.d("API RESPONSE DEFAULT CALLBACK: %s", serverResponse.getResponseJSONObject().toString());
@@ -136,7 +130,7 @@ public class SignalServer {
         return client;
     }
 
-    public static OkHttpClient call(final String url, final String method, final JSONObject requestJSONO, final Callback responseHandler, final boolean async) {
+    public OkHttpClient call(final String url, final String method, final JSONObject requestJSONO, final Callback responseHandler, final boolean async) {
         return requestServerTimestamp(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
@@ -146,7 +140,7 @@ public class SignalServer {
             @Override
             public void onResponse(final Call call, Response response) throws IOException {
                 final ServerResponse serverResponse = new ServerResponse(response);
-                SignalServer.mainThreadCallback(new Runnable() {
+                mainThreadCallback(new Runnable() {
                     @Override
                     public void run() {
                         int timestamp = serverResponse.getResponseJSONObject().optInt("timestamp", 0);
@@ -157,18 +151,18 @@ public class SignalServer {
         });
     }
 
-    private static String getFullApiUrl(String target_url) {
-        return host + target_url;
+    private String getFullApiUrl(String targetUrl) {
+        return host + targetUrl;
     }
 
-    public static void mainThreadCallback(Runnable task) {
+    public void mainThreadCallback(Runnable task) {
         new Handler(Looper.getMainLooper()).post(task);
     }
 
-    private static String bodyToString(final Request request){
+    private String bodyToString(final Request request){
         try {
             final Request copy = request.newBuilder().build();
-            final okio.Buffer buffer = new okio.Buffer();
+            final Buffer buffer = new Buffer();
             if (copy.body() == null) return "";
             copy.body().writeTo(buffer);
             return buffer.readUtf8();
@@ -177,12 +171,12 @@ public class SignalServer {
         }
     }
 
-    public static boolean isActiveInternetConnection(Context context){
+    public boolean isActiveInternetConnection(Context context){
         ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         return cm.getActiveNetworkInfo() != null;
     }
 
-    private static String buildPayloadHeader(ECKey identityKey, String method, String url, RequestBody requestBody, String timestamp){
+    private String buildPayloadHeader(ECKey identityKey, String method, String url, RequestBody requestBody, String timestamp){
         final Buffer buffer = new Buffer();
         String encodedBody = "";
         if (requestBody != null) {

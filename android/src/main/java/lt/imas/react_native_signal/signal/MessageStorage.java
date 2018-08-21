@@ -1,7 +1,5 @@
 package lt.imas.react_native_signal.signal;
 
-import android.content.Context;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -14,15 +12,15 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 public class MessageStorage {
-    private Context context;
-    private String MESSAGES_JSON_FILENAME = "messages.json";
+    private final String MESSAGES_JSON_FILENAME = "messages.json";
+    private String absolutePath;
 
-    public MessageStorage(Context context) {
-        this.context = context;
+    public MessageStorage(String  absolutePath) {
+        this.absolutePath = absolutePath;
     }
 
     private String readFromStorage(String fileName) {
-        String dirPath = context.getFilesDir().getAbsolutePath() + "/messages";
+        String dirPath = absolutePath + "/messages";
         File file = new File(dirPath, fileName);
         if (file.exists()){
             try {
@@ -45,7 +43,7 @@ public class MessageStorage {
 
     private void writeToStorageFile(String fileName, String data) {
         try {
-            String dirPath = context.getFilesDir().getAbsolutePath() + "/messages";
+            String dirPath = absolutePath + "/messages";
             File dir = new File(dirPath);
             dir.mkdirs();
             File file = new File(dirPath, fileName);
@@ -62,7 +60,7 @@ public class MessageStorage {
     }
 
     public void deleteAll(){
-        File dir = new File(context.getFilesDir().getAbsolutePath() + "/messages");
+        File dir = new File(absolutePath + "/messages");
         if (dir.isDirectory()){
             String[] children = dir.list();
             for (String aChildren : children) {
@@ -72,7 +70,7 @@ public class MessageStorage {
     }
 
     public void deleteContactMessages(String username){
-        File dir = new File(context.getFilesDir().getAbsolutePath() + "/messages/" + username);
+        File dir = new File(absolutePath + "/messages/" + username);
         if (dir.isDirectory()){
             String[] children = dir.list();
             for (String aChildren : children) {
@@ -82,7 +80,7 @@ public class MessageStorage {
     }
 
     public void storeMessage(String username, JSONObject newMessagesJSONO){
-        String dirPath = context.getFilesDir().getAbsolutePath() + "/messages/" + username;
+        String dirPath = absolutePath + "/messages/" + username;
         File dir = new File(dirPath);
         dir.mkdirs();
         String userPath = username + "/" + MESSAGES_JSON_FILENAME;
@@ -112,7 +110,7 @@ public class MessageStorage {
 
     public JSONArray getExistingChats() {
         JSONArray chatsJSONA = new JSONArray();
-        String dirPath = context.getFilesDir().getAbsolutePath() + "/messages";
+        String dirPath = absolutePath + "/messages";
         File directory = new File(dirPath);
         File[] files = directory.listFiles();
         if (files != null && files.length > 0){
