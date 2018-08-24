@@ -18,13 +18,10 @@ import lt.imas.react_native_signal.signal.MessageStorage;
 import lt.imas.react_native_signal.signal.SignalClient;
 import lt.imas.react_native_signal.signal.SignalServer;
 import lt.imas.react_native_signal.signal.ProtocolStorage;
+import static lt.imas.react_native_signal.signal.PromiseRejectCode.ERR_WRONG_CONFIG;
 import timber.log.Timber;
 
 public class RNSignalClientModule extends ReactContextBaseJavaModule {
-    public static final String ERR_WRONG_CONFIG = "ERR_WRONG_CONFIG";
-    public static final String ERR_SERVER_FAILED = "ERR_SERVER_FAILED";
-    public static final String ERR_NATIVE_FAILED = "ERR_NATIVE_FAILED";
-
     private SignalClient signalClient;
     private ProtocolStorage protocolStorage;
     private MessageStorage messageStorage;
@@ -120,8 +117,7 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
                 return Long.compare(ts2, ts1);
             }
         });
-        messagesJSONA = new JSONArray(messagesList);
-        promise.resolve(messagesJSONA.toString());
+        promise.resolve(new JSONArray(messagesList).toString());
     }
 
     @ReactMethod
