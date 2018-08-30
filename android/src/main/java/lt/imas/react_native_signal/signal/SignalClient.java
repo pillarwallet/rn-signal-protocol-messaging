@@ -41,8 +41,8 @@ import okhttp3.Callback;
 import okhttp3.Response;
 import timber.log.Timber;
 
-import static lt.imas.react_native_signal.RNSignalClientModule.ERR_NATIVE_FAILED;
-import static lt.imas.react_native_signal.RNSignalClientModule.ERR_SERVER_FAILED;
+import static lt.imas.react_native_signal.signal.PromiseRejectCode.ERR_NATIVE_FAILED;
+import static lt.imas.react_native_signal.signal.PromiseRejectCode.ERR_SERVER_FAILED;
 
 public class SignalClient {
     public final String URL_ACCOUNTS = "/v1/accounts";
@@ -314,34 +314,34 @@ public class SignalClient {
                                     SignalProtocolAddress address = new SignalProtocolAddress(source, 1);
                                     int unreadCount = unreadJSONO.optInt(source, 0);
                                     unreadJSONO.put(source, unreadCount+1);
-                                    if (username.equals(address.getName()) && signalProtocolStore.containsSession(address)) {
-                                        JSONObject newMessageJSONO = new JSONObject();
-                                        if (decodeAndSave) {
-                                            long serverTimestamp = messageJSONO.optLong("timestamp", 0);
-                                            if (messageString != null && !messageString.isEmpty()){
-                                                byte[] messageBytes = null;
-                                                SessionCipher sessionCipher = new SessionCipher(signalProtocolStore, address);
-                                                try {
-                                                    PreKeySignalMessage signalMessage = new PreKeySignalMessage(Base64.decode(messageString));
-                                                    messageBytes = sessionCipher.decrypt(signalMessage);
-                                                } catch (LegacyMessageException | InvalidKeyIdException | UntrustedIdentityException | DuplicateMessageException | InvalidVersionException | InvalidMessageException | InvalidKeyException e) {
-                                                    SignalMessage signalMessage = new SignalMessage(Base64.decode(messageString));
-                                                    messageBytes = sessionCipher.decrypt(signalMessage);
-                                                }
-                                                if (messageBytes != null){
-                                                    String messageBodyString = new String(messageBytes, "UTF-8");
-                                                    int currentUnixTime = Integer.parseInt(String.valueOf(System.currentTimeMillis()/1000L));
-                                                    newMessageJSONO.put("content", messageBodyString);
-                                                    newMessageJSONO.put("username", address.getName());
-                                                    newMessageJSONO.put("device", address.getDeviceId());
-                                                    newMessageJSONO.put("serverTimestamp", serverTimestamp);
-                                                    newMessageJSONO.put("savedTimestamp", currentUnixTime);
-                                                    messageStorage.storeMessage(address.getName(), newMessageJSONO);
-                                                    receivedMessagesJSONA.put(newMessageJSONO);
-                                                }
+                                    if (username.equals(address.getName())
+                                            && signalProtocolStore.containsSession(address)
+                                            && decodeAndSave) {
+                                        long serverTimestamp = messageJSONO.optLong("timestamp", 0);
+                                        if (messageString != null && !messageString.isEmpty()){
+                                            byte[] messageBytes = null;
+                                            SessionCipher sessionCipher = new SessionCipher(signalProtocolStore, address);
+                                            try {
+                                                PreKeySignalMessage signalMessage = new PreKeySignalMessage(Base64.decode(messageString));
+                                                messageBytes = sessionCipher.decrypt(signalMessage);
+                                            } catch (LegacyMessageException | InvalidKeyIdException | UntrustedIdentityException | DuplicateMessageException | InvalidVersionException | InvalidMessageException | InvalidKeyException e) {
+                                                SignalMessage signalMessage = new SignalMessage(Base64.decode(messageString));
+                                                messageBytes = sessionCipher.decrypt(signalMessage);
                                             }
-                                            signalServer.call(URL_MESSAGES + "/" + address.getName() + "/" + serverTimestamp, "DELETE", null, null, true);
+                                            if (messageBytes != null){
+                                                String messageBodyString = new String(messageBytes, "UTF-8");
+                                                int currentUnixTime = Integer.parseInt(String.valueOf(System.currentTimeMillis()/1000L));
+                                                JSONObject newMessageJSONO = new JSONObject()
+                                                        .put("content", messageBodyString)
+                                                        .put("username", address.getName())
+                                                        .put("device", address.getDeviceId())
+                                                        .put("serverTimestamp", serverTimestamp)
+                                                        .put("savedTimestamp", currentUnixTime);
+                                                messageStorage.storeMessage(address.getName(), newMessageJSONO);
+                                                receivedMessagesJSONA.put(newMessageJSONO);
+                                            }
                                         }
+                                        signalServer.call(URL_MESSAGES + "/" + address.getName() + "/" + serverTimestamp, "DELETE", null, null, true);
                                     }
                                 } catch (JSONException
                                         | IOException
