@@ -94,26 +94,6 @@ public class SignalServer {
         Timber.d("API REQUEST URL: " + url);
         Timber.d("API REQUEST BODY: " + bodyToString(request));
 
-        if (responseHandler == null){
-            responseHandler = new Callback() {
-                @Override
-                public void onFailure(Call call, IOException e) {
-                    Timber.d("API RESPONSE DEFAULT CALLBACK: %s", e.getMessage());
-                }
-
-                @Override
-                public void onResponse(Call call, Response response) {
-                    final ServerResponse serverResponse = new ServerResponse(response);
-                    mainThreadCallback(new Runnable() {
-                        @Override
-                        public void run() {
-                            Timber.d("API RESPONSE DEFAULT CALLBACK: %s", serverResponse.getResponseJSONObject().toString());
-                        }
-                    });
-                }
-            };
-        }
-
         if (async) {
             client.newCall(request).enqueue(responseHandler);
         } else {
@@ -134,7 +114,8 @@ public class SignalServer {
         return requestServerTimestamp(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                Timber.d("API RESPONSE DEFAULT CALLBACK: %s", e.getMessage());
+                Timber.e("API RESPONSE DEFAULT CALLBACK: %s", e);
+                responseHandler.onFailure(call, e);
             }
 
             @Override
