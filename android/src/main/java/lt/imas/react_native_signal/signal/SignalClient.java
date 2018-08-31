@@ -341,7 +341,24 @@ public class SignalClient {
                                                 receivedMessagesJSONA.put(newMessageJSONO);
                                             }
                                         }
-                                        signalServer.call(URL_MESSAGES + "/" + address.getName() + "/" + serverTimestamp, "DELETE", null, null, true);
+
+                                        signalServer.call(
+                                                URL_MESSAGES + "/" + address.getName() + "/" + serverTimestamp,
+                                                "DELETE",
+                                                null,
+                                                new Callback() {
+                                                    @Override
+                                                    public void onFailure(Call call, IOException e) {
+                                                        Timber.e(e);
+                                                    }
+
+                                                    @Override
+                                                    public void onResponse(Call call, Response res) {
+                                                        Timber.d(String.format("DELETE messages: %s, %s", res.code(), res.message()));
+                                                    }
+                                                },
+                                                true
+                                        );
                                     }
                                 } catch (JSONException
                                         | IOException
