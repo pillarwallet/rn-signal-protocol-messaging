@@ -395,8 +395,14 @@ public class SignalClient {
     public void sendMessage(final String username, final String messageString, final Promise promise) {
         signalServer.requestServerTimestamp(new Callback() {
             @Override
-            public void onFailure(Call call, IOException e) {
-                promise.reject(ERR_NATIVE_FAILED, e.getMessage());
+            public void onFailure(Call call, final IOException e) {
+                signalServer.mainThreadCallback(new Runnable() {
+                    @Override
+                    public void run() {
+                        Timber.e("Send Message failed: %s", e);
+                        promise.reject(ERR_NATIVE_FAILED, e.getMessage());
+                    }
+                });
             }
 
             @Override
