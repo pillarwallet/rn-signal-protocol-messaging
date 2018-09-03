@@ -319,15 +319,27 @@ public class SignalClient {
                                             && decodeAndSave) {
                                         long serverTimestamp = messageJSONO.optLong("timestamp", 0);
                                         if (messageString != null && !messageString.isEmpty()){
+                                            byte[] decodeMessageString = Base64.decode(messageString);
                                             byte[] messageBytes = null;
                                             SessionCipher sessionCipher = new SessionCipher(signalProtocolStore, address);
+
                                             try {
-                                                PreKeySignalMessage signalMessage = new PreKeySignalMessage(Base64.decode(messageString));
-                                                messageBytes = sessionCipher.decrypt(signalMessage);
-                                            } catch (LegacyMessageException | InvalidKeyIdException | UntrustedIdentityException | DuplicateMessageException | InvalidVersionException | InvalidMessageException | InvalidKeyException e) {
-                                                SignalMessage signalMessage = new SignalMessage(Base64.decode(messageString));
-                                                messageBytes = sessionCipher.decrypt(signalMessage);
+                                                messageBytes = sessionCipher.decrypt(new SignalMessage(decodeMessageString));
+                                            } catch (InvalidMessageException | DuplicateMessageException | LegacyMessageException
+                                                    | NoSessionException | UntrustedIdentityException e) {
+                                                Timber.e(e);
                                             }
+
+                                            if (messageBytes == null){
+                                                try {
+                                                    messageBytes = sessionCipher.decrypt(new PreKeySignalMessage(decodeMessageString));
+                                                } catch (DuplicateMessageException | LegacyMessageException | InvalidMessageException
+                                                        | InvalidKeyIdException | InvalidKeyException | UntrustedIdentityException
+                                                        | InvalidVersionException e) {
+                                                    Timber.e(e);
+                                                }
+                                            }
+
                                             if (messageBytes != null){
                                                 String messageBodyString = new String(messageBytes, "UTF-8");
                                                 int currentUnixTime = Integer.parseInt(String.valueOf(System.currentTimeMillis()/1000L));
@@ -360,12 +372,7 @@ public class SignalClient {
                                                 true
                                         );
                                     }
-                                } catch (JSONException
-                                        | IOException
-                                        | DuplicateMessageException
-                                        | UntrustedIdentityException
-                                        | LegacyMessageException
-                                        | InvalidMessageException e) {
+                                } catch (JSONException | IOException e) {
                                     promise.reject(ERR_NATIVE_FAILED, e.getMessage());
                                     e.printStackTrace();
                                     return;
@@ -375,7 +382,7 @@ public class SignalClient {
                             promiseJSONO.put("unreadCount", unreadJSONO);
                             if (receivedMessagesJSONA.length() != 0) promiseJSONO.put("messages", receivedMessagesJSONA);
                             promise.resolve(promiseJSONO.toString());
-                        } catch (NoSessionException | JSONException e) {
+                        } catch (JSONException e) {
                             promise.reject(ERR_NATIVE_FAILED, e.getMessage());
                             e.printStackTrace();
                         }
