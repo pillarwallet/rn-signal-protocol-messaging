@@ -22,6 +22,10 @@ enum HTTPMethod: String {
   case DELETE = "DELETE"
 }
 
+enum RuntimeError: Error {
+  case runtimeError(String)
+}
+
 class SignalServer: NSObject {
   
   private let signalUsername: String
@@ -41,6 +45,7 @@ class SignalServer: NSObject {
   
   func call(urlPath: String, method: HTTPMethod, parameters: [String : Any] = [String : Any](), success: @escaping(_ dictionary: [String : Any]) -> Void, failure: @escaping (_ error: Error?) -> Void) {
     guard let url = URL(string: self.getFullApiUrl(target_url: urlPath)) else {
+      failure(RuntimeError.runtimeError("URL is incorrect"))
       return
     }
     
@@ -63,38 +68,45 @@ class SignalServer: NSObject {
       do {
         request.httpBody = try JSONSerialization.data(withJSONObject: parameters, options: .prettyPrinted)
       } catch {
-        
+        print("JSONSerialization.data: \(error.localizedDescription)")
+        print(error)
+        failure(error)
+        return
       }
     }
     
     URLSession.shared.dataTask(with: request) { (data, response, error) in
       DispatchQueue.main.async {
         guard error == nil else {
+          print(error as Any)
           failure(error)
           return
         }
-        
+
+        if let resp = response as? HTTPURLResponse {
+          print("Response Status Code \(resp.statusCode)")
+          if resp.statusCode == 204 {
+            success([String: Any]())
+            return
+          }
+        }
+
         do {
           let decoded = try JSONSerialization.jsonObject(with: data ?? Data(), options: .mutableContainers)
           if let dictFromJSON = decoded as? [String: Any] {
             print("Server response")
             print(dictFromJSON)
             success(dictFromJSON)
+            return
           }
         } catch {
-          print(error.localizedDescription)
-        }
-        
-        if let resp = response as? HTTPURLResponse {
-          print("Status Code \(resp.statusCode)")
-          
-          if resp.statusCode == 204 {
-            success([String: Any]())
-          }
+          print("Decoding error: \(error.localizedDescription)");
+          print(error);
+          failure(error)
+          return
         }
       }
-      
-      }.resume()
+    }.resume()
   }
-  
+
 }
