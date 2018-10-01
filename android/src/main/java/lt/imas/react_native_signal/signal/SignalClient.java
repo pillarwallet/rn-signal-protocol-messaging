@@ -463,6 +463,7 @@ public class SignalClient {
                                 }
                             }, true, timestamp);
                         } catch (JSONException
+                                | IllegalArgumentException
                                 | UntrustedIdentityException
                                 | UnsupportedEncodingException e) {
                             e.printStackTrace();
