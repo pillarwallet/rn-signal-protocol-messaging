@@ -30,6 +30,7 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
 
     public RNSignalClientModule(ReactApplicationContext reactContext) {
         super(reactContext);
+
         Timber.plant(new Timber.DebugTree());
 
         String absolutePath = getReactApplicationContext().getFilesDir().getAbsolutePath();
@@ -44,100 +45,154 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void init(ReadableMap config, Promise promise){
-        if (!config.hasKey("host")
-                || !config.hasKey("username")
-                || !config.hasKey("password")) {
-            promise.reject(ERR_WRONG_CONFIG, "Wrong config provided.");
-        } else {
-            String password = config.getString("password");
-            String host = config.getString("host");
-
-            username = config.getString("username");
-
-            SignalServer signalServer = new SignalServer(host, username, password);
-            signalClient = new SignalClient(signalServer, protocolStorage, messageStorage);
-
-            if (protocolStorage.getLocalUsername().equals(username) && protocolStorage.isLocalRegistered()){
-                signalClient.checkRemotePreKeys(promise);
+        try {
+            if (!config.hasKey("host")
+                    || !config.hasKey("username")
+                    || !config.hasKey("password")) {
+                promise.reject(ERR_WRONG_CONFIG, "Wrong config provided.");
             } else {
-                protocolStorage.deleteAll();
-                messageStorage.deleteAll();
-                registerAccount(promise);
+                String password = config.getString("password");
+                String host = config.getString("host");
+
+                username = config.getString("username");
+
+                SignalServer signalServer = new SignalServer(host, username, password);
+                signalClient = new SignalClient(signalServer, protocolStorage, messageStorage);
+
+                if (protocolStorage.getLocalUsername().equals(username) && protocolStorage.isLocalRegistered()){
+                    signalClient.checkRemotePreKeys(promise);
+                } else {
+                    protocolStorage.deleteAll();
+                    messageStorage.deleteAll();
+                    registerAccount(promise);
+                }
             }
+        } catch (Throwable e) {
+            Timber.e(e);
+            promise.reject(e);
         }
     }
 
     @ReactMethod
     public void registerAccount(final Promise promise){
-        signalClient.registerAccount(username, promise);
+        try {
+            signalClient.registerAccount(username, promise);
+        } catch (Throwable e) {
+            Timber.e(e);
+            promise.reject(e);
+        }
     }
 
     @ReactMethod
     public void resetAccount(Promise promise){
-        protocolStorage.deleteAll();
-        messageStorage.deleteAll();
-        promise.resolve("ok");
+        try {
+            protocolStorage.deleteAll();
+            messageStorage.deleteAll();
+            promise.resolve("ok");
+        } catch (Throwable e) {
+            Timber.e(e);
+            promise.reject(e);
+        }
     }
 
     @ReactMethod
     public void addContact(String username, Promise promise){
-        SignalProtocolAddress address = new SignalProtocolAddress(username, 1);
-        if (!protocolStorage.containsSession(address)){
-            signalClient.requestPreKeys(username, promise);
-//            protocolStorage.deleteSession(address);
-        } else {
-            promise.resolve("ok");
+        try {
+            SignalProtocolAddress address = new SignalProtocolAddress(username, 1);
+            if (!protocolStorage.containsSession(address)){
+                signalClient.requestPreKeys(username, promise);
+//                protocolStorage.deleteSession(address);
+            } else {
+                promise.resolve("ok");
+            }
+        } catch (Throwable e) {
+            Timber.e(e);
+            promise.reject(e);
         }
     }
 
     @ReactMethod
     public void deleteContact(String username, Promise promise){
-        SignalProtocolAddress address = new SignalProtocolAddress(username, 1);
-        protocolStorage.deleteSession(address);
-        messageStorage.deleteContactMessages(username);
-        promise.resolve("ok");
+        try {
+            SignalProtocolAddress address = new SignalProtocolAddress(username, 1);
+            protocolStorage.deleteSession(address);
+            messageStorage.deleteContactMessages(username);
+            promise.resolve("ok");
+        } catch (Throwable e) {
+            Timber.e(e);
+            promise.reject(e);
+        }
     }
 
     @ReactMethod
     public void receiveNewMessagesByContact(String username, final Promise promise){
-        signalClient.getContactMessages(username, promise, true);
+        try {
+            signalClient.getContactMessages(username, promise, true);
+        } catch (Throwable e) {
+            Timber.e(e);
+            promise.reject(e);
+        }
     }
 
     @ReactMethod
     public void getChatByContact(String username, final Promise promise){
-        JSONArray messagesJSONA = messageStorage.getContactMessages(username);
-        ArrayList<JSONObject> messagesList = new ArrayList<>();
-        for (int i = 0; i < messagesJSONA.length(); i++)
-            messagesList.add(messagesJSONA.optJSONObject(i));
-        Collections.sort(messagesList, new Comparator<JSONObject>() {
-            @Override
-            public int compare(JSONObject o1, JSONObject o2) {
-                long ts1 = o1.optLong("savedTimestamp");
-                long ts2 = o2.optLong("savedTimestamp");
-                return Long.compare(ts2, ts1);
-            }
-        });
-        promise.resolve(new JSONArray(messagesList).toString());
+        try {
+            JSONArray messagesJSONA = messageStorage.getContactMessages(username);
+            ArrayList<JSONObject> messagesList = new ArrayList<>();
+            for (int i = 0; i < messagesJSONA.length(); i++)
+                messagesList.add(messagesJSONA.optJSONObject(i));
+            Collections.sort(messagesList, new Comparator<JSONObject>() {
+                @Override
+                public int compare(JSONObject o1, JSONObject o2) {
+                    long ts1 = o1.optLong("savedTimestamp");
+                    long ts2 = o2.optLong("savedTimestamp");
+                    return Long.compare(ts2, ts1);
+                }
+            });
+            promise.resolve(new JSONArray(messagesList).toString());
+        } catch (Throwable e) {
+            Timber.e(e);
+            promise.reject(e);
+        }
     }
 
     @ReactMethod
     public void getUnreadMessagesCount(final Promise promise){
-        signalClient.getContactMessages("", promise, false);
+        try {
+            signalClient.getContactMessages("", promise, false);
+        } catch (Throwable e) {
+            Timber.e(e);
+            promise.reject(e);
+        }
     }
 
     @ReactMethod
     public void getExistingChats(final Promise promise){
-        JSONArray chatsJSONA = messageStorage.getExistingChats();
-        promise.resolve(chatsJSONA.toString());
+        try {
+            promise.resolve(messageStorage.getExistingChats().toString());
+        } catch (Throwable e) {
+            Timber.e(e);
+            promise.reject(e);
+        }
     }
 
     @ReactMethod
     public void sendMessageByContact(String username, String message, final Promise promise) {
-        signalClient.sendMessage(username, message, promise);
+        try {
+            signalClient.sendMessage(username, message, promise);
+        } catch (Throwable e) {
+            Timber.e(e);
+            promise.reject(e);
+        }
     }
 
     @ReactMethod
     public void setFcmId(String fcmId, final Promise promise) {
-        signalClient.setFcmId(fcmId, promise);
+        try {
+            signalClient.setFcmId(fcmId, promise);
+        } catch (Throwable e) {
+            Timber.e(e);
+            promise.reject(e);
+        }
     }
 }
