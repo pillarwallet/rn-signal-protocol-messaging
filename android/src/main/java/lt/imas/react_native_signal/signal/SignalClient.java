@@ -87,9 +87,9 @@ public class SignalClient {
                 );
                 signalProtocolStore.storePreKey(preKeyRecord.getId(), preKeyRecord);
             }
-        } catch (AssertionError | NullPointerException | JSONException e) {
+        } catch (Throwable e) {
+            Timber.e(e);
             promise.reject(ERR_NATIVE_FAILED, e.getMessage());
-            e.printStackTrace();
             return;
         }
         try {
@@ -136,9 +136,9 @@ public class SignalClient {
             } else {
                 promise.reject(ERR_NATIVE_FAILED, "lastResortKey failed");
             }
-        } catch (AssertionError | NullPointerException | JSONException | InvalidKeyException e) {
+        } catch (Throwable e) {
+            Timber.e(e);
             promise.reject(ERR_NATIVE_FAILED, e.getMessage());
-            e.printStackTrace();
         }
     }
 
