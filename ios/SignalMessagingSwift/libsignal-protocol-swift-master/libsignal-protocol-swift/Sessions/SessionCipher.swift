@@ -186,4 +186,19 @@ public final class SessionCipher {
 
         return Data(signalBuffer: plaintextPtr!)
     }
+    
+    /**
+     Get remote user Registration ID.
+     - returns: The result of the operation, and the remote user Registration ID data on sucess.
+     */
+    public func getRemoteRegistrationId() throws -> UInt32 {
+        let cipher = try self.cipher()
+        
+        var remoteRegId: UInt32 = 0
+        
+        let result = session_cipher_get_remote_registration_id(cipher, &remoteRegId);
+        guard result == SG_SUCCESS else { throw SignalError(value: result) }
+        
+        return remoteRegId
+    }
 }
