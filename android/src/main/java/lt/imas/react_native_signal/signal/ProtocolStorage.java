@@ -381,6 +381,7 @@ public class ProtocolStorage implements SignalProtocolStore {
         String data = readFromStorage(SESSIONS_JSON_FILENAME);
         if (data == null || data.isEmpty()) data = "{}";
         try {
+            if (containsSession(address)) deleteSession(address);
             JSONObject dataJSONO = new JSONObject(data);
             dataJSONO.put(address.toString(), Base64.encodeBytes(record.serialize()));
             writeToStorageFile(SESSIONS_JSON_FILENAME, dataJSONO.toString());
