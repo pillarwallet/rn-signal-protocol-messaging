@@ -296,16 +296,17 @@ class SignalClient: NSObject {
                 parsedMessage.device = 1
                 parsedMessage.serverTimestamp = message.timestamp
                 parsedMessage.savedTimestamp = self.currentTimestamp()
+                parsedMessage.type = "message"
 
                 self.signalServer.call(urlPath: "\(URL_MESSAGES)/\(username)/\(message.timestamp)", method: .DELETE, success: { (response) in }, failure: { (error) in })
 
                 var preKeyData: Data? = nil
                 do {
-                    let cipher = CiphertextMessage(type: .preKey, message: data)
+                    let cipher = CiphertextMessage(type: .signal, message: data)
                     preKeyData = try sessionCipher.decrypt(message: cipher)
                 } catch {
                     do {
-                        let cipher = CiphertextMessage(type: .signal, message: data)
+                        let cipher = CiphertextMessage(type: .preKey, message: data)
                         preKeyData = try sessionCipher.decrypt(message: cipher)
                     } catch {
                         print(ERR_NATIVE_FAILED)
@@ -318,9 +319,15 @@ class SignalClient: NSObject {
                         print(receivedMessage)
                         parsedMessage.content = receivedMessage
                     }
-                    parsedMessages.append(parsedMessage)
-                    MessagesStorage().save(message: parsedMessage, for: username)
+
+                } else {
+                    parsedMessage.content = "🔒 You cannot read this message."
+                    parsedMessage.type = "warning"
+                    parsedMessage.status = "UNDECRYPTABLE_MESSAGE"
                 }
+
+                parsedMessages.append(parsedMessage)
+                MessagesStorage().save(message: parsedMessage, for: username)
             }
         }
 
