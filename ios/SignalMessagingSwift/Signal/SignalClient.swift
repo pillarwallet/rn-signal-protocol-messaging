@@ -205,14 +205,15 @@ class SignalClient: NSObject {
                         failure(ERR_NATIVE_FAILED, "store failed")
                         return
                     }
-
+                    
                     let address = SignalAddress(name: username, deviceId: 1)
                     let sessionBuilder = SessionBuilder(for: address, in: store)
-
+                
                     do {
                         try sessionBuilder.process(preKeyBundle: bundle)
                     } catch {
                         failure(ERR_NATIVE_FAILED, "\(error)")
+                        return
                     }
 
                     success("ok")
@@ -374,7 +375,15 @@ class SignalClient: NSObject {
         self.signalServer.call(urlPath: URL_MESSAGES + "/" + username, method: .PUT, parameters: params, success: { (dict) in
             if dict.count != 0 && dict["staleDevices"] != nil {
                 // staleDevices found, request new user PreKey and retry message send
-                // TODO: requestPreKeys(username: username, success: success, failure: failure)
+                self.requestPreKeys(username: username, success: { _ in
+                    self.sendMessage(username: username, messageString: messageString, success: { (message) in
+                        success(message)
+                    }, failure: { (code, error) in
+                        failure(code, "\(error)")
+                    })
+                }, failure: { (code, error) in
+                    failure(code, "\(error)")
+                })
             } else {
                 let parsedMessage = ParsedMessageDTO()
                 parsedMessage.username = self.username

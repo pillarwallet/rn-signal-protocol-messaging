@@ -67,7 +67,7 @@ public class SignalClient {
     public void registerPreKeys(final Promise promise, int start, int count){
         JSONObject requestJSON = new JSONObject();
         IdentityKeyPair identityKeyPair = signalProtocolStore.getIdentityKeyPair();
-        if (signalProtocolStore.getIdentityKeyPair() == null) {
+        if (identityKeyPair == null) {
             identityKeyPair = KeyHelper.generateIdentityKeyPair();
             signalProtocolStore.storeIdentityKeyPair(identityKeyPair);
         }
@@ -103,15 +103,15 @@ public class SignalClient {
             }
             if (lastResortKey != null) {
                 requestJSON.put("lastResortKey", new JSONObject()
-                        .put("keyId", lastResortKey.getId())
-                        .put("publicKey", Base64.encodeBytes(lastResortKey.getKeyPair().getPublicKey().serialize())
-                        ));
+                    .put("keyId", lastResortKey.getId())
+                    .put("publicKey", Base64.encodeBytes(lastResortKey.getKeyPair().getPublicKey().serialize()))
+                );
                 requestJSON.put("preKeys", preKeysJSONA);
                 requestJSON.put("identityKey", Base64.encodeBytes(identityKeyPair.getPublicKey().serialize()));
                 requestJSON.put("signedPreKey", new JSONObject()
-                        .put("keyId", signedPreKey.getId())
-                        .put("publicKey", Base64.encodeBytes(signedPreKey.getKeyPair().getPublicKey().serialize()))
-                        .put("signature", Base64.encodeBytes(signedPreKey.getSignature()))
+                    .put("keyId", signedPreKey.getId())
+                    .put("publicKey", Base64.encodeBytes(signedPreKey.getKeyPair().getPublicKey().serialize()))
+                    .put("signature", Base64.encodeBytes(signedPreKey.getSignature()))
                 );
                 signalServer.call(URL_KEYS, "PUT", requestJSON, new Callback() {
                     @Override

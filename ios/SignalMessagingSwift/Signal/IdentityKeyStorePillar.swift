@@ -41,12 +41,13 @@ class IdentityKeyStorePillar: IdentityKeyStore {
     }
     
     func isTrusted(identity: Data, for address: SignalAddress) -> Bool? {
-        let identities = self.storage().get(for: .IDENTITES_JSON_FILENAME)
-        guard let baseString = identities[address.name] as? String else {
-            return true
-        }
-        
-        return baseString == identity.base64EncodedString()
+        return true
+//        let identities = self.storage().get(for: .IDENTITES_JSON_FILENAME)
+//        guard let baseString = identities[address.name] as? String else {
+//            return true
+//        }
+//
+//        return baseString == identity.base64EncodedString()
     }
     
     func destroy() {
