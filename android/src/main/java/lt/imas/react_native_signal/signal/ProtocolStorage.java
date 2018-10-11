@@ -212,11 +212,18 @@ public class ProtocolStorage implements SignalProtocolStore {
         return false;
     }
 
+    /*
+        This method returns force true as it didn't affect basic flow of Signal.
+
+        On 2018-10-10 discovered (on iOS) that this method checks PreKey identity while
+        renewing PreKey over existing addresses in device (stale device flow).
+
+        TODO: Get into more details at Signal structure level how this method works and prevent force true return.
+     */
     @Override
     public boolean isTrustedIdentity(SignalProtocolAddress address, IdentityKey identityKey, Direction direction) {
-//        String data = readFromStorage(IDENTITES_JSON_FILENAME);
         return true;
-//        TODO: remove force true
+//        String data = readFromStorage(IDENTITES_JSON_FILENAME);
 //        if (data == null || data.isEmpty()) return false;
 //        try {
 //            JSONObject dataJSONO = new JSONObject(data);
@@ -381,6 +388,7 @@ public class ProtocolStorage implements SignalProtocolStore {
         String data = readFromStorage(SESSIONS_JSON_FILENAME);
         if (data == null || data.isEmpty()) data = "{}";
         try {
+            if (containsSession(address)) deleteSession(address);
             JSONObject dataJSONO = new JSONObject(data);
             dataJSONO.put(address.toString(), Base64.encodeBytes(record.serialize()));
             writeToStorageFile(SESSIONS_JSON_FILENAME, dataJSONO.toString());

@@ -205,14 +205,15 @@ class SignalClient: NSObject {
                         failure(ERR_NATIVE_FAILED, "store failed")
                         return
                     }
-
+                    
                     let address = SignalAddress(name: username, deviceId: 1)
                     let sessionBuilder = SessionBuilder(for: address, in: store)
-
+                
                     do {
                         try sessionBuilder.process(preKeyBundle: bundle)
                     } catch {
                         failure(ERR_NATIVE_FAILED, "\(error)")
+                        return
                     }
 
                     success("ok")
@@ -343,6 +344,7 @@ class SignalClient: NSObject {
         let address = SignalAddress(name: username, deviceId: 1)
         let sessionCipher = SessionCipher(for: address, in: store)
         var cipherTextMessage: CiphertextMessage
+        var remoteRegistrationId: UInt32
 
         guard let data = messageString.data(using: .utf8) else {
             failure(ERR_NATIVE_FAILED, "String encoding to bytes failed")
@@ -351,6 +353,7 @@ class SignalClient: NSObject {
 
         do {
             cipherTextMessage = try sessionCipher.encrypt(data)
+            remoteRegistrationId = try sessionCipher.getRemoteRegistrationId();
         } catch {
             failure(ERR_NATIVE_FAILED, "\(error)")
             return
@@ -362,7 +365,7 @@ class SignalClient: NSObject {
         message["content"] = ""
         message["timestamp"] = self.currentTimestamp()
         message["destinationDeviceId"] = 1
-        message["destinationRegistrationId"] = ""
+        message["destinationRegistrationId"] = remoteRegistrationId
         message["body"] = cipherTextMessage.message.base64EncodedString()
 
         print(cipherTextMessage.type.rawValue)
@@ -370,14 +373,27 @@ class SignalClient: NSObject {
         let params = ["messages" : [message]]
 
         self.signalServer.call(urlPath: URL_MESSAGES + "/" + username, method: .PUT, parameters: params, success: { (dict) in
-            let parsedMessage = ParsedMessageDTO()
-            parsedMessage.username = self.username
-            parsedMessage.device = 1
-            parsedMessage.serverTimestamp = self.currentTimestamp() * 1000
-            parsedMessage.savedTimestamp = self.currentTimestamp()
-            parsedMessage.content = messageString
-            MessagesStorage().save(message: parsedMessage, for: username)
-            success("ok")
+            if dict.count != 0 && dict["staleDevices"] != nil {
+                // staleDevices found, request new user PreKey and retry message send
+                self.requestPreKeys(username: username, success: { _ in
+                    self.sendMessage(username: username, messageString: messageString, success: { (message) in
+                        success(message)
+                    }, failure: { (code, error) in
+                        failure(code, "\(error)")
+                    })
+                }, failure: { (code, error) in
+                    failure(code, "\(error)")
+                })
+            } else {
+                let parsedMessage = ParsedMessageDTO()
+                parsedMessage.username = self.username
+                parsedMessage.device = 1
+                parsedMessage.serverTimestamp = self.currentTimestamp() * 1000
+                parsedMessage.savedTimestamp = self.currentTimestamp()
+                parsedMessage.content = messageString
+                MessagesStorage().save(message: parsedMessage, for: username)
+                success("ok")
+            }
         }) { (error) in
             failure(ERR_SERVER_FAILED, "\(error)")
         }
