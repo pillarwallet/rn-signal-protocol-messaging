@@ -205,10 +205,10 @@ class SignalClient: NSObject {
                         failure(ERR_NATIVE_FAILED, "store failed")
                         return
                     }
-                    
+
                     let address = SignalAddress(name: username, deviceId: 1)
                     let sessionBuilder = SessionBuilder(for: address, in: store)
-                
+
                     do {
                         try sessionBuilder.process(preKeyBundle: bundle)
                     } catch {
@@ -286,7 +286,10 @@ class SignalClient: NSObject {
             let currentCount = unread[message.source] as? Int ?? 0
             unread[message.source] = currentCount+1
 
-            if username == message.source,
+            // TODO: understand why it works this way
+            // When a user send a message to the interlocutor, he also receives the message
+            // (the message data is empty in this case).
+            if username == message.source && message.messageData()?.isEmpty == false,
                 decodeAndSave,
                 store.sessionStore.containsSession(for: address),
                 let data = message.messageData() {
@@ -297,8 +300,6 @@ class SignalClient: NSObject {
                 parsedMessage.serverTimestamp = message.timestamp
                 parsedMessage.savedTimestamp = self.currentTimestamp()
                 parsedMessage.type = "message"
-
-                self.signalServer.call(urlPath: "\(URL_MESSAGES)/\(username)/\(message.timestamp)", method: .DELETE, success: { (response) in }, failure: { (error) in })
 
                 var preKeyData: Data? = nil
                 do {
@@ -329,6 +330,8 @@ class SignalClient: NSObject {
                 parsedMessages.append(parsedMessage)
                 MessagesStorage().save(message: parsedMessage, for: username)
             }
+
+            self.signalServer.call(urlPath: "\(URL_MESSAGES)/\(username)/\(message.timestamp)", method: .DELETE, success: { (response) in }, failure: { (error) in })
         }
 
         MessagesStorage().saveUnreadCount(for: username, count: parsedMessages.count)
