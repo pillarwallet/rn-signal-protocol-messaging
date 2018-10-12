@@ -364,7 +364,7 @@ public class SignalClient {
 
                                             try {
                                                 messageBytes = sessionCipher.decrypt(new SignalMessage(decodeMessageString));
-                                            } catch (InvalidMessageException | DuplicateMessageException | LegacyMessageException
+                                            } catch (InvalidMessageException | LegacyMessageException
                                                     | NoSessionException | UntrustedIdentityException e) {
                                                 Timber.e(e);
                                             }
@@ -372,7 +372,7 @@ public class SignalClient {
                                             if (messageBytes == null){
                                                 try {
                                                     messageBytes = sessionCipher.decrypt(new PreKeySignalMessage(decodeMessageString));
-                                                } catch (DuplicateMessageException | LegacyMessageException | InvalidMessageException
+                                                } catch (LegacyMessageException | InvalidMessageException
                                                         | InvalidKeyIdException | InvalidKeyException | UntrustedIdentityException
                                                         | InvalidVersionException e) {
                                                     Timber.e(e);
@@ -407,9 +407,9 @@ public class SignalClient {
                                                 true
                                         );
                                     }
-                                } catch (JSONException | IOException e) {
+                                } catch (JSONException | IOException | DuplicateMessageException e) {
                                     promise.reject(ERR_NATIVE_FAILED, e.getMessage());
-                                    e.printStackTrace();
+                                    Timber.e(e);
                                     return;
                                 }
                             }
