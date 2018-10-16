@@ -205,10 +205,10 @@ class SignalClient: NSObject {
                         failure(ERR_NATIVE_FAILED, "store failed")
                         return
                     }
-                    
+
                     let address = SignalAddress(name: username, deviceId: 1)
                     let sessionBuilder = SessionBuilder(for: address, in: store)
-                
+
                     do {
                         try sessionBuilder.process(preKeyBundle: bundle)
                     } catch {
@@ -286,7 +286,10 @@ class SignalClient: NSObject {
             let currentCount = unread[message.source] as? Int ?? 0
             unread[message.source] = currentCount+1
 
-            if username == message.source,
+            // TODO: understand why it works this way
+            // When a user send a message to the interlocutor, he also receives the message
+            // (the message data is empty in this case).
+            if username == message.source && message.messageData()?.isEmpty == false,
                 decodeAndSave,
                 store.sessionStore.containsSession(for: address),
                 let data = message.messageData() {
@@ -296,16 +299,15 @@ class SignalClient: NSObject {
                 parsedMessage.device = 1
                 parsedMessage.serverTimestamp = message.timestamp
                 parsedMessage.savedTimestamp = self.currentTimestamp()
-
-                self.signalServer.call(urlPath: "\(URL_MESSAGES)/\(username)/\(message.timestamp)", method: .DELETE, success: { (response) in }, failure: { (error) in })
+                parsedMessage.type = "message"
 
                 var preKeyData: Data? = nil
                 do {
-                    let cipher = CiphertextMessage(type: .preKey, message: data)
+                    let cipher = CiphertextMessage(type: .signal, message: data)
                     preKeyData = try sessionCipher.decrypt(message: cipher)
                 } catch {
                     do {
-                        let cipher = CiphertextMessage(type: .signal, message: data)
+                        let cipher = CiphertextMessage(type: .preKey, message: data)
                         preKeyData = try sessionCipher.decrypt(message: cipher)
                     } catch {
                         print(ERR_NATIVE_FAILED)
@@ -318,10 +320,18 @@ class SignalClient: NSObject {
                         print(receivedMessage)
                         parsedMessage.content = receivedMessage
                     }
-                    parsedMessages.append(parsedMessage)
-                    MessagesStorage().save(message: parsedMessage, for: username)
+
+                } else {
+                    parsedMessage.content = "🔒 You cannot read this message."
+                    parsedMessage.type = "warning"
+                    parsedMessage.status = "UNDECRYPTABLE_MESSAGE"
                 }
+
+                parsedMessages.append(parsedMessage)
+                MessagesStorage().save(message: parsedMessage, for: username)
             }
+
+            self.signalServer.call(urlPath: "\(URL_MESSAGES)/\(username)/\(message.timestamp)", method: .DELETE, success: { (response) in }, failure: { (error) in })
         }
 
         MessagesStorage().saveUnreadCount(for: username, count: parsedMessages.count)

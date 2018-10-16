@@ -41,7 +41,27 @@ class ParsedMessageDTO: NSObject {
       self.dictionary["username"] = newValue
     }
   }
-  
+
+  var type: String {
+    get {
+        return self.dictionary["type"] as? String ?? "message"
+    }
+
+    set {
+        self.dictionary["type"] = newValue
+    }
+  }
+
+  var status: String {
+    get {
+        return self.dictionary["status"] as? String ?? ""
+    }
+
+    set {
+        self.dictionary["status"] = newValue
+    }
+  }
+
   var device: Int {
     get {
       return self.dictionary["device"] as? Int ?? 1
