@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
+import lt.imas.react_native_signal.signal.LogSender;
 import lt.imas.react_native_signal.signal.MessageStorage;
 import lt.imas.react_native_signal.signal.SignalClient;
 import lt.imas.react_native_signal.signal.SignalServer;
@@ -22,6 +23,8 @@ import static lt.imas.react_native_signal.signal.PromiseRejectCode.ERR_WRONG_CON
 import timber.log.Timber;
 
 public class RNSignalClientModule extends ReactContextBaseJavaModule {
+    private LogSender logSender = LogSender.getInstance();
+
     private SignalClient signalClient;
     private ProtocolStorage protocolStorage;
     private MessageStorage messageStorage;
@@ -51,6 +54,11 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
                     || !config.hasKey("password")) {
                 promise.reject(ERR_WRONG_CONFIG, "Wrong config provided.");
             } else {
+                logSender.init(
+                        config.hasKey("errorTrackingDSN") ? config.getString("errorTrackingDSN") : null,
+                        config.hasKey("isSendingLogs") ? config.getBoolean("isSendingLogs") : false
+                );
+
                 String password = config.getString("password");
                 String host = config.getString("host");
 
