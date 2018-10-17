@@ -53,4 +53,9 @@ public class LogSender {
             }
     }
 
+    public void reportError(Throwable throwable) {
+        Timber.e(throwable);
+        send(throwable);
+    }
+
 }
