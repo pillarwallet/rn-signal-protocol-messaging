@@ -54,10 +54,7 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
                     || !config.hasKey("password")) {
                 promise.reject(ERR_WRONG_CONFIG, "Wrong config provided.");
             } else {
-                logSender.init(
-                        config.hasKey("errorTrackingDSN") ? config.getString("errorTrackingDSN") : null,
-                        config.hasKey("isSendingLogs") ? config.getBoolean("isSendingLogs") : false
-                );
+                logSender.init(config);
 
                 String password = config.getString("password");
                 String host = config.getString("host");
