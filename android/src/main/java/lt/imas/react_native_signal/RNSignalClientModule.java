@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
+import lt.imas.react_native_signal.signal.LogSender;
 import lt.imas.react_native_signal.signal.MessageStorage;
 import lt.imas.react_native_signal.signal.SignalClient;
 import lt.imas.react_native_signal.signal.SignalServer;
@@ -22,6 +23,8 @@ import static lt.imas.react_native_signal.signal.PromiseRejectCode.ERR_WRONG_CON
 import timber.log.Timber;
 
 public class RNSignalClientModule extends ReactContextBaseJavaModule {
+    private LogSender logSender = LogSender.getInstance();
+
     private SignalClient signalClient;
     private ProtocolStorage protocolStorage;
     private MessageStorage messageStorage;
@@ -51,6 +54,8 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
                     || !config.hasKey("password")) {
                 promise.reject(ERR_WRONG_CONFIG, "Wrong config provided.");
             } else {
+                logSender.init(config);
+
                 String password = config.getString("password");
                 String host = config.getString("host");
 
@@ -68,7 +73,7 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
                 }
             }
         } catch (Throwable e) {
-            Timber.e(e);
+            logSender.reportError(e);
             promise.reject(e);
         }
     }
@@ -78,7 +83,7 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
         try {
             signalClient.registerAccount(username, promise);
         } catch (Throwable e) {
-            Timber.e(e);
+            logSender.reportError(e);
             promise.reject(e);
         }
     }
@@ -90,7 +95,7 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
             messageStorage.deleteAll();
             promise.resolve("ok");
         } catch (Throwable e) {
-            Timber.e(e);
+            logSender.reportError(e);
             promise.reject(e);
         }
     }
@@ -106,7 +111,7 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
                 promise.resolve("ok");
             }
         } catch (Throwable e) {
-            Timber.e(e);
+            logSender.reportError(e);
             promise.reject(e);
         }
     }
@@ -119,7 +124,7 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
             messageStorage.deleteContactMessages(username);
             promise.resolve("ok");
         } catch (Throwable e) {
-            Timber.e(e);
+            logSender.reportError(e);
             promise.reject(e);
         }
     }
@@ -129,7 +134,7 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
         try {
             signalClient.getContactMessages(username, promise, true);
         } catch (Throwable e) {
-            Timber.e(e);
+            logSender.reportError(e);
             promise.reject(e);
         }
     }
@@ -151,7 +156,7 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
             });
             promise.resolve(new JSONArray(messagesList).toString());
         } catch (Throwable e) {
-            Timber.e(e);
+            logSender.reportError(e);
             promise.reject(e);
         }
     }
@@ -161,7 +166,7 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
         try {
             signalClient.getContactMessages("", promise, false);
         } catch (Throwable e) {
-            Timber.e(e);
+            logSender.reportError(e);
             promise.reject(e);
         }
     }
@@ -171,7 +176,7 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
         try {
             promise.resolve(messageStorage.getExistingChats().toString());
         } catch (Throwable e) {
-            Timber.e(e);
+            logSender.reportError(e);
             promise.reject(e);
         }
     }
@@ -181,7 +186,7 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
         try {
             signalClient.sendMessage(username, message, promise);
         } catch (Throwable e) {
-            Timber.e(e);
+            logSender.reportError(e);
             promise.reject(e);
         }
     }
@@ -191,7 +196,7 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
         try {
             signalClient.setFcmId(fcmId, promise);
         } catch (Throwable e) {
-            Timber.e(e);
+            logSender.reportError(e);
             promise.reject(e);
         }
     }

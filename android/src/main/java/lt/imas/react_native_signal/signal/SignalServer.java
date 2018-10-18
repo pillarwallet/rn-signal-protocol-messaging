@@ -25,6 +25,8 @@ import okio.Buffer;
 import timber.log.Timber;
 
 public class SignalServer {
+    private LogSender logSender = LogSender.getInstance();
+
     public final String URL_ACCOUNTS_BOOTSTRAP = "/v1/accounts/bootstrap";
 
     public String username;
@@ -102,7 +104,7 @@ public class SignalServer {
                 Response response = call.execute();
                 responseHandler.onResponse(call, response);
             } catch (IOException e) {
-                e.printStackTrace();
+                logSender.reportError(e);
                 responseHandler.onFailure(call, e);
             }
         }
@@ -114,7 +116,7 @@ public class SignalServer {
         return requestServerTimestamp(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                Timber.e("API RESPONSE DEFAULT CALLBACK: %s", e);
+                logSender.reportError(e);
                 responseHandler.onFailure(call, e);
             }
 
@@ -148,6 +150,7 @@ public class SignalServer {
             copy.body().writeTo(buffer);
             return buffer.readUtf8();
         } catch (IOException e) {
+            logSender.reportError(e);
             return "";
         }
     }
@@ -167,7 +170,7 @@ public class SignalServer {
                 final byte[] hashedBody = Hash.sha3(body);
                 encodedBody = Base64.encodeToString(hashedBody, Base64.NO_WRAP);
             } catch (IOException e) {
-                e.printStackTrace();
+                logSender.reportError(e);
             }
         }
         final String forSigning = method + "\n" + url + "\n" + timestamp + "\n" + encodedBody;

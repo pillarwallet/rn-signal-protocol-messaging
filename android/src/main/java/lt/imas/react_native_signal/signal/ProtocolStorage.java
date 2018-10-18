@@ -25,6 +25,8 @@ import java.util.List;
 import lt.imas.react_native_signal.helpers.Base64;
 
 public class ProtocolStorage implements SignalProtocolStore {
+    private LogSender logSender = LogSender.getInstance();
+
     private String PRE_KEYS_JSON_FILENAME = "prekeys.json";
     private String SIGNED_PRE_KEYS_JSON_FILENAME = "signed_prekeys.json";
     private String SESSIONS_JSON_FILENAME = "sessions.json";
@@ -51,7 +53,8 @@ public class ProtocolStorage implements SignalProtocolStore {
                     sb.append(line);
                 }
                 return sb.toString();
-            } catch (IOException ioException) {
+            } catch (IOException e) {
+                logSender.reportError(e);
                 return null;
             }
         } else {
@@ -73,7 +76,7 @@ public class ProtocolStorage implements SignalProtocolStore {
             fos.flush();
             fos.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            logSender.reportError(e);
         }
     }
 
@@ -97,7 +100,7 @@ public class ProtocolStorage implements SignalProtocolStore {
                 && dataJSONO.has("registrationId")
                 && !dataJSONO.isNull("registrationId");
         } catch (JSONException e) {
-            e.printStackTrace();
+            logSender.reportError(e);
         }
         return false;
     }
@@ -112,7 +115,7 @@ public class ProtocolStorage implements SignalProtocolStore {
                 writeToStorageFile(LOCAL_JSON_FILENAME, dataJSONO.toString());
             }
         } catch (JSONException e) {
-            e.printStackTrace();
+            logSender.reportError(e);
         }
     }
 
@@ -126,7 +129,7 @@ public class ProtocolStorage implements SignalProtocolStore {
                 writeToStorageFile(LOCAL_JSON_FILENAME, dataJSONO.toString());
             }
         } catch (JSONException e) {
-            e.printStackTrace();
+            logSender.reportError(e);
         }
     }
 
@@ -140,7 +143,7 @@ public class ProtocolStorage implements SignalProtocolStore {
                 writeToStorageFile(LOCAL_JSON_FILENAME, dataJSONO.toString());
             }
         } catch (JSONException e) {
-            e.printStackTrace();
+            logSender.reportError(e);
         }
     }
 
@@ -157,7 +160,7 @@ public class ProtocolStorage implements SignalProtocolStore {
         } catch (JSONException
                 | InvalidKeyException
                 | IOException e) {
-            e.printStackTrace();
+            logSender.reportError(e);
         }
         return identityKeyPair;
     }
@@ -172,7 +175,7 @@ public class ProtocolStorage implements SignalProtocolStore {
             if (!dataJSONO.has("registrationId") || dataJSONO.isNull("registrationId")) return localRegistrationId;
             localRegistrationId = dataJSONO.getInt("registrationId");
         } catch (JSONException e) {
-            e.printStackTrace();
+            logSender.reportError(e);
         }
         return localRegistrationId;
     }
@@ -186,7 +189,7 @@ public class ProtocolStorage implements SignalProtocolStore {
             if (!dataJSONO.has("username") || dataJSONO.isNull("username")) return localUsername;
             localUsername = dataJSONO.getString("username");
         } catch (JSONException e) {
-            e.printStackTrace();
+            logSender.reportError(e);
         }
         return localUsername;
     }
@@ -206,7 +209,7 @@ public class ProtocolStorage implements SignalProtocolStore {
                 writeToStorageFile(IDENTITES_JSON_FILENAME, dataJSONO.toString());
                 return true;
             } catch (JSONException e) {
-                e.printStackTrace();
+                logSender.reportError(e);
             }
         }
         return false;
@@ -233,9 +236,9 @@ public class ProtocolStorage implements SignalProtocolStore {
 //                return identityKey.serialize() == identityKeyBytes;
 //            }
 //        } catch (JSONException e) {
-//            e.printStackTrace();
+//            logSender.reportError(e);
 //        } catch (IOException e) {
-//            e.printStackTrace();
+//            logSender.reportError(e);
 //        }
 //        return false;
     }
@@ -251,7 +254,7 @@ public class ProtocolStorage implements SignalProtocolStore {
                 return new PreKeyRecord(preKeyBytes);
             }
         } catch (JSONException | IOException e) {
-            e.printStackTrace();
+            logSender.reportError(e);
         }
         return null;
     }
@@ -271,7 +274,7 @@ public class ProtocolStorage implements SignalProtocolStore {
 //                record = new PreKeyRecord(rs.getBytes("preKeyRecord"));
 //                conn.close();
 //            } catch (Exception e) {
-//                e.printStackTrace();
+//                logSender.reportError(e);
 //            }
 //
 //            if (record != null) {
@@ -291,7 +294,7 @@ public class ProtocolStorage implements SignalProtocolStore {
             dataJSONO.put(String.valueOf(preKeyId), Base64.encodeBytes(record.serialize()));
             writeToStorageFile(PRE_KEYS_JSON_FILENAME, dataJSONO.toString());
         } catch (JSONException e) {
-            e.printStackTrace();
+            logSender.reportError(e);
         }
     }
 
@@ -311,7 +314,7 @@ public class ProtocolStorage implements SignalProtocolStore {
                 writeToStorageFile(PRE_KEYS_JSON_FILENAME, dataJSONO.toString());
             }
         } catch (JSONException e) {
-            e.printStackTrace();
+            logSender.reportError(e);
         }
     }
 
@@ -327,7 +330,7 @@ public class ProtocolStorage implements SignalProtocolStore {
                 return new SessionRecord(sessionBytes);
             }
         } catch (JSONException | IOException e) {
-            e.printStackTrace();
+            logSender.reportError(e);
         }
         return record;
     }
@@ -350,7 +353,7 @@ public class ProtocolStorage implements SignalProtocolStore {
                 }
             }
         } catch (JSONException | IOException e) {
-            e.printStackTrace();
+            logSender.reportError(e);
         }
         return records;
     }
@@ -376,9 +379,9 @@ public class ProtocolStorage implements SignalProtocolStore {
 //                }
 //            }
 //        } catch (JSONException e) {
-//            e.printStackTrace();
+//            logSender.reportError(e);
 //        } catch (IOException e) {
-//            e.printStackTrace();
+//            logSender.reportError(e);
 //        }
         return results;
     }
@@ -393,7 +396,7 @@ public class ProtocolStorage implements SignalProtocolStore {
             dataJSONO.put(address.toString(), Base64.encodeBytes(record.serialize()));
             writeToStorageFile(SESSIONS_JSON_FILENAME, dataJSONO.toString());
         } catch (JSONException e) {
-            e.printStackTrace();
+            logSender.reportError(e);
         }
     }
 
@@ -414,7 +417,7 @@ public class ProtocolStorage implements SignalProtocolStore {
                 writeToStorageFile(SESSIONS_JSON_FILENAME, dataJSONO.toString());
             }
         } catch (JSONException e) {
-            e.printStackTrace();
+            logSender.reportError(e);
         }
     }
 
@@ -430,7 +433,7 @@ public class ProtocolStorage implements SignalProtocolStore {
 //            }
 //            writeToStorageFile(SESSIONS_JSON_FILENAME, dataJSONO.toString());
 //        } catch (JSONException e) {
-//            e.printStackTrace();
+//            logSender.reportError(e);
 //        }
     }
 
@@ -445,7 +448,7 @@ public class ProtocolStorage implements SignalProtocolStore {
                 return new SignedPreKeyRecord(preKeyBytes);
             }
         } catch (JSONException | IOException e) {
-            e.printStackTrace();
+            logSender.reportError(e);
         }
         return null;
     }
@@ -466,7 +469,7 @@ public class ProtocolStorage implements SignalProtocolStore {
                 }
             }
         } catch (JSONException | IOException e) {
-            e.printStackTrace();
+            logSender.reportError(e);
         }
         return results;
     }
@@ -480,7 +483,7 @@ public class ProtocolStorage implements SignalProtocolStore {
             dataJSONO.put(String.valueOf(signedPreKeyId), Base64.encodeBytes(record.serialize()));
             writeToStorageFile(SIGNED_PRE_KEYS_JSON_FILENAME, dataJSONO.toString());
         } catch (JSONException e) {
-            e.printStackTrace();
+            logSender.reportError(e);
         }
     }
 
@@ -500,7 +503,7 @@ public class ProtocolStorage implements SignalProtocolStore {
                 writeToStorageFile(SESSIONS_JSON_FILENAME, dataJSONO.toString());
             }
         } catch (JSONException e) {
-            e.printStackTrace();
+            logSender.reportError(e);
         }
     }
 
@@ -511,7 +514,7 @@ public class ProtocolStorage implements SignalProtocolStore {
             JSONObject dataJSONO = new JSONObject(data);
             return dataJSONO.length();
         } catch (JSONException e) {
-            e.printStackTrace();
+            logSender.reportError(e);
         }
         return 0;
     }

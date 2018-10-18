@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 public class MessageStorage {
+    private LogSender logSender = LogSender.getInstance();
+    
     private final String MESSAGES_JSON_FILENAME = "messages.json";
     private String absolutePath;
 
@@ -33,7 +35,8 @@ public class MessageStorage {
                     sb.append(line);
                 }
                 return sb.toString();
-            } catch (IOException ioException) {
+            } catch (IOException e) {
+                logSender.reportError(e);
                 return null;
             }
         } else {
@@ -55,7 +58,7 @@ public class MessageStorage {
             fos.flush();
             fos.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            logSender.reportError(e);
         }
     }
 
@@ -91,7 +94,7 @@ public class MessageStorage {
             existingMessagesJSONA.put(newMessagesJSONO);
             writeToStorageFile(userPath, existingMessagesJSONA.toString());
         } catch (JSONException e) {
-            e.printStackTrace();
+            logSender.reportError(e);
         }
     }
 
@@ -103,7 +106,7 @@ public class MessageStorage {
         try {
             messagesJSONA = new JSONArray(data);
         } catch (JSONException e) {
-            e.printStackTrace();
+            logSender.reportError(e);
         }
         return messagesJSONA;
     }
@@ -125,7 +128,7 @@ public class MessageStorage {
                     chatJSONO.put("unread", 0);
                     chatsJSONA.put(chatJSONO);
                 } catch (JSONException e) {
-                    e.printStackTrace();
+                    logSender.reportError(e);
                 }
             }
         }

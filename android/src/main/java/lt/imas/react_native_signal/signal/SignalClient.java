@@ -48,6 +48,8 @@ import static lt.imas.react_native_signal.signal.PromiseRejectCode.ERR_NATIVE_FA
 import static lt.imas.react_native_signal.signal.PromiseRejectCode.ERR_SERVER_FAILED;
 
 public class SignalClient {
+    private LogSender logSender = LogSender.getInstance();
+
     public final String URL_ACCOUNTS = "/v1/accounts";
     public final String URL_KEYS = "/v2/keys";
     public final String URL_MESSAGES = "/v1/messages";
@@ -91,7 +93,7 @@ public class SignalClient {
                 signalProtocolStore.storePreKey(preKeyRecord.getId(), preKeyRecord);
             }
         } catch (Throwable e) {
-            Timber.e(e);
+            logSender.reportError(e);
             promise.reject(ERR_NATIVE_FAILED, e.getMessage());
             return;
         }
@@ -140,7 +142,7 @@ public class SignalClient {
                 promise.reject(ERR_NATIVE_FAILED, "lastResortKey failed");
             }
         } catch (Throwable e) {
-            Timber.e(e);
+            logSender.reportError(e);
             promise.reject(ERR_NATIVE_FAILED, e.getMessage());
         }
     }
@@ -201,7 +203,7 @@ public class SignalClient {
                                 | InvalidKeyException
                                 | IOException e) {
                             if (promise != null) promise.reject(ERR_NATIVE_FAILED, e.getMessage());
-                            e.printStackTrace();
+                            logSender.reportError(e);
                         }
                     }
                 });
@@ -264,8 +266,8 @@ public class SignalClient {
             requestJSON.put("name", username);
             requestJSON.put("voice", false);
         } catch (JSONException e) {
+            logSender.reportError(e);
             promise.reject(ERR_NATIVE_FAILED, e.getMessage());
-            e.printStackTrace();
         }
         signalServer.call(URL_ACCOUNTS, "PUT", requestJSON, new Callback() {
             @Override
@@ -396,7 +398,7 @@ public class SignalClient {
                                                 new Callback() {
                                                     @Override
                                                     public void onFailure(Call call, IOException e) {
-                                                        Timber.e(e);
+                                                        logSender.reportError(e);
                                                     }
 
                                                     @Override
@@ -409,7 +411,7 @@ public class SignalClient {
                                     }
                                 } catch (JSONException | IOException | DuplicateMessageException e) {
                                     promise.reject(ERR_NATIVE_FAILED, e.getMessage());
-                                    Timber.e(e);
+                                    logSender.reportError(e);
                                     return;
                                 }
                             }
@@ -419,8 +421,8 @@ public class SignalClient {
                             if (receivedMessagesJSONA.length() != 0) promiseJSONO.put("messages", receivedMessagesJSONA);
                             promise.resolve(promiseJSONO.toString());
                         } catch (JSONException e) {
+                            logSender.reportError(e);
                             promise.reject(ERR_NATIVE_FAILED, e.getMessage());
-                            e.printStackTrace();
                         }
                     }
                 });
@@ -435,7 +437,7 @@ public class SignalClient {
                 signalServer.mainThreadCallback(new Runnable() {
                     @Override
                     public void run() {
-                        Timber.e("Send Message failed: %s", e);
+                        logSender.reportError(e);
                         promise.reject(ERR_NATIVE_FAILED, e.getMessage());
                     }
                 });
@@ -502,7 +504,7 @@ public class SignalClient {
                                                     messageJSONO.put("savedTimestamp", timestamp);
                                                     messageStorage.storeMessage(username, messageJSONO);
                                                 } catch (JSONException e) {
-                                                    e.printStackTrace();
+                                                    logSender.reportError(e);
                                                 }
                                                 promise.resolve("ok");
                                             }
@@ -514,7 +516,7 @@ public class SignalClient {
                                 | IllegalArgumentException
                                 | UntrustedIdentityException
                                 | UnsupportedEncodingException e) {
-                            e.printStackTrace();
+                            logSender.reportError(e);
                             promise.reject(ERR_NATIVE_FAILED, e.getMessage());
                         }
                     }
@@ -545,7 +547,7 @@ public class SignalClient {
                     }
                 });
             } catch (JSONException e) {
-                e.printStackTrace();
+                logSender.reportError(e);
                 promise.reject(ERR_NATIVE_FAILED, e.getMessage());
             }
         } else {
