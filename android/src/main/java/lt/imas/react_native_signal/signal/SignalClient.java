@@ -50,6 +50,8 @@ import static lt.imas.react_native_signal.signal.PromiseRejectCode.ERR_SERVER_FA
 public class SignalClient {
     private LogSender logSender = LogSender.getInstance();
 
+    public final String MESSAGE_TYPE_CIPHERTEXT = "1";
+
     public final String URL_ACCOUNTS = "/v1/accounts";
     public final String URL_KEYS = "/v2/keys";
     public final String URL_MESSAGES = "/v1/messages";
@@ -352,7 +354,9 @@ public class SignalClient {
                                     String source = messageJSONO.getString("source");
                                     SignalProtocolAddress address = new SignalProtocolAddress(source, 1);
                                     int unreadCount = unreadJSONO.optInt(source, 0);
-                                    unreadJSONO.put(source, unreadCount+1);
+                                    if(MESSAGE_TYPE_CIPHERTEXT.equals(messageJSONO.getString("type")))
+                                        unreadCount++;
+                                    unreadJSONO.put(source, unreadCount);
 
                                     if (username.equals(address.getName())
                                             && signalProtocolStore.containsSession(address)

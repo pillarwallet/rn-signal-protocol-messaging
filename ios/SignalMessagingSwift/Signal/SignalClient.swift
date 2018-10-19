@@ -11,6 +11,8 @@ import SignalProtocol
 
 class SignalClient: NSObject {
 
+    public let MESSAGE_TYPE_CIPHERTEXT: Int = 1;
+
     private let signalServer: SignalServer
     private let username: String
     private let password: String
@@ -283,8 +285,9 @@ class SignalClient: NSObject {
 
         messages.forEach { (messageDict) in
             let message = MessageDTO(dictionary: messageDict)
-            let currentCount = unread[message.source] as? Int ?? 0
-            unread[message.source] = currentCount+1
+            var currentCount = unread[message.source] as? Int ?? 0
+            if MESSAGE_TYPE_CIPHERTEXT == message.type { currentCount += 1 }
+            unread[message.source] = currentCount
 
             // TODO: understand why it works this way
             // When a user send a message to the interlocutor, he also receives the message
