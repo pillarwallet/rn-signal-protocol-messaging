@@ -288,6 +288,7 @@ class SignalClient: NSObject {
             var currentCount = unread[message.source] as? Int ?? 0
             if MESSAGE_TYPE_CIPHERTEXT == message.type { currentCount += 1 }
             unread[message.source] = currentCount
+            var isDuplicateMessage: Bool = false;
 
             // TODO: understand why it works this way
             // When a user send a message to the interlocutor, he also receives the message
@@ -308,33 +309,41 @@ class SignalClient: NSObject {
                 do {
                     let cipher = CiphertextMessage(type: .signal, message: data)
                     preKeyData = try sessionCipher.decrypt(message: cipher)
+                } catch SignalError.duplicateMessage {
+                    isDuplicateMessage = true;
                 } catch {
                     do {
                         let cipher = CiphertextMessage(type: .preKey, message: data)
                         preKeyData = try sessionCipher.decrypt(message: cipher)
+                    } catch SignalError.duplicateMessage {
+                        isDuplicateMessage = true;
                     } catch {
                         print(ERR_NATIVE_FAILED)
                         print("Error info: \(error)")
                     }
                 }
 
-                if preKeyData != nil  {
-                    if let receivedMessage = String(data: preKeyData!, encoding: .utf8) {
-                        print(receivedMessage)
-                        parsedMessage.content = receivedMessage
+                if !isDuplicateMessage {
+                    if preKeyData != nil  {
+                        if let receivedMessage = String(data: preKeyData!, encoding: .utf8) {
+                            print(receivedMessage)
+                            parsedMessage.content = receivedMessage
+                        }
+
+                    } else {
+                        parsedMessage.content = "🔒 You cannot read this message."
+                        parsedMessage.type = "warning"
+                        parsedMessage.status = "UNDECRYPTABLE_MESSAGE"
                     }
 
-                } else {
-                    parsedMessage.content = "🔒 You cannot read this message."
-                    parsedMessage.type = "warning"
-                    parsedMessage.status = "UNDECRYPTABLE_MESSAGE"
+                    parsedMessages.append(parsedMessage)
+                    MessagesStorage().save(message: parsedMessage, for: username)
                 }
-
-                parsedMessages.append(parsedMessage)
-                MessagesStorage().save(message: parsedMessage, for: username)
             }
 
-            self.signalServer.call(urlPath: "\(URL_MESSAGES)/\(username)/\(message.timestamp)", method: .DELETE, success: { (response) in }, failure: { (error) in })
+            if !isDuplicateMessage {
+                self.signalServer.call(urlPath: "\(URL_MESSAGES)/\(username)/\(message.timestamp)", method: .DELETE, success: { (response) in }, failure: { (error) in })
+            }
         }
 
         MessagesStorage().saveUnreadCount(for: username, count: parsedMessages.count)
