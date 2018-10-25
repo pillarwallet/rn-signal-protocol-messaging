@@ -69,13 +69,11 @@ public class SignalClient {
     }
 
     public void registerPreKeys(final Promise promise, int start, int count){
-        JSONObject requestJSON = new JSONObject();
         IdentityKeyPair identityKeyPair = signalProtocolStore.getIdentityKeyPair();
         if (identityKeyPair == null) {
             identityKeyPair = KeyHelper.generateIdentityKeyPair();
             signalProtocolStore.storeIdentityKeyPair(identityKeyPair);
         }
-        List<PreKeyRecord> preKeys = KeyHelper.generatePreKeys(start, count);
         PreKeyRecord lastResortKey = null;
         if (signalProtocolStore.containsPreKey(Medium.MAX_VALUE)) {
             lastResortKey = signalProtocolStore.loadPreKey(Medium.MAX_VALUE);
@@ -83,10 +81,10 @@ public class SignalClient {
             ECKeyPair keyPair = Curve.generateKeyPair();
             lastResortKey = new PreKeyRecord(Medium.MAX_VALUE, keyPair);
         }
-        byte[] bytes = new byte[52];
-        new SecureRandom().nextBytes(bytes);
+
         JSONArray preKeysJSONA = new JSONArray();
         try {
+            List<PreKeyRecord> preKeys = KeyHelper.generatePreKeys(start, count);
             for (PreKeyRecord preKeyRecord : preKeys){
                 preKeysJSONA.put(new JSONObject()
                         .put("keyId", preKeyRecord.getId())
@@ -106,6 +104,7 @@ public class SignalClient {
                 signalProtocolStore.storeSignedPreKey(signedPreKey.getId(), signedPreKey);
             }
             if (lastResortKey != null) {
+                JSONObject requestJSON = new JSONObject();
                 requestJSON.put("lastResortKey", new JSONObject()
                     .put("keyId", lastResortKey.getId())
                     .put("publicKey", Base64.encodeBytes(lastResortKey.getKeyPair().getPublicKey().serialize()))
@@ -124,14 +123,13 @@ public class SignalClient {
                             @Override
                             public void run() {
                                 promise.reject(ERR_SERVER_FAILED, e.getMessage());
-                                Timber.d("Signal server failed: %s", e.getMessage());
+                                logSender.reportError(e);
                             }
                         });
                     }
 
                     @Override
                     public void onResponse(Call call, Response response) {
-                        final ServerResponse serverResponse = new ServerResponse(response);
                         signalServer.mainThreadCallback(new Runnable() {
                             @Override
                             public void run() {
@@ -157,7 +155,7 @@ public class SignalClient {
                     @Override
                     public void run() {
                         promise.reject(ERR_SERVER_FAILED, e.getMessage());
-                        Timber.d("Signal server failed: %s", e.getMessage());
+                        logSender.reportError(e);
                     }
                 });
             }
@@ -225,7 +223,7 @@ public class SignalClient {
                     @Override
                     public void run() {
                         promise.reject(ERR_SERVER_FAILED, e.getMessage());
-                        Timber.d("Signal server failed: %s", e.getMessage());
+                        logSender.reportError(e);
                     }
                 });
             }
@@ -270,6 +268,7 @@ public class SignalClient {
         } catch (JSONException e) {
             logSender.reportError(e);
             promise.reject(ERR_NATIVE_FAILED, e.getMessage());
+            return;
         }
         signalServer.call(URL_ACCOUNTS, "PUT", requestJSON, new Callback() {
             @Override
@@ -278,7 +277,7 @@ public class SignalClient {
                     @Override
                     public void run() {
                         promise.reject(ERR_SERVER_FAILED, e.getMessage());
-                        Timber.d("Signal server failed: %s", e.getMessage());
+                        logSender.reportError(e);
                     }
                 });
             }
@@ -304,7 +303,7 @@ public class SignalClient {
                     @Override
                     public void run() {
                         promise.reject(ERR_SERVER_FAILED, e.getMessage());
-                        Timber.d("Signal server failed: %s", e.getMessage());
+                        logSender.reportError(e);
                     }
                 });
             }
@@ -370,8 +369,7 @@ public class SignalClient {
 
                                             try {
                                                 messageBytes = sessionCipher.decrypt(new SignalMessage(decodeMessageString));
-                                            } catch (InvalidMessageException | LegacyMessageException
-                                                    | NoSessionException | UntrustedIdentityException e) {
+                                            } catch (InvalidMessageException | LegacyMessageException e) {
                                                 Timber.e(e);
                                             }
 
@@ -379,7 +377,7 @@ public class SignalClient {
                                                 try {
                                                     messageBytes = sessionCipher.decrypt(new PreKeySignalMessage(decodeMessageString));
                                                 } catch (LegacyMessageException | InvalidMessageException
-                                                        | InvalidKeyIdException | InvalidKeyException | UntrustedIdentityException
+                                                        | InvalidKeyIdException | InvalidKeyException
                                                         | InvalidVersionException e) {
                                                     Timber.e(e);
                                                 }
@@ -413,7 +411,7 @@ public class SignalClient {
                                                 true
                                         );
                                     }
-                                } catch (JSONException | IOException | DuplicateMessageException e) {
+                                } catch (JSONException | IOException | DuplicateMessageException | NoSessionException | UntrustedIdentityException e) {
                                     promise.reject(ERR_NATIVE_FAILED, e.getMessage());
                                     logSender.reportError(e);
                                     return;
@@ -531,13 +529,14 @@ public class SignalClient {
 
     public void setFcmId(String fcmId, final Promise promise) {
         if (fcmId != null && !fcmId.isEmpty()) {
-            JSONObject dataJSONO = new JSONObject();
             try {
-                dataJSONO.put("gcmRegistrationId", fcmId);
+                JSONObject dataJSONO = new JSONObject()
+                        .put("gcmRegistrationId", fcmId);
                 signalServer.call(URL_GCM, "PUT", dataJSONO, new Callback() {
                     @Override
                     public void onFailure(Call call, IOException e) {
                         promise.reject(ERR_NATIVE_FAILED, e.getMessage());
+                        logSender.reportError(e);
                     }
 
                     @Override
