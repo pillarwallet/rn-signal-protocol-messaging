@@ -12,6 +12,7 @@ import SignalProtocol
 let ERR_WRONG_CONFIG = "ERR_WRONG_CONFIG"
 let ERR_SERVER_FAILED = "ERR_SERVER_FAILED"
 let ERR_NATIVE_FAILED = "ERR_NATIVE_FAILED"
+let ERR_ADD_CONTACT_FAILED = "ERR_ADD_CONTACT_FAILED"
 
 @objc(RNSignalClientModule)
 class RNSignalClientModule: NSObject {
