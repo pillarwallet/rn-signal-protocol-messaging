@@ -352,15 +352,23 @@ public class SignalClient {
                                     String messageString = messageJSONO.getString("message");
                                     String source = messageJSONO.getString("source");
                                     SignalProtocolAddress address = new SignalProtocolAddress(source, 1);
-                                    int unreadCount = unreadJSONO.optInt(source, 0);
-                                    if(MESSAGE_TYPE_CIPHERTEXT.equals(messageJSONO.getString("type")))
+                                    long serverTimestamp = messageJSONO.optLong("timestamp", 0);
+
+                                    if (MESSAGE_TYPE_CIPHERTEXT.equals(messageJSONO.getString("type"))) {
+                                        JSONObject unreadSourceJSONO = unreadJSONO.optJSONObject(source);
+                                        if (unreadSourceJSONO == null) unreadSourceJSONO = new JSONObject();
+                                        int unreadCount = unreadSourceJSONO.optInt("count", 0);
                                         unreadCount++;
-                                    unreadJSONO.put(source, unreadCount);
+                                        long latestTimestamp = unreadSourceJSONO.optLong("latest", 0);
+                                        latestTimestamp = serverTimestamp > latestTimestamp ? serverTimestamp : latestTimestamp;
+                                        unreadSourceJSONO.put("count", unreadCount);
+                                        unreadSourceJSONO.put("latest", latestTimestamp);
+                                        unreadJSONO.put(source, unreadSourceJSONO);
+                                    }
 
                                     if (username.equals(address.getName())
                                             && signalProtocolStore.containsSession(address)
                                             && decodeAndSave) {
-                                        long serverTimestamp = messageJSONO.optLong("timestamp", 0);
 
                                         if (messageString != null && !messageString.isEmpty()){
                                             byte[] decodeMessageString = Base64.decode(messageString);
@@ -419,7 +427,7 @@ public class SignalClient {
                             }
 
                             JSONObject promiseJSONO = new JSONObject();
-                            promiseJSONO.put("unreadCount", unreadJSONO);
+                            promiseJSONO.put("unread", unreadJSONO);
                             if (receivedMessagesJSONA.length() != 0) promiseJSONO.put("messages", receivedMessagesJSONA);
                             promise.resolve(promiseJSONO.toString());
                         } catch (JSONException e) {

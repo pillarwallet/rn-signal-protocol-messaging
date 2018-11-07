@@ -281,13 +281,23 @@ class SignalClient: NSObject {
         let sessionCipher = SessionCipher(for: address, in: store)
 
         var parsedMessages = [ParsedMessageDTO]()
-        var unread = [String : Any]()
+        var unread = [String : [String : Any]]()
 
         messages.forEach { (messageDict) in
             let message = MessageDTO(dictionary: messageDict)
-            var currentCount = unread[message.source] as? Int ?? 0
-            if MESSAGE_TYPE_CIPHERTEXT == message.type { currentCount += 1 }
-            unread[message.source] = currentCount
+            let serverTimestamp = message.timestamp
+            
+            if MESSAGE_TYPE_CIPHERTEXT == message.type {
+                var unreadSource = unread[message.source] ?? [String : Any]()
+                print(`unreadSource`)
+                var currentCount = unreadSource["count"] as? Int ?? 0
+                currentCount += 1
+                let latestTimestamp = unreadSource["latest"] as? Int ?? 0
+                unreadSource["count"] = currentCount
+                unreadSource["latest"] = serverTimestamp > latestTimestamp ? serverTimestamp : latestTimestamp;
+                unread[message.source] = unreadSource
+            }
+            
             var isDuplicateMessage: Bool = false;
 
             // TODO: understand why it works this way
@@ -301,7 +311,7 @@ class SignalClient: NSObject {
                 let parsedMessage = ParsedMessageDTO()
                 parsedMessage.username = username
                 parsedMessage.device = 1
-                parsedMessage.serverTimestamp = message.timestamp
+                parsedMessage.serverTimestamp = serverTimestamp
                 parsedMessage.savedTimestamp = self.currentTimestamp()
                 parsedMessage.type = "message"
 
@@ -349,7 +359,7 @@ class SignalClient: NSObject {
         MessagesStorage().saveUnreadCount(for: username, count: parsedMessages.count)
 
         var finalDict = [String : Any]()
-        finalDict["unreadCount"] = unread
+        finalDict["unread"] = unread
         if (parsedMessages.count > 0) {
             finalDict["messages"] = parsedMessages
         }
