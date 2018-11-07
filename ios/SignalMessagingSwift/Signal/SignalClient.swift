@@ -288,7 +288,7 @@ class SignalClient: NSObject {
 
         var parsedMessages = [ParsedMessageDTO]()
         var unread = [String : [String : Any]]()
-        
+
         messages.forEach { (messageDict) in
             let message = MessageDTO(dictionary: messageDict)
             let serverTimestamp = message.timestamp
