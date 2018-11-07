@@ -46,6 +46,7 @@ import timber.log.Timber;
 
 import static lt.imas.react_native_signal.signal.PromiseRejectCode.ERR_NATIVE_FAILED;
 import static lt.imas.react_native_signal.signal.PromiseRejectCode.ERR_SERVER_FAILED;
+import static lt.imas.react_native_signal.signal.PromiseRejectCode.ERR_ADD_CONTACT_FAILED;
 
 public class SignalClient {
     private LogSender logSender = LogSender.getInstance();
@@ -161,11 +162,15 @@ public class SignalClient {
             }
 
             @Override
-            public void onResponse(Call call, Response response) {
+            public void onResponse(Call call, final Response response) {
                 final ServerResponse serverResponse = new ServerResponse(response);
                 signalServer.mainThreadCallback(new Runnable() {
                     @Override
                     public void run() {
+                        if (response.code() == 404){
+                            promise.reject(ERR_ADD_CONTACT_FAILED, String.format("User %s doesn't exist.", username));
+                            return;
+                        }
                         try {
                             JSONObject responseJSONO = serverResponse.getResponseJSONObject();
                             JSONArray devicesJSONA = responseJSONO.getJSONArray("devices");

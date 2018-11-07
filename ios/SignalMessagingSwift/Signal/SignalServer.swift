@@ -89,6 +89,10 @@ class SignalServer: NSObject {
             success([String: Any]())
             return
           }
+          if resp.statusCode == 404 {
+            failure(NSError(domain: "", code: 404))
+            return
+          }
         }
 
         do {

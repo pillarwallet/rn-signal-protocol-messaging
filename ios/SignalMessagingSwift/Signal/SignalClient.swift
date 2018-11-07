@@ -224,7 +224,12 @@ class SignalClient: NSObject {
                 }
             }
         }) { (error) in
-            failure(ERR_SERVER_FAILED, "\(error)")
+            let errorCheck = error as NSError?
+            if errorCheck != nil, errorCheck?.code == 404 {
+                failure(ERR_ADD_CONTACT_FAILED, "User \(username) doesn't exist.")
+            } else {
+                failure(ERR_SERVER_FAILED, "\(error)")
+            }
         }
     }
 
@@ -267,6 +272,7 @@ class SignalClient: NSObject {
     }
 
     private func parseMessages(username: String, decodeAndSave: Bool, messagesDictionary: [String : Any]) -> [String : Any] {
+        
         guard let store = self.store() else {
             print(ERR_NATIVE_FAILED)
             return [String : Any]()
@@ -282,7 +288,7 @@ class SignalClient: NSObject {
 
         var parsedMessages = [ParsedMessageDTO]()
         var unread = [String : [String : Any]]()
-
+        
         messages.forEach { (messageDict) in
             let message = MessageDTO(dictionary: messageDict)
             let serverTimestamp = message.timestamp
@@ -349,10 +355,10 @@ class SignalClient: NSObject {
                     parsedMessages.append(parsedMessage)
                     MessagesStorage().save(message: parsedMessage, for: username)
                 }
-            }
-
-            if !isDuplicateMessage {
-                self.signalServer.call(urlPath: "\(URL_MESSAGES)/\(username)/\(message.timestamp)", method: .DELETE, success: { (response) in }, failure: { (error) in })
+                
+                if !isDuplicateMessage {
+                    self.signalServer.call(urlPath: "\(URL_MESSAGES)/\(username)/\(message.timestamp)", method: .DELETE, success: { (response) in }, failure: { (error) in })
+                }
             }
         }
 
