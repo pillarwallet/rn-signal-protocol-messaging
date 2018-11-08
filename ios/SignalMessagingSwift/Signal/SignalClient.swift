@@ -87,8 +87,8 @@ class SignalClient: NSObject {
         }
     }
 
-    private func currentTimestamp() -> Int {
-        return Int(Date().timeIntervalSince1970)
+    private func currentTimestamp() -> Int64 {
+        return Int64(Date().timeIntervalSince1970)
     }
 
     private func generateRandomBytes() -> String {
@@ -406,7 +406,6 @@ class SignalClient: NSObject {
         message["destinationRegistrationId"] = remoteRegistrationId
         message["body"] = cipherTextMessage.message.base64EncodedString()
 
-        print(cipherTextMessage.type.rawValue)
 
         let params = ["messages" : [message]]
 

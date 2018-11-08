@@ -34,9 +34,9 @@ class MessageDTO: NSObject {
         }
     }
     
-    var timestamp: Int {
+    var timestamp: Int64 {
         get {
-            return self.dictionary["timestamp"] as? Int ?? 0
+            return self.dictionary["timestamp"] as? Int64 ?? 0
         }
     }
     

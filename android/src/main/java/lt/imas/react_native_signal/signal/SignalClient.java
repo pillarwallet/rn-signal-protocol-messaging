@@ -347,87 +347,90 @@ public class SignalClient {
                     @Override
                     public void run() {
                         try {
-                            JSONArray messagesJSONA = serverResponse.getResponseJSONObject().getJSONArray("messages");
+                            JSONArray messagesJSONA = serverResponse.getResponseJSONObject().optJSONArray("messages");
                             JSONArray receivedMessagesJSONA = new JSONArray();
                             JSONObject unreadJSONO = new JSONObject();
 
-                            for (int i=0;i<messagesJSONA.length(); i++) {
-                                try {
-                                    JSONObject messageJSONO = messagesJSONA.getJSONObject(i);
-                                    String messageString = messageJSONO.getString("message");
-                                    String source = messageJSONO.getString("source");
-                                    SignalProtocolAddress address = new SignalProtocolAddress(source, 1);
-                                    long serverTimestamp = messageJSONO.optLong("timestamp", 0);
+                            if (messagesJSONA != null) {
+                                for (int i = 0; i < messagesJSONA.length(); i++) {
+                                    try {
+                                        JSONObject messageJSONO = messagesJSONA.getJSONObject(i);
+                                        String messageString = messageJSONO.getString("message");
+                                        String source = messageJSONO.getString("source");
+                                        SignalProtocolAddress address = new SignalProtocolAddress(source, 1);
+                                        long serverTimestamp = messageJSONO.optLong("timestamp", 0);
 
-                                    if (MESSAGE_TYPE_CIPHERTEXT.equals(messageJSONO.getString("type"))) {
-                                        JSONObject unreadSourceJSONO = unreadJSONO.optJSONObject(source);
-                                        if (unreadSourceJSONO == null) unreadSourceJSONO = new JSONObject();
-                                        int unreadCount = unreadSourceJSONO.optInt("count", 0);
-                                        unreadCount++;
-                                        long latestTimestamp = unreadSourceJSONO.optLong("latest", 0);
-                                        latestTimestamp = serverTimestamp > latestTimestamp ? serverTimestamp : latestTimestamp;
-                                        unreadSourceJSONO.put("count", unreadCount);
-                                        unreadSourceJSONO.put("latest", latestTimestamp);
-                                        unreadJSONO.put(source, unreadSourceJSONO);
-                                    }
-
-                                    if (username.equals(address.getName())
-                                            && signalProtocolStore.containsSession(address)
-                                            && decodeAndSave) {
-
-                                        if (messageString != null && !messageString.isEmpty()){
-                                            byte[] decodeMessageString = Base64.decode(messageString);
-                                            byte[] messageBytes = null;
-                                            SessionCipher sessionCipher = new SessionCipher(signalProtocolStore, address);
-
-                                            try {
-                                                messageBytes = sessionCipher.decrypt(new SignalMessage(decodeMessageString));
-                                            } catch (InvalidMessageException | LegacyMessageException e) {
-                                                Timber.e(e);
-                                            }
-
-                                            if (messageBytes == null){
-                                                try {
-                                                    messageBytes = sessionCipher.decrypt(new PreKeySignalMessage(decodeMessageString));
-                                                } catch (LegacyMessageException | InvalidMessageException
-                                                        | InvalidKeyIdException | InvalidKeyException
-                                                        | InvalidVersionException e) {
-                                                    Timber.e(e);
-                                                }
-                                            }
-
-                                            JSONObject newMessageJSONO = toMessageJSONO(
-                                                    messageBytes,
-                                                    address.getName(),
-                                                    address.getDeviceId(),
-                                                    serverTimestamp);
-
-                                            messageStorage.storeMessage(address.getName(), newMessageJSONO);
-                                            receivedMessagesJSONA.put(newMessageJSONO);
+                                        if (MESSAGE_TYPE_CIPHERTEXT.equals(messageJSONO.getString("type"))) {
+                                            JSONObject unreadSourceJSONO = unreadJSONO.optJSONObject(source);
+                                            if (unreadSourceJSONO == null)
+                                                unreadSourceJSONO = new JSONObject();
+                                            int unreadCount = unreadSourceJSONO.optInt("count", 0);
+                                            unreadCount++;
+                                            long latestTimestamp = unreadSourceJSONO.optLong("latest", 0);
+                                            latestTimestamp = serverTimestamp > latestTimestamp ? serverTimestamp : latestTimestamp;
+                                            unreadSourceJSONO.put("count", unreadCount);
+                                            unreadSourceJSONO.put("latest", latestTimestamp);
+                                            unreadJSONO.put(source, unreadSourceJSONO);
                                         }
 
-                                        signalServer.call(
-                                                URL_MESSAGES + "/" + address.getName() + "/" + serverTimestamp,
-                                                "DELETE",
-                                                null,
-                                                new Callback() {
-                                                    @Override
-                                                    public void onFailure(Call call, IOException e) {
-                                                        logSender.reportError(e);
-                                                    }
+                                        if (username.equals(address.getName())
+                                                && signalProtocolStore.containsSession(address)
+                                                && decodeAndSave) {
 
-                                                    @Override
-                                                    public void onResponse(Call call, Response res) {
-                                                        Timber.d(String.format("DELETE messages: %s, %s", res.code(), res.message()));
+                                            if (messageString != null && !messageString.isEmpty()) {
+                                                byte[] decodeMessageString = Base64.decode(messageString);
+                                                byte[] messageBytes = null;
+                                                SessionCipher sessionCipher = new SessionCipher(signalProtocolStore, address);
+
+                                                try {
+                                                    messageBytes = sessionCipher.decrypt(new SignalMessage(decodeMessageString));
+                                                } catch (InvalidMessageException | LegacyMessageException e) {
+                                                    Timber.e(e);
+                                                }
+
+                                                if (messageBytes == null) {
+                                                    try {
+                                                        messageBytes = sessionCipher.decrypt(new PreKeySignalMessage(decodeMessageString));
+                                                    } catch (LegacyMessageException | InvalidMessageException
+                                                            | InvalidKeyIdException | InvalidKeyException
+                                                            | InvalidVersionException e) {
+                                                        Timber.e(e);
                                                     }
-                                                },
-                                                true
-                                        );
+                                                }
+
+                                                JSONObject newMessageJSONO = toMessageJSONO(
+                                                        messageBytes,
+                                                        address.getName(),
+                                                        address.getDeviceId(),
+                                                        serverTimestamp);
+
+                                                messageStorage.storeMessage(address.getName(), newMessageJSONO);
+                                                receivedMessagesJSONA.put(newMessageJSONO);
+                                            }
+
+                                            signalServer.call(
+                                                    URL_MESSAGES + "/" + address.getName() + "/" + serverTimestamp,
+                                                    "DELETE",
+                                                    null,
+                                                    new Callback() {
+                                                        @Override
+                                                        public void onFailure(Call call, IOException e) {
+                                                            logSender.reportError(e);
+                                                        }
+
+                                                        @Override
+                                                        public void onResponse(Call call, Response res) {
+                                                            Timber.d(String.format("DELETE messages: %s, %s", res.code(), res.message()));
+                                                        }
+                                                    },
+                                                    true
+                                            );
+                                        }
+                                    } catch (JSONException | IOException | DuplicateMessageException | NoSessionException | UntrustedIdentityException e) {
+                                        promise.reject(ERR_NATIVE_FAILED, e.getMessage());
+                                        logSender.reportError(e);
+                                        return;
                                     }
-                                } catch (JSONException | IOException | DuplicateMessageException | NoSessionException | UntrustedIdentityException e) {
-                                    promise.reject(ERR_NATIVE_FAILED, e.getMessage());
-                                    logSender.reportError(e);
-                                    return;
                                 }
                             }
 

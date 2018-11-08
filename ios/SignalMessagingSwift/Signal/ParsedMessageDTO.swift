@@ -72,9 +72,9 @@ class ParsedMessageDTO: NSObject {
     }
   }
   
-  var serverTimestamp: Int {
+  var serverTimestamp: Int64 {
     get {
-      return self.dictionary["serverTimestamp"] as? Int ?? 1
+      return self.dictionary["serverTimestamp"] as? Int64 ?? 1
     }
     
     set {
@@ -82,9 +82,9 @@ class ParsedMessageDTO: NSObject {
     }
   }
   
-  var savedTimestamp: Int {
+  var savedTimestamp: Int64 {
     get {
-      return self.dictionary["savedTimestamp"] as? Int ?? 1
+      return self.dictionary["savedTimestamp"] as? Int64 ?? 1
     }
     
     set {
