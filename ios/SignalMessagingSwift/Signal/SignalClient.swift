@@ -283,9 +283,6 @@ class SignalClient: NSObject {
             return [String : Any]()
         }
 
-        let address = SignalAddress(name: username, deviceId: 1)
-        let sessionCipher = SessionCipher(for: address, in: store)
-
         var parsedMessages = [ParsedMessageDTO]()
         var unread = [String : [String : Any]]()
 
@@ -293,9 +290,11 @@ class SignalClient: NSObject {
             let message = MessageDTO(dictionary: messageDict)
             let serverTimestamp = message.timestamp
             
-            if MESSAGE_TYPE_CIPHERTEXT == message.type {
+            let address = SignalAddress(name: username, deviceId: 1)
+            
+            // empty username check is needed because unread message count method doesn't require username
+            if MESSAGE_TYPE_CIPHERTEXT == message.type, username.isEmpty {
                 var unreadSource = unread[message.source] ?? [String : Any]()
-                print(`unreadSource`)
                 var currentCount = unreadSource["count"] as? Int ?? 0
                 currentCount += 1
                 let latestTimestamp = unreadSource["latest"] as? Int ?? 0
@@ -313,9 +312,11 @@ class SignalClient: NSObject {
                 decodeAndSave,
                 store.sessionStore.containsSession(for: address),
                 let data = message.messageData() {
+                
+                let sessionCipher = SessionCipher(for: address, in: store)
 
                 let parsedMessage = ParsedMessageDTO()
-                parsedMessage.username = username
+                parsedMessage.username = message.source
                 parsedMessage.device = 1
                 parsedMessage.serverTimestamp = serverTimestamp
                 parsedMessage.savedTimestamp = self.currentTimestamp()
@@ -342,7 +343,6 @@ class SignalClient: NSObject {
                 if !isDuplicateMessage {
                     if preKeyData != nil  {
                         if let receivedMessage = String(data: preKeyData!, encoding: .utf8) {
-                            print(receivedMessage)
                             parsedMessage.content = receivedMessage
                         }
 
@@ -354,15 +354,13 @@ class SignalClient: NSObject {
 
                     parsedMessages.append(parsedMessage)
                     MessagesStorage().save(message: parsedMessage, for: username)
-                }
-                
-                if !isDuplicateMessage {
+            
                     self.signalServer.call(urlPath: "\(URL_MESSAGES)/\(username)/\(message.timestamp)", method: .DELETE, success: { (response) in }, failure: { (error) in })
                 }
             }
         }
 
-        MessagesStorage().saveUnreadCount(for: username, count: parsedMessages.count)
+//        MessagesStorage().saveUnreadCount(for: username, count: parsedMessages.count)
 
         var finalDict = [String : Any]()
         finalDict["unread"] = unread

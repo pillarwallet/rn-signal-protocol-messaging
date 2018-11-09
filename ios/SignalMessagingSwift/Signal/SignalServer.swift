@@ -98,8 +98,7 @@ class SignalServer: NSObject {
         do {
           let decoded = try JSONSerialization.jsonObject(with: data ?? Data(), options: .mutableContainers)
           if let dictFromJSON = decoded as? [String: Any] {
-            print("Server response")
-            print(dictFromJSON)
+            print("Got server response")
             success(dictFromJSON)
             return
           }
