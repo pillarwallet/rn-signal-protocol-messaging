@@ -62,7 +62,7 @@ class RNSignalClientModule: NSObject {
     }
     
     @objc func resetAccount(_ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        self.signalClient.store()?.identityKeyStore.destroy()
+        ProtocolStorage().destroyAll()
         resolve("ok")
     }
     
