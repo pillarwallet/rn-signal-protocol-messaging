@@ -377,6 +377,26 @@ class SignalClient: NSObject {
 
         return finalDict
     }
+    
+    func deleteContactPendingMessages(username: String, success: @escaping (_ success: String) -> Void, failure: @escaping (_ error: String, _ message: String) -> Void) {
+        self.signalServer.call(urlPath: URL_MESSAGES, method: .GET, success: { (dict) in
+            guard let messages = dict["messages"] as? [[String : Any]] else {
+                success("ok") // no messages object, all good
+                return
+            }
+            
+            messages.forEach { (messageDict) in
+                let message = MessageDTO(dictionary: messageDict)
+                if username == message.source {
+                    self.signalServer.call(urlPath: "\(URL_MESSAGES)/\(username)/\(message.timestamp)", method: .DELETE, success: { (response) in }, failure: { (error) in })
+                }
+            }
+            
+            success("ok")
+        }) { (error) in
+            failure(ERR_SERVER_FAILED, "\(error)")
+        }
+    }
 
     func sendMessage(username: String, messageString: String, success: @escaping (_ success: String) -> Void, failure: @escaping (_ error: String, _ message: String) -> Void) {
         guard let store = self.store() else {

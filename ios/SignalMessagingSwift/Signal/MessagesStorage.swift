@@ -71,6 +71,12 @@ class MessagesStorage: ProtocolStorage {
     
     return list
   }
+  
+  func deleteContactMessages(for username: String) {
+    var localJson = self.getAllMessages()
+    localJson[username] = nil
+    self.save(array: ["allMessages" : localJson], type: .MESSAGES_JSON_FILENAME)
+  }
 
 }
 
