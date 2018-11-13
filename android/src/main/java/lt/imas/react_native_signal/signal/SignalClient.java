@@ -448,64 +448,6 @@ public class SignalClient {
         });
     }
 
-    public void deleteContactPendingMessages(final String username, final Promise promise) {
-        signalServer.call(URL_MESSAGES, "GET", new Callback() {
-            @Override
-            public void onFailure(Call call, final IOException e) {
-                signalServer.mainThreadCallback(new Runnable() {
-                    @Override
-                    public void run() {
-                        promise.reject(ERR_SERVER_FAILED, e.getMessage());
-                        logSender.reportError(e);
-                    }
-                });
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) {
-                final ServerResponse serverResponse = new ServerResponse(response);
-                signalServer.mainThreadCallback(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            JSONArray messagesJSONA = serverResponse.getResponseJSONObject().optJSONArray("messages");
-                            if (messagesJSONA != null) {
-                                for (int i = 0; i < messagesJSONA.length(); i++) {
-                                    JSONObject messageJSONO = messagesJSONA.getJSONObject(i);
-                                    String source = messageJSONO.getString("source");
-                                    long serverTimestamp = messageJSONO.optLong("timestamp", 0);
-                                    if (source != null && source.equals(username)) {
-                                        signalServer.call(
-                                                URL_MESSAGES + "/" + username + "/" + serverTimestamp,
-                                                "DELETE",
-                                                null,
-                                                new Callback() {
-                                                    @Override
-                                                    public void onFailure(Call call, IOException e) {
-                                                        logSender.reportError(e);
-                                                    }
-
-                                                    @Override
-                                                    public void onResponse(Call call, Response res) {
-                                                        //
-                                                    }
-                                                },
-                                                true
-                                        );
-                                    }
-                                }
-                            }
-                            promise.resolve("ok");
-                        } catch (JSONException e) {
-                            logSender.reportError(e);
-                            promise.reject(ERR_NATIVE_FAILED, e.getMessage());
-                        }
-                    }
-                });
-            }
-        });
-    }
-
     public void sendMessage(final String username, final String messageString, final Promise promise) {
         signalServer.requestServerTimestamp(new Callback() {
             @Override

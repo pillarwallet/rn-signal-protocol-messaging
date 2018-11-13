@@ -130,17 +130,6 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void deleteContactMessages(String username, Promise promise){
-        try {
-            messageStorage.deleteContactMessages(username);
-            signalClient.deleteContactPendingMessages(username, promise);
-        } catch (Throwable e) {
-            logSender.reportError(e);
-            promise.reject(e);
-        }
-    }
-
-    @ReactMethod
     public void receiveNewMessagesByContact(String username, final Promise promise){
         try {
             signalClient.getContactMessages(username, promise, true);
