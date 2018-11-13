@@ -106,7 +106,6 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
             SignalProtocolAddress address = new SignalProtocolAddress(username, 1);
             if (!protocolStorage.containsSession(address)){
                 signalClient.requestPreKeys(username, promise);
-//                protocolStorage.deleteSession(address);
             } else {
                 promise.resolve("ok");
             }
@@ -120,6 +119,7 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
     public void deleteContact(String username, Promise promise){
         try {
             SignalProtocolAddress address = new SignalProtocolAddress(username, 1);
+            protocolStorage.removeIdentity(address);
             protocolStorage.deleteSession(address);
             messageStorage.deleteContactMessages(username);
             promise.resolve("ok");

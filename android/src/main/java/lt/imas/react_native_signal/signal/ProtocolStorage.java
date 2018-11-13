@@ -215,6 +215,20 @@ public class ProtocolStorage implements SignalProtocolStore {
         return false;
     }
 
+    public void removeIdentity(SignalProtocolAddress address) {
+        String data = readFromStorage(IDENTITES_JSON_FILENAME);
+        if (data == null || data.isEmpty()) data = "{}";
+        try {
+            JSONObject dataJSONO = new JSONObject(data);
+            if (dataJSONO.has(address.toString())){
+                dataJSONO.remove(address.toString());
+                writeToStorageFile(IDENTITES_JSON_FILENAME, dataJSONO.toString());
+            }
+        } catch (JSONException e) {
+            logSender.reportError(e);
+        }
+    }
+
     /*
         This method returns force true as it didn't affect basic flow of Signal.
 
@@ -225,22 +239,21 @@ public class ProtocolStorage implements SignalProtocolStore {
      */
     @Override
     public boolean isTrustedIdentity(SignalProtocolAddress address, IdentityKey identityKey, Direction direction) {
-        return true;
-//        String data = readFromStorage(IDENTITES_JSON_FILENAME);
-//        if (data == null || data.isEmpty()) return false;
-//        try {
-//            JSONObject dataJSONO = new JSONObject(data);
-//            if (dataJSONO.has(address.toString())){
-//                JSONObject addressJSONO = dataJSONO.getJSONObject(address.toString());
-//                byte[] identityKeyBytes = Base64.decode(addressJSONO.getString("identityKey"));
-//                return identityKey.serialize() == identityKeyBytes;
-//            }
-//        } catch (JSONException e) {
-//            logSender.reportError(e);
-//        } catch (IOException e) {
-//            logSender.reportError(e);
-//        }
-//        return false;
+        String data = readFromStorage(IDENTITES_JSON_FILENAME);
+        if (data == null || data.isEmpty()) return true;  // trust on first use
+        try {
+            JSONObject dataJSONO = new JSONObject(data);
+            if (dataJSONO.has(address.toString())){
+                JSONObject addressJSONO = dataJSONO.getJSONObject(address.toString());
+                byte[] identityKeyBytes = Base64.decode(addressJSONO.getString("identityKey"));
+                return identityKey.serialize() == identityKeyBytes;
+            } else {
+                return true; // trust on first use
+            }
+        } catch (JSONException | IOException e) {
+            logSender.reportError(e);
+        }
+        return false;
     }
 
     @Override

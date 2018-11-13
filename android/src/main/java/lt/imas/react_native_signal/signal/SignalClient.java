@@ -373,7 +373,8 @@ public class SignalClient {
                                             unreadJSONO.put(source, unreadSourceJSONO);
                                         }
 
-                                        if (username.equals(address.getName())
+                                        if (username != null
+                                                && username.equals(address.getName())
                                                 && signalProtocolStore.containsSession(address)
                                                 && decodeAndSave) {
 
