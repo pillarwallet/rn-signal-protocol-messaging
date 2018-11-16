@@ -62,24 +62,20 @@ public class MessageStorage {
         }
     }
 
+    private void deleteRecursive(File fileOrDirectory) {
+        if (fileOrDirectory.isDirectory())
+            for (File child : fileOrDirectory.listFiles())
+                deleteRecursive(child);
+
+        fileOrDirectory.delete();
+    }
+
     public void deleteAll(){
-        File dir = new File(absolutePath + "/messages");
-        if (dir.isDirectory()){
-            String[] children = dir.list();
-            for (String aChildren : children) {
-                new File(dir, aChildren).delete();
-            }
-        }
+        deleteRecursive(new File(absolutePath + "/messages"));
     }
 
     public void deleteContactMessages(String username){
-        File dir = new File(absolutePath + "/messages/" + username);
-        if (dir.isDirectory()){
-            String[] children = dir.list();
-            for (String aChildren : children) {
-                new File(dir, aChildren).delete();
-            }
-        }
+        deleteRecursive(new File(absolutePath + "/messages/" + username));
     }
 
     public void storeMessage(String username, JSONObject newMessagesJSONO){
