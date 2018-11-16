@@ -216,6 +216,11 @@ class SignalClient: NSObject {
                     }
 
                     let address = SignalAddress(name: username, deviceId: 1)
+                    
+                    // force delete: anytime when method is requested it will add new Identity Key and new Pre Key
+                    ProtocolStorage().removeRemoteIdentity(for: address)
+                    store.sessionStore.deleteSession(for: address)
+                    
                     let sessionBuilder = SessionBuilder(for: address, in: store)
 
                     do {

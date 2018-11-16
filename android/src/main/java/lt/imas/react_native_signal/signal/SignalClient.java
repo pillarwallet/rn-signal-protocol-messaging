@@ -176,7 +176,13 @@ public class SignalClient {
                             JSONArray devicesJSONA = responseJSONO.getJSONArray("devices");
                             JSONObject firstDevice = devicesJSONA.getJSONObject(0);
 
-                            SessionBuilder sessionBuilder = new SessionBuilder(signalProtocolStore, new SignalProtocolAddress(username, 1));
+                            SignalProtocolAddress address = new SignalProtocolAddress(username, 1);
+
+                            // force delete: anytime when method is requested it will add new Identity Key and new Pre Key
+                            signalProtocolStore.removeIdentity(address);
+                            signalProtocolStore.deleteSession(address);
+
+                            SessionBuilder sessionBuilder = new SessionBuilder(signalProtocolStore, address);
 
                             JSONObject preKeyJSONO = firstDevice.getJSONObject("preKey");
                             String preKeyPublicString = preKeyJSONO.getString("publicKey");
