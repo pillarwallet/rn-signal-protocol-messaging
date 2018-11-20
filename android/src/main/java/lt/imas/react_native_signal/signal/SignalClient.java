@@ -391,7 +391,7 @@ public class SignalClient {
 
                                                 try {
                                                     messageBytes = sessionCipher.decrypt(new SignalMessage(decodeMessageString));
-                                                } catch (InvalidMessageException | LegacyMessageException e) {
+                                                } catch (InvalidMessageException | LegacyMessageException | UntrustedIdentityException e) {
                                                     Timber.e(e);
                                                 }
 
@@ -400,7 +400,7 @@ public class SignalClient {
                                                         messageBytes = sessionCipher.decrypt(new PreKeySignalMessage(decodeMessageString));
                                                     } catch (LegacyMessageException | InvalidMessageException
                                                             | InvalidKeyIdException | InvalidKeyException
-                                                            | InvalidVersionException e) {
+                                                            | InvalidVersionException | UntrustedIdentityException e) {
                                                         Timber.e(e);
                                                     }
                                                 }
@@ -433,7 +433,7 @@ public class SignalClient {
                                                     true
                                             );
                                         }
-                                    } catch (JSONException | IOException | DuplicateMessageException | NoSessionException | UntrustedIdentityException e) {
+                                    } catch (JSONException | IOException | DuplicateMessageException | NoSessionException e) {
                                         promise.reject(ERR_NATIVE_FAILED, e.getMessage());
                                         logSender.reportError(e);
                                         return;

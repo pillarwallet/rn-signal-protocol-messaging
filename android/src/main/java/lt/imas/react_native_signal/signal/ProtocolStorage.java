@@ -6,6 +6,8 @@ import org.whispersystems.libsignal.IdentityKey;
 import org.whispersystems.libsignal.IdentityKeyPair;
 import org.whispersystems.libsignal.InvalidKeyException;
 import org.whispersystems.libsignal.SignalProtocolAddress;
+import org.whispersystems.libsignal.ecc.Curve;
+import org.whispersystems.libsignal.ecc.ECPublicKey;
 import org.whispersystems.libsignal.state.PreKeyRecord;
 import org.whispersystems.libsignal.state.SessionRecord;
 import org.whispersystems.libsignal.state.SignalProtocolStore;
@@ -196,21 +198,17 @@ public class ProtocolStorage implements SignalProtocolStore {
 
     @Override
     public boolean saveIdentity(SignalProtocolAddress address, IdentityKey identityKey) {
-        boolean alreadyExists = isTrustedIdentity(address, identityKey, Direction.SENDING);
-        if (!alreadyExists){
-            try {
-                String data = readFromStorage(IDENTITES_JSON_FILENAME);
-                if (data == null || data.isEmpty()) data = "{}";
-                JSONObject dataJSONO = new JSONObject(data);
-                JSONObject addressJSONO = new JSONObject();
-                addressJSONO.put("address", address.toString());
-                addressJSONO.put("identityKey", Base64.encodeBytes(identityKey.serialize()));
-                dataJSONO.put(address.toString(), addressJSONO);
-                writeToStorageFile(IDENTITES_JSON_FILENAME, dataJSONO.toString());
-                return true;
-            } catch (JSONException e) {
-                logSender.reportError(e);
-            }
+        try {
+            String data = readFromStorage(IDENTITES_JSON_FILENAME);
+            if (data == null || data.isEmpty()) data = "{}";
+            JSONObject dataJSONO = new JSONObject(data);
+            JSONObject addressJSONO = new JSONObject();
+            addressJSONO.put("identityKey", Base64.encodeBytes(identityKey.serialize()));
+            dataJSONO.put(address.toString(), addressJSONO);
+            writeToStorageFile(IDENTITES_JSON_FILENAME, dataJSONO.toString());
+            return true;
+        } catch (JSONException e) {
+            logSender.reportError(e);
         }
         return false;
     }
@@ -239,12 +237,14 @@ public class ProtocolStorage implements SignalProtocolStore {
             if (dataJSONO.has(address.toString())){
                 JSONObject addressJSONO = dataJSONO.getJSONObject(address.toString());
                 byte[] identityKeyBytes = Base64.decode(addressJSONO.getString("identityKey"));
-                return identityKey.serialize() == identityKeyBytes;
+                ECPublicKey preKeyPublic = Curve.decodePoint(identityKeyBytes, 0);
+                return identityKey.getPublicKey().equals(preKeyPublic);
             } else {
                 return true; // trust on first use
             }
-        } catch (JSONException | IOException e) {
+        } catch (JSONException | IOException | InvalidKeyException e) {
             logSender.reportError(e);
+            e.printStackTrace();
         }
         return false;
     }
