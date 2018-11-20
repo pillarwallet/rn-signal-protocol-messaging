@@ -391,7 +391,7 @@ public class SignalClient {
 
                                                 try {
                                                     messageBytes = sessionCipher.decrypt(new SignalMessage(decodeMessageString));
-                                                } catch (InvalidMessageException | LegacyMessageException | UntrustedIdentityException e) {
+                                                } catch (InvalidMessageException | LegacyMessageException | DuplicateMessageException | UntrustedIdentityException e) {
                                                     Timber.e(e);
                                                 }
 
@@ -400,7 +400,8 @@ public class SignalClient {
                                                         messageBytes = sessionCipher.decrypt(new PreKeySignalMessage(decodeMessageString));
                                                     } catch (LegacyMessageException | InvalidMessageException
                                                             | InvalidKeyIdException | InvalidKeyException
-                                                            | InvalidVersionException | UntrustedIdentityException e) {
+                                                            | InvalidVersionException | DuplicateMessageException
+                                                            | UntrustedIdentityException e) {
                                                         Timber.e(e);
                                                     }
                                                 }
@@ -433,7 +434,7 @@ public class SignalClient {
                                                     true
                                             );
                                         }
-                                    } catch (JSONException | IOException | DuplicateMessageException | NoSessionException e) {
+                                    } catch (JSONException | IOException | NoSessionException e) {
                                         promise.reject(ERR_NATIVE_FAILED, e.getMessage());
                                         logSender.reportError(e);
                                         return;
