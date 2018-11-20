@@ -121,7 +121,7 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
         try {
             SignalProtocolAddress address = new SignalProtocolAddress(username, 1);
             protocolStorage.deleteSession(address);
-            messageStorage.deleteContactMessages(username);
+            messageStorage.deleteAllContactMessages(username);
             promise.resolve("ok");
         } catch (Throwable e) {
             logSender.reportError(e);
@@ -132,8 +132,8 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void deleteContactMessages(String username, Promise promise){
         try {
-            messageStorage.deleteContactMessages(username);
-            signalClient.deleteContactPendingMessages(username, promise);
+            messageStorage.deleteContactMessages(username, "chat");
+            signalClient.deleteContactPendingMessages(username, "chat", promise);
         } catch (Throwable e) {
             logSender.reportError(e);
             promise.reject(e);
@@ -143,7 +143,7 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void receiveNewMessagesByContact(String username, final Promise promise){
         try {
-            signalClient.getContactMessages(username, promise, true);
+            signalClient.getContactMessages(username, tag, promise, true);
         } catch (Throwable e) {
             logSender.reportError(e);
             promise.reject(e);
@@ -153,7 +153,7 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void getChatByContact(String username, final Promise promise){
         try {
-            JSONArray messagesJSONA = messageStorage.getContactMessages(username);
+            JSONArray messagesJSONA = messageStorage.getContactMessages(username, "chat");
             ArrayList<JSONObject> messagesList = new ArrayList<>();
             for (int i = 0; i < messagesJSONA.length(); i++)
                 messagesList.add(messagesJSONA.optJSONObject(i));
@@ -175,7 +175,7 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void getUnreadMessagesCount(final Promise promise){
         try {
-            signalClient.getContactMessages("", promise, false);
+            signalClient.getContactMessages("", "chat", promise, false);
         } catch (Throwable e) {
             logSender.reportError(e);
             promise.reject(e);
@@ -193,9 +193,29 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
+    public void getExistingMessages(String tag, final Promise promise){
+        try {
+            promise.resolve(messageStorage.getExistingMessages(tag).toString());
+        } catch (Throwable e) {
+            logSender.reportError(e);
+            promise.reject(e);
+        }
+    }
+
+    @ReactMethod
     public void sendMessageByContact(String username, String message, final Promise promise) {
         try {
-            signalClient.sendMessage(username, message, promise);
+            signalClient.sendMessage(username, message, "chat", promise);
+        } catch (Throwable e) {
+            logSender.reportError(e);
+            promise.reject(e);
+        }
+    }
+
+    @ReactMethod
+    public void sendMessageWithTagByContact(String username, String message, String tag, final Promise promise) {
+        try {
+            signalClient.sendMessage(username, message, tag, promise);
         } catch (Throwable e) {
             logSender.reportError(e);
             promise.reject(e);

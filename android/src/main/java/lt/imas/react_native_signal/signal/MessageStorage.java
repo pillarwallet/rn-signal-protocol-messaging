@@ -13,12 +13,18 @@ import java.io.InputStreamReader;
 
 public class MessageStorage {
     private LogSender logSender = LogSender.getInstance();
-    
-    private final String MESSAGES_JSON_FILENAME = "messages.json";
     private String absolutePath;
 
     public MessageStorage(String  absolutePath) {
         this.absolutePath = absolutePath;
+    }
+
+    private String getMessageStoreFilename(String tag){
+        switch (tag){
+            case "chat": return "messages.json"; // keep regular "messages.json" to avoid deprecating previous structure
+            case "tx-note": return "notes.json";
+            default: return "other.json";
+        }
     }
 
     private String readFromStorage(String fileName) {
@@ -74,15 +80,19 @@ public class MessageStorage {
         deleteRecursive(new File(absolutePath + "/messages"));
     }
 
-    public void deleteContactMessages(String username){
+    public void deleteAllContactMessages(String username){
         deleteRecursive(new File(absolutePath + "/messages/" + username));
     }
 
-    public void storeMessage(String username, JSONObject newMessagesJSONO){
+    public void deleteContactMessages(String username, String tag){
+        deleteRecursive(new File(absolutePath + "/messages/" + username + "/" + getMessageStoreFilename(tag)));
+    }
+
+    public void storeMessage(String username, JSONObject newMessagesJSONO, String tag){
         String dirPath = absolutePath + "/messages/" + username;
         File dir = new File(dirPath);
         dir.mkdirs();
-        String userPath = username + "/" + MESSAGES_JSON_FILENAME;
+        String userPath = username + "/" + getMessageStoreFilename(tag);
         String data = readFromStorage(userPath);
         if (data == null || data.isEmpty()) data = "[]";
         try {
@@ -94,9 +104,9 @@ public class MessageStorage {
         }
     }
 
-    public JSONArray getContactMessages(String username){
+    public JSONArray getContactMessages(String username, String tag){
         JSONArray messagesJSONA = new JSONArray();
-        String userPath = username + "/" + MESSAGES_JSON_FILENAME;
+        String userPath = username + "/" + getMessageStoreFilename(tag);
         String data = readFromStorage(userPath);
         if (data == null || data.isEmpty()) data = "[]";
         try {
@@ -108,6 +118,10 @@ public class MessageStorage {
     }
 
     public JSONArray getExistingChats() {
+        return getExistingMessages("chat");
+    }
+
+    public JSONArray getExistingMessages(String tag) {
         JSONArray chatsJSONA = new JSONArray();
         String dirPath = absolutePath + "/messages";
         File directory = new File(dirPath);
@@ -117,11 +131,16 @@ public class MessageStorage {
                 String username = file.getName();
                 try {
                     JSONObject chatJSONO = new JSONObject();
-                    JSONArray messagesJSONA = getContactMessages(username);
+                    JSONArray messagesJSONA = getContactMessages(username, tag);
                     chatJSONO.put("username", username);
-                    if (messagesJSONA != null && messagesJSONA.length() != 0)
-                        chatJSONO.put("lastMessage", messagesJSONA.get(messagesJSONA.length() - 1));
-                    chatJSONO.put("unread", 0);
+                    if (messagesJSONA != null && messagesJSONA.length() != 0) {
+                        if (tag.equals("chat")) {
+                            chatJSONO.put("lastMessage", messagesJSONA.get(messagesJSONA.length() - 1));
+                        } else {
+                            chatJSONO.put("messages", messagesJSONA);
+                        }
+                    }
+                    chatJSONO.put("unread", 0); // keep regular "messages.json" to avoid deprecating previous structure
                     chatsJSONA.put(chatJSONO);
                 } catch (JSONException e) {
                     logSender.reportError(e);
