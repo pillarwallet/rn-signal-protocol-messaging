@@ -130,10 +130,10 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void deleteContactMessages(String username, Promise promise){
+    public void deleteContactMessages(String username, String tag, Promise promise){
         try {
-            messageStorage.deleteContactMessages(username, "chat");
-            signalClient.deleteContactPendingMessages(username, "chat", promise);
+            messageStorage.deleteContactMessages(username, tag);
+            signalClient.deleteContactPendingMessages(username, tag, promise);
         } catch (Throwable e) {
             logSender.reportError(e);
             promise.reject(e);
@@ -141,7 +141,7 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void receiveNewMessagesByContact(String username, final Promise promise){
+    public void receiveNewMessagesByContact(String username, String tag, final Promise promise){
         try {
             signalClient.getContactMessages(username, tag, promise, true);
         } catch (Throwable e) {
@@ -151,9 +151,9 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void getChatByContact(String username, final Promise promise){
+    public void getMessagesByContact(String username, String tag, final Promise promise){
         try {
-            JSONArray messagesJSONA = messageStorage.getContactMessages(username, "chat");
+            JSONArray messagesJSONA = messageStorage.getContactMessages(username, tag);
             ArrayList<JSONObject> messagesList = new ArrayList<>();
             for (int i = 0; i < messagesJSONA.length(); i++)
                 messagesList.add(messagesJSONA.optJSONObject(i));
@@ -173,19 +173,9 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void getUnreadMessagesCount(final Promise promise){
+    public void getUnreadMessagesCount(String tag, final Promise promise){
         try {
-            signalClient.getContactMessages("", "chat", promise, false);
-        } catch (Throwable e) {
-            logSender.reportError(e);
-            promise.reject(e);
-        }
-    }
-
-    @ReactMethod
-    public void getExistingChats(final Promise promise){
-        try {
-            promise.resolve(messageStorage.getExistingChats().toString());
+            signalClient.getContactMessages("", tag, promise, false);
         } catch (Throwable e) {
             logSender.reportError(e);
             promise.reject(e);
@@ -203,17 +193,7 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void sendMessageByContact(String username, String message, final Promise promise) {
-        try {
-            signalClient.sendMessage(username, message, "chat", promise);
-        } catch (Throwable e) {
-            logSender.reportError(e);
-            promise.reject(e);
-        }
-    }
-
-    @ReactMethod
-    public void sendMessageWithTagByContact(String username, String message, String tag, final Promise promise) {
+    public void sendMessageByContact(String username, String message, String tag, final Promise promise) {
         try {
             signalClient.sendMessage(username, message, tag, promise);
         } catch (Throwable e) {

@@ -117,10 +117,6 @@ public class MessageStorage {
         return messagesJSONA;
     }
 
-    public JSONArray getExistingChats() {
-        return getExistingMessages("chat");
-    }
-
     public JSONArray getExistingMessages(String tag) {
         JSONArray chatsJSONA = new JSONArray();
         String dirPath = absolutePath + "/messages";
