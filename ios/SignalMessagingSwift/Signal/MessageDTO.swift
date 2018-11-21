@@ -64,4 +64,9 @@ class MessageDTO: NSObject {
         }
     }
 
+    var tag: String {
+        get {
+            return self.dictionary["tag"] as? String ?? ""
+        }
+    }
 }

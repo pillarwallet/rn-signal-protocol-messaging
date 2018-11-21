@@ -38,7 +38,7 @@ public final class SignalAddress {
     public init(name: String, deviceId: Int32) {
         self.name = name
         self.deviceId = deviceId
-        let count = name.utf8.count
+        let count = name.utf8.count+1
         self.namePointer = UnsafeMutablePointer<Int8>.allocate(capacity: count)
         namePointer.assign(from: name, count: count)
         self.address = UnsafeMutablePointer<signal_protocol_address>.allocate(capacity: 1)

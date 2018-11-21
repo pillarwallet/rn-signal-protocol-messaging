@@ -245,23 +245,29 @@ class SignalClient: NSObject {
         }
     }
 
-    func getContactMessages(username: String, decodeAndSave: Bool, success: @escaping (_ success: [String : Any]) -> Void, failure: @escaping (_ error: String, _ message: String) -> Void) {
+    func getContactMessages(username: String, messageTag: String, decodeAndSave: Bool, success: @escaping (_ success: [String : Any]) -> Void, failure: @escaping (_ error: String, _ message: String) -> Void) {
         self.signalServer.call(urlPath: URL_MESSAGES, method: .GET, success: { (dict) in
-            let dictionary = self.parseMessages(username: username, decodeAndSave: decodeAndSave, messagesDictionary: dict)
+            let dictionary = self.parseMessages(username: username, messageTag: messageTag, decodeAndSave: decodeAndSave, messagesDictionary: dict)
             success(dictionary)
         }) { (error) in
             failure(ERR_SERVER_FAILED, "\(error)")
         }
     }
 
-    func getAllContactMessages() -> [[String : Any]] {
+    func getAllContactMessages(messageTag: String) -> [[String : Any]] {
         var allMessages = [[String : Any]]()
-        MessagesStorage().getAllMessages().forEach { (key, value) in
+        MessagesStorage().getAllMessages(for: messageTag).forEach { (key, value) in
             var messageDict = [String : Any]()
             messageDict["username"] = key
             messageDict["unread"] = 0
-            if let dict = MessagesStorage().getMessages(for: key).last?.dictionary {
-                messageDict["lastMessage"] = dict
+            
+            if (messageTag == "chat"){
+                // TODO: needs swift code refactoring in order to parse from object value (messages) above?
+                if let dict = MessagesStorage().getMessages(for: key, tag: messageTag).last?.dictionary {
+                    messageDict["lastMessage"] = dict
+                }
+            } else {
+                messageDict["messages"] = value
             }
 
             allMessages.append(messageDict)
@@ -283,7 +289,7 @@ class SignalClient: NSObject {
         }
     }
 
-    private func parseMessages(username: String, decodeAndSave: Bool, messagesDictionary: [String : Any]) -> [String : Any] {
+    private func parseMessages(username: String, messageTag: String, decodeAndSave: Bool, messagesDictionary: [String : Any]) -> [String : Any] {
         
         guard let store = self.store() else {
             print(ERR_NATIVE_FAILED)
@@ -300,74 +306,75 @@ class SignalClient: NSObject {
 
         messages.forEach { (messageDict) in
             let message = MessageDTO(dictionary: messageDict)
-            let serverTimestamp = message.timestamp
-            
-            let address = SignalAddress(name: username, deviceId: 1)
-            
-            // empty username check is needed because unread message count method doesn't require username
-            if MESSAGE_TYPE_CIPHERTEXT == message.type, username.isEmpty {
-                var unreadSource = unread[message.source] ?? [String : Any]()
-                var currentCount = unreadSource["count"] as? Int ?? 0
-                currentCount += 1
-                let latestTimestamp = unreadSource["latest"] as? Int ?? 0
-                unreadSource["count"] = currentCount
-                unreadSource["latest"] = serverTimestamp > latestTimestamp ? serverTimestamp : latestTimestamp;
-                unread[message.source] = unreadSource
-            }
-            
-            var isDuplicateMessage: Bool = false;
-
-            // TODO: understand why it works this way
-            // When a user send a message to the interlocutor, he also receives the message
-            // (the message data is empty in this case).
-            if username == message.source && message.messageData()?.isEmpty == false,
-                decodeAndSave,
-                store.sessionStore.containsSession(for: address),
-                let data = message.messageData() {
+            if (messageTag == message.tag){
+                let serverTimestamp = message.timestamp
+                let address = SignalAddress(name: username, deviceId: 1)
                 
-                let sessionCipher = SessionCipher(for: address, in: store)
+                // empty username check is needed because unread message count method doesn't require username
+                if MESSAGE_TYPE_CIPHERTEXT == message.type, username.isEmpty {
+                    var unreadSource = unread[message.source] ?? [String : Any]()
+                    var currentCount = unreadSource["count"] as? Int ?? 0
+                    currentCount += 1
+                    let latestTimestamp = unreadSource["latest"] as? Int ?? 0
+                    unreadSource["count"] = currentCount
+                    unreadSource["latest"] = serverTimestamp > latestTimestamp ? serverTimestamp : latestTimestamp;
+                    unread[message.source] = unreadSource
+                }
+                
+                var isDuplicateMessage: Bool = false;
 
-                let parsedMessage = ParsedMessageDTO()
-                parsedMessage.username = message.source
-                parsedMessage.device = 1
-                parsedMessage.serverTimestamp = serverTimestamp
-                parsedMessage.savedTimestamp = self.currentTimestamp()
-                parsedMessage.type = "message"
+                // TODO: understand why it works this way
+                // When a user send a message to the interlocutor, he also receives the message
+                // (the message data is empty in this case).
+                if username == message.source && message.messageData()?.isEmpty == false,
+                    decodeAndSave,
+                    store.sessionStore.containsSession(for: address),
+                    let data = message.messageData() {
+                    
+                    let sessionCipher = SessionCipher(for: address, in: store)
 
-                var preKeyData: Data? = nil
-                do {
-                    let cipher = CiphertextMessage(type: .signal, message: data)
-                    preKeyData = try sessionCipher.decrypt(message: cipher)
-                } catch SignalError.duplicateMessage {
-                    isDuplicateMessage = true;
-                } catch {
+                    let parsedMessage = ParsedMessageDTO()
+                    parsedMessage.username = message.source
+                    parsedMessage.device = 1
+                    parsedMessage.serverTimestamp = serverTimestamp
+                    parsedMessage.savedTimestamp = self.currentTimestamp()
+                    parsedMessage.type = "message"
+
+                    var preKeyData: Data? = nil
                     do {
-                        let cipher = CiphertextMessage(type: .preKey, message: data)
+                        let cipher = CiphertextMessage(type: .signal, message: data)
                         preKeyData = try sessionCipher.decrypt(message: cipher)
                     } catch SignalError.duplicateMessage {
                         isDuplicateMessage = true;
                     } catch {
-                        print(ERR_NATIVE_FAILED)
-                        print("Error info: \(error)")
+                        do {
+                            let cipher = CiphertextMessage(type: .preKey, message: data)
+                            preKeyData = try sessionCipher.decrypt(message: cipher)
+                        } catch SignalError.duplicateMessage {
+                            isDuplicateMessage = true;
+                        } catch {
+                            print(ERR_NATIVE_FAILED)
+                            print("Error info: \(error)")
+                        }
                     }
-                }
 
-                if !isDuplicateMessage {
-                    if preKeyData != nil  {
-                        if let receivedMessage = String(data: preKeyData!, encoding: .utf8) {
-                            parsedMessage.content = receivedMessage
+                    if !isDuplicateMessage {
+                        if preKeyData != nil  {
+                            if let receivedMessage = String(data: preKeyData!, encoding: .utf8) {
+                                parsedMessage.content = receivedMessage
+                            }
+
+                        } else {
+                            parsedMessage.content = "🔒 You cannot read this message."
+                            parsedMessage.type = "warning"
+                            parsedMessage.status = "UNDECRYPTABLE_MESSAGE"
                         }
 
-                    } else {
-                        parsedMessage.content = "🔒 You cannot read this message."
-                        parsedMessage.type = "warning"
-                        parsedMessage.status = "UNDECRYPTABLE_MESSAGE"
+                        parsedMessages.append(parsedMessage)
+                        MessagesStorage().save(message: parsedMessage, for: username, tag: messageTag)
+                
+                        self.signalServer.call(urlPath: "\(URL_MESSAGES)/\(username)/\(message.timestamp)", method: .DELETE, success: { (response) in }, failure: { (error) in })
                     }
-
-                    parsedMessages.append(parsedMessage)
-                    MessagesStorage().save(message: parsedMessage, for: username)
-            
-                    self.signalServer.call(urlPath: "\(URL_MESSAGES)/\(username)/\(message.timestamp)", method: .DELETE, success: { (response) in }, failure: { (error) in })
                 }
             }
         }
@@ -382,8 +389,28 @@ class SignalClient: NSObject {
 
         return finalDict
     }
+    
+    func deleteContactPendingMessages(username: String, messageTag: String, success: @escaping (_ success: String) -> Void, failure: @escaping (_ error: String, _ message: String) -> Void) {
+        self.signalServer.call(urlPath: URL_MESSAGES, method: .GET, success: { (dict) in
+            guard let messages = dict["messages"] as? [[String : Any]] else {
+                success("ok") // no messages object, all good
+                return
+            }
+            
+            messages.forEach { (messageDict) in
+                let message = MessageDTO(dictionary: messageDict)
+                if username == message.source, messageTag == message.tag {
+                    self.signalServer.call(urlPath: "\(URL_MESSAGES)/\(username)/\(message.timestamp)", method: .DELETE, success: { (response) in }, failure: { (error) in })
+                }
+            }
+            
+            success("ok")
+        }) { (error) in
+            failure(ERR_SERVER_FAILED, "\(error)")
+        }
+    }
 
-    func sendMessage(username: String, messageString: String, success: @escaping (_ success: String) -> Void, failure: @escaping (_ error: String, _ message: String) -> Void) {
+    func sendMessage(username: String, messageString: String, messageTag: String, silent: Bool, success: @escaping (_ success: String) -> Void, failure: @escaping (_ error: String, _ message: String) -> Void) {
         guard let store = self.store() else {
             failure(ERR_NATIVE_FAILED, "Store is invalid")
             return
@@ -411,6 +438,8 @@ class SignalClient: NSObject {
         message["type"] = 1
         message["destination"] = username
         message["content"] = ""
+        message["tag"] = messageTag
+        message["silent"] = silent
         message["timestamp"] = self.currentTimestamp()
         message["destinationDeviceId"] = 1
         message["destinationRegistrationId"] = remoteRegistrationId
@@ -423,7 +452,7 @@ class SignalClient: NSObject {
             if dict.count != 0 && dict["staleDevices"] != nil {
                 // staleDevices found, request new user PreKey and retry message send
                 self.requestPreKeys(username: username, success: { _ in
-                    self.sendMessage(username: username, messageString: messageString, success: { (message) in
+                    self.sendMessage(username: username, messageString: messageString, messageTag: messageTag, silent: silent, success: { (message) in
                         success(message)
                     }, failure: { (code, error) in
                         failure(code, "\(error)")
@@ -438,7 +467,7 @@ class SignalClient: NSObject {
                 parsedMessage.serverTimestamp = self.currentTimestamp() * 1000
                 parsedMessage.savedTimestamp = self.currentTimestamp()
                 parsedMessage.content = messageString
-                MessagesStorage().save(message: parsedMessage, for: username)
+                MessagesStorage().save(message: parsedMessage, for: username, tag: messageTag)
                 success("ok")
             }
         }) { (error) in

@@ -93,16 +93,25 @@ class RNSignalClientModule: NSObject {
         resolve("ok")
     }
     
-    @objc func receiveNewMessagesByContact(_ username: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        self.signalClient.getContactMessages(username: username, decodeAndSave: true, success: { (success) in
+    @objc func deleteContactMessages(_ username: String, messageTag: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        MessagesStorage().deleteContactMessages(for: username, tag: messageTag)
+        self.signalClient.deleteContactPendingMessages(username: username, messageTag: messageTag, success: { (success) in
             resolve(success)
         }) { (error, message) in
             reject(error, message, nil)
         }
     }
     
-    @objc func getChatByContact(_ username: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        let sortedMessages = MessagesStorage().getMessages(for: username).sorted { (messageOne, messageTwo) -> Bool in
+    @objc func receiveNewMessagesByContact(_ username: String, messageTag: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        self.signalClient.getContactMessages(username: username, messageTag: messageTag, decodeAndSave: true, success: { (success) in
+            resolve(success)
+        }) { (error, message) in
+            reject(error, message, nil)
+        }
+    }
+    
+    @objc func getMessagesByContact(_ username: String, messageTag: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        let sortedMessages = MessagesStorage().getMessages(for: username, tag: messageTag).sorted { (messageOne, messageTwo) -> Bool in
             return messageOne.savedTimestamp > messageTwo.savedTimestamp
         }.compactMap { (message) -> [String : Any]? in
             return message.dictionary
@@ -110,21 +119,19 @@ class RNSignalClientModule: NSObject {
         
         if let data = try? JSONSerialization.data(withJSONObject: sortedMessages, options: .prettyPrinted) {
             let jsonSring = String(data: data, encoding: .utf8)
-            print(jsonSring)
             resolve(jsonSring)
         }
     }
     
-    @objc func getExistingChats(_ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        if let data = try? JSONSerialization.data(withJSONObject: self.signalClient.getAllContactMessages(), options: .prettyPrinted) {
+    @objc func getExistingMessages(_ messageTag: String, resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        if let data = try? JSONSerialization.data(withJSONObject: self.signalClient.getAllContactMessages(messageTag: messageTag), options: .prettyPrinted) {
             let jsonSring = String(data: data, encoding: .utf8)
-            print(jsonSring)
             resolve(jsonSring)
         }
     }
     
-    @objc func getUnreadMessagesCount(_ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        self.signalClient.getContactMessages(username: "", decodeAndSave: false, success: { (dict) in
+    @objc func getUnreadMessagesCount(_ messageTag: String, resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        self.signalClient.getContactMessages(username: "", messageTag: messageTag, decodeAndSave: false, success: { (dict) in
             if let data = try? JSONSerialization.data(withJSONObject: dict, options: .prettyPrinted) {
                 let jsonSring = String(data: data, encoding: .utf8)
                 resolve(jsonSring)
@@ -136,8 +143,16 @@ class RNSignalClientModule: NSObject {
         }
     }
     
-    @objc func sendMessageByContact(_ username: String, messageString: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        self.signalClient.sendMessage(username: username, messageString: messageString, success: { (success) in
+    @objc func sendMessageByContact(_ username: String, messageString: String, messageTag: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        self.signalClient.sendMessage(username: username, messageString: messageString, messageTag: messageTag, silent: false, success: { (success) in
+            resolve(success)
+        }) { (error, message) in
+            reject(error, message, nil)
+        }
+    }
+    
+    @objc func sendSilentMessageByContact(_ username: String, messageString: String, messageTag: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        self.signalClient.sendMessage(username: username, messageString: messageString, messageTag: messageTag, silent: true, success: { (success) in
             resolve(success)
         }) { (error, message) in
             reject(error, message, nil)
