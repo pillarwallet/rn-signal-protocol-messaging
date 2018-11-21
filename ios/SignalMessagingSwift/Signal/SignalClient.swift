@@ -405,7 +405,7 @@ class SignalClient: NSObject {
         }
     }
 
-    func sendMessage(username: String, messageString: String, messageTag: String, success: @escaping (_ success: String) -> Void, failure: @escaping (_ error: String, _ message: String) -> Void) {
+    func sendMessage(username: String, messageString: String, messageTag: String, silent: Bool, success: @escaping (_ success: String) -> Void, failure: @escaping (_ error: String, _ message: String) -> Void) {
         guard let store = self.store() else {
             failure(ERR_NATIVE_FAILED, "Store is invalid")
             return
@@ -434,6 +434,7 @@ class SignalClient: NSObject {
         message["destination"] = username
         message["content"] = ""
         message["tag"] = messageTag
+        message["silent"] = silent
         message["timestamp"] = self.currentTimestamp()
         message["destinationDeviceId"] = 1
         message["destinationRegistrationId"] = remoteRegistrationId
@@ -446,7 +447,7 @@ class SignalClient: NSObject {
             if dict.count != 0 && dict["staleDevices"] != nil {
                 // staleDevices found, request new user PreKey and retry message send
                 self.requestPreKeys(username: username, success: { _ in
-                    self.sendMessage(username: username, messageString: messageString, messageTag: messageTag, success: { (message) in
+                    self.sendMessage(username: username, messageString: messageString, messageTag: messageTag, silent: silent, success: { (message) in
                         success(message)
                     }, failure: { (code, error) in
                         failure(code, "\(error)")

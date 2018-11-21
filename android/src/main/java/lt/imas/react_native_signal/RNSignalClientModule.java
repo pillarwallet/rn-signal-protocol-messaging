@@ -193,9 +193,19 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
+    public void sendSilentMessageByContact(String username, String message, String tag, final Promise promise) {
+        try {
+            signalClient.sendMessage(username, message, tag, true, promise);
+        } catch (Throwable e) {
+            logSender.reportError(e);
+            promise.reject(e);
+        }
+    }
+
+    @ReactMethod
     public void sendMessageByContact(String username, String message, String tag, final Promise promise) {
         try {
-            signalClient.sendMessage(username, message, tag, promise);
+            signalClient.sendMessage(username, message, tag, false, promise);
         } catch (Throwable e) {
             logSender.reportError(e);
             promise.reject(e);
