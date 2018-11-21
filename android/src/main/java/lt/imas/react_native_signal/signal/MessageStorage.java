@@ -22,8 +22,8 @@ public class MessageStorage {
     private String getMessageStoreFilename(String tag){
         switch (tag){
             case "chat": return "messages.json"; // keep regular "messages.json" to avoid deprecating previous structure
-            case "tx-note": return "notes.json";
-            default: return "other.json";
+            case "tx-note": return "messages_txnote.json";
+            default: return "messages_other.json";
         }
     }
 
