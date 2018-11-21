@@ -394,7 +394,7 @@ class SignalClient: NSObject {
             
             messages.forEach { (messageDict) in
                 let message = MessageDTO(dictionary: messageDict)
-                if username == message.source, messagTag == message.tag {
+                if username == message.source, messageTag == message.tag {
                     self.signalServer.call(urlPath: "\(URL_MESSAGES)/\(username)/\(message.timestamp)", method: .DELETE, success: { (response) in }, failure: { (error) in })
                 }
             }
@@ -446,7 +446,7 @@ class SignalClient: NSObject {
             if dict.count != 0 && dict["staleDevices"] != nil {
                 // staleDevices found, request new user PreKey and retry message send
                 self.requestPreKeys(username: username, success: { _ in
-                    self.sendMessage(username: username, messageString: messageString, success: { (message) in
+                    self.sendMessage(username: username, messageString: messageString, messageTag: messageTag, success: { (message) in
                         success(message)
                     }, failure: { (code, error) in
                         failure(code, "\(error)")
