@@ -15,7 +15,9 @@ enum DownloadsType: String {
   case SESSIONS_JSON_FILENAME = "sessions"
   case IDENTITES_JSON_FILENAME = "identites"
   case LOCAL_JSON_FILENAME = "user"
-  case MESSAGES_JSON_FILENAME = "messages"
+  case MESSAGES_CHAT_JSON_FILENAME = "messages"
+  case MESSAGES_TXNOTE_JSON_FILENAME = "messages_txnote"
+  case MESSAGES_OTHER_JSON_FILENAME = "messages_other"
 }
 
 class ProtocolStorage: NSObject {

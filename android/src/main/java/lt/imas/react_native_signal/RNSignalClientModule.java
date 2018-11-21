@@ -121,7 +121,7 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
         try {
             SignalProtocolAddress address = new SignalProtocolAddress(username, 1);
             protocolStorage.deleteSession(address);
-            messageStorage.deleteContactMessages(username);
+            messageStorage.deleteAllContactMessages(username);
             promise.resolve("ok");
         } catch (Throwable e) {
             logSender.reportError(e);
@@ -130,10 +130,10 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void deleteContactMessages(String username, Promise promise){
+    public void deleteContactMessages(String username, String tag, Promise promise){
         try {
-            messageStorage.deleteContactMessages(username);
-            signalClient.deleteContactPendingMessages(username, promise);
+            messageStorage.deleteContactMessages(username, tag);
+            signalClient.deleteContactPendingMessages(username, tag, promise);
         } catch (Throwable e) {
             logSender.reportError(e);
             promise.reject(e);
@@ -141,9 +141,9 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void receiveNewMessagesByContact(String username, final Promise promise){
+    public void receiveNewMessagesByContact(String username, String tag, final Promise promise){
         try {
-            signalClient.getContactMessages(username, promise, true);
+            signalClient.getContactMessages(username, tag, promise, true);
         } catch (Throwable e) {
             logSender.reportError(e);
             promise.reject(e);
@@ -151,9 +151,9 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void getChatByContact(String username, final Promise promise){
+    public void getMessagesByContact(String username, String tag, final Promise promise){
         try {
-            JSONArray messagesJSONA = messageStorage.getContactMessages(username);
+            JSONArray messagesJSONA = messageStorage.getContactMessages(username, tag);
             ArrayList<JSONObject> messagesList = new ArrayList<>();
             for (int i = 0; i < messagesJSONA.length(); i++)
                 messagesList.add(messagesJSONA.optJSONObject(i));
@@ -173,9 +173,9 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void getUnreadMessagesCount(final Promise promise){
+    public void getUnreadMessagesCount(String tag, final Promise promise){
         try {
-            signalClient.getContactMessages("", promise, false);
+            signalClient.getContactMessages("", tag, promise, false);
         } catch (Throwable e) {
             logSender.reportError(e);
             promise.reject(e);
@@ -183,9 +183,9 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void getExistingChats(final Promise promise){
+    public void getExistingMessages(String tag, final Promise promise){
         try {
-            promise.resolve(messageStorage.getExistingChats().toString());
+            promise.resolve(messageStorage.getExistingMessages(tag).toString());
         } catch (Throwable e) {
             logSender.reportError(e);
             promise.reject(e);
@@ -193,9 +193,19 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void sendMessageByContact(String username, String message, final Promise promise) {
+    public void sendSilentMessageByContact(String username, String message, String tag, final Promise promise) {
         try {
-            signalClient.sendMessage(username, message, promise);
+            signalClient.sendMessage(username, message, tag, true, promise);
+        } catch (Throwable e) {
+            logSender.reportError(e);
+            promise.reject(e);
+        }
+    }
+
+    @ReactMethod
+    public void sendMessageByContact(String username, String message, String tag, final Promise promise) {
+        try {
+            signalClient.sendMessage(username, message, tag, false, promise);
         } catch (Throwable e) {
             logSender.reportError(e);
             promise.reject(e);
