@@ -122,6 +122,7 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
             protocolStorage.removeIdentity(address);
             protocolStorage.deleteSession(address);
             messageStorage.deleteAllContactMessages(username);
+            signalClient.deleteContactPendingMessages(username, "*", promise);
             promise.resolve("ok");
         } catch (Throwable e) {
             logSender.reportError(e);

@@ -399,7 +399,7 @@ class SignalClient: NSObject {
             
             messages.forEach { (messageDict) in
                 let message = MessageDTO(dictionary: messageDict)
-                if username == message.source, messageTag == message.tag {
+                if username == message.source && (messageTag == message.tag || messageTag == "*") {
                     self.signalServer.call(urlPath: "\(URL_MESSAGES)/\(username)/\(message.timestamp)", method: .DELETE, success: { (response) in }, failure: { (error) in })
                 }
             }

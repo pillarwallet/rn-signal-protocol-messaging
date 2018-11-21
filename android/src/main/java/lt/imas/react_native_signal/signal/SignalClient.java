@@ -483,7 +483,7 @@ public class SignalClient {
                                     JSONObject messageJSONO = messagesJSONA.getJSONObject(i);
                                     String source = messageJSONO.getString("source");
                                     String tag = messageJSONO.getString("tag");
-                                    if (messageTag.equals(tag)){
+                                    if (messageTag.equals(tag) || messageTag.equals("*")){
                                         long serverTimestamp = messageJSONO.optLong("timestamp", 0);
                                         if (source != null && source.equals(username)) {
                                             signalServer.call(

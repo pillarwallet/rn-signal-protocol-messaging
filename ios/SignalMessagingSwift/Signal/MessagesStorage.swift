@@ -10,7 +10,6 @@ import UIKit
 
 class MessagesStorage: ProtocolStorage {
     
-    
   func getMessageStorageFilename(for tag: String) -> DownloadsType {
     switch tag {
         case "chat": return .MESSAGES_CHAT_JSON_FILENAME
@@ -85,6 +84,16 @@ class MessagesStorage: ProtocolStorage {
     var localJson = self.getAllMessages(for: tag)
     localJson[username] = nil
     self.save(array: ["allMessages" : localJson], type: getMessageStorageFilename(for: tag))
+  }
+    
+  func deleteAllContactMessages(for username: String) {
+    let availableTags = ["chat", "tx-note", "other"]
+    
+    for tag in availableTags {
+        var localJson = self.getAllMessages(for: tag)
+        localJson[username] = nil
+        self.save(array: ["allMessages" : localJson], type: getMessageStorageFilename(for: tag))
+    }
   }
 
 }
