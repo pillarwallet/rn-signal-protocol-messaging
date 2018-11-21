@@ -9,9 +9,18 @@
 import UIKit
 
 class MessagesStorage: ProtocolStorage {
+    
+    
+  func getMessageStorageFilename(for tag: String) -> DownloadsType {
+    switch tag {
+        case "chat": return .MESSAGES_CHAT_JSON_FILENAME
+        case "tx-note": return .MESSAGES_TXNOTE_JSON_FILENAME
+        default: return .MESSAGES_OTHER_JSON_FILENAME
+    }
+  }
   
-  func save(message: ParsedMessageDTO, for username: String) {
-    var localJson = self.getAllMessages()
+  func save(message: ParsedMessageDTO, for username: String, tag: String) {
+    var localJson = self.getAllMessages(for: tag)
     var userData = [String : Any]()
     if let userDataFile = localJson[username] as? [String : Any] {
       userData = userDataFile
@@ -25,11 +34,11 @@ class MessagesStorage: ProtocolStorage {
     parsedMessages.append(message.dictionary)
     userData["messages"] = parsedMessages
     localJson[username] = userData
-    self.save(array: ["allMessages" : localJson], type: .MESSAGES_JSON_FILENAME)
+    self.save(array: ["allMessages" : localJson], type: getMessageStorageFilename(for: tag))
   }
   
-  func getMessages(for username: String) -> [ParsedMessageDTO] {
-    let localJson = self.getAllMessages()
+  func getMessages(for username: String, tag: String) -> [ParsedMessageDTO] {
+        let localJson = self.getAllMessages(for: tag)
     guard let userDict = localJson[username] as? [String : Any], let userMessagesDict = userDict["messages"] as? [[String : Any]] else {
       return [ParsedMessageDTO]()
     }
@@ -41,8 +50,8 @@ class MessagesStorage: ProtocolStorage {
     return userMessages
   }
   
-  func getUnreadCount(for username: String) -> Int {
-    let localJson = self.getAllMessages()
+  func getUnreadCount(for username: String, tag: String) -> Int {
+    let localJson = self.getAllMessages(for: tag)
     guard let userDict = localJson[username] as? [String : Any], let unreadCount = userDict["unreadCount"] as? Int else {
       return 0
     }
@@ -50,9 +59,9 @@ class MessagesStorage: ProtocolStorage {
     return unreadCount
   }
   
-  func saveUnreadCount(for username: String, count : Int) {
-    let currentCount = self.getUnreadCount(for: username)
-    var localJson = self.getAllMessages()
+  func saveUnreadCount(for username: String, count: Int, tag: String) {
+    let currentCount = self.getUnreadCount(for: username, tag: tag)
+    var localJson = self.getAllMessages(for: tag)
     var userData = [String : Any]()
     if let userDataFile = localJson[username] as? [String : Any] {
       userData = userDataFile
@@ -60,11 +69,11 @@ class MessagesStorage: ProtocolStorage {
     
     userData["unreadCount"] = count + currentCount
     localJson[username] = userData
-    self.save(array: ["allMessages" : localJson], type: .MESSAGES_JSON_FILENAME)
+    self.save(array: ["allMessages" : localJson], type: getMessageStorageFilename(for: tag))
   }
   
-  func getAllMessages() -> [String : Any] {
-    let localJson = self.get(for: .MESSAGES_JSON_FILENAME)
+  func getAllMessages(for tag: String) -> [String : Any] {
+    let localJson = self.get(for: getMessageStorageFilename(for: tag))
     guard let list = localJson["allMessages"] as? [String : Any] else {
       return [String : Any]()
     }
@@ -72,10 +81,10 @@ class MessagesStorage: ProtocolStorage {
     return list
   }
   
-  func deleteContactMessages(for username: String) {
-    var localJson = self.getAllMessages()
+  func deleteContactMessages(for username: String, tag: String) {
+    var localJson = self.getAllMessages(for: tag)
     localJson[username] = nil
-    self.save(array: ["allMessages" : localJson], type: .MESSAGES_JSON_FILENAME)
+    self.save(array: ["allMessages" : localJson], type: getMessageStorageFilename(for: tag))
   }
 
 }
