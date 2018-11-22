@@ -384,6 +384,8 @@ public class SignalClient {
                                                     && signalProtocolStore.containsSession(address)
                                                     && decodeAndSave) {
 
+                                                boolean duplicate = false;
+
                                                 if (messageString != null && !messageString.isEmpty()) {
                                                     byte[] decodeMessageString = Base64.decode(messageString);
                                                     byte[] messageBytes = null;
@@ -393,6 +395,7 @@ public class SignalClient {
                                                         messageBytes = sessionCipher.decrypt(new SignalMessage(decodeMessageString));
                                                     } catch (InvalidMessageException | LegacyMessageException | DuplicateMessageException | UntrustedIdentityException e) {
                                                         Timber.e(e);
+                                                        if (!duplicate) duplicate = e.getClass() == DuplicateMessageException.class;
                                                     }
 
                                                     if (messageBytes == null) {
@@ -403,17 +406,22 @@ public class SignalClient {
                                                                 | InvalidVersionException | DuplicateMessageException
                                                                 | UntrustedIdentityException e) {
                                                             Timber.e(e);
+                                                            if (!duplicate) duplicate = e.getClass() == DuplicateMessageException.class;
                                                         }
                                                     }
 
-                                                    JSONObject newMessageJSONO = toMessageJSONO(
-                                                            messageBytes,
-                                                            address.getName(),
-                                                            address.getDeviceId(),
-                                                            serverTimestamp);
+                                                    if (!duplicate) {
+                                                        JSONObject newMessageJSONO = toMessageJSONO(
+                                                                messageBytes,
+                                                                address.getName(),
+                                                                address.getDeviceId(),
+                                                                serverTimestamp);
 
-                                                    messageStorage.storeMessage(address.getName(), newMessageJSONO, tag);
-                                                    receivedMessagesJSONA.put(newMessageJSONO);
+                                                        messageStorage.storeMessage(address.getName(), newMessageJSONO, tag);
+                                                        receivedMessagesJSONA.put(newMessageJSONO);
+                                                    } else {
+                                                        Timber.e("DUPLICATE!");
+                                                    }
 
                                                     signalServer.call(
                                                             URL_MESSAGES + "/" + address.getName() + "/" + serverTimestamp,
