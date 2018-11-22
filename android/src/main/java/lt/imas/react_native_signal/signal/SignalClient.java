@@ -404,16 +404,16 @@ public class SignalClient {
                                                                 | UntrustedIdentityException e) {
                                                             Timber.e(e);
                                                         }
-
-                                                        JSONObject newMessageJSONO = toMessageJSONO(
-                                                                messageBytes,
-                                                                address.getName(),
-                                                                address.getDeviceId(),
-                                                                serverTimestamp);
-
-                                                        messageStorage.storeMessage(address.getName(), newMessageJSONO, tag);
-                                                        receivedMessagesJSONA.put(newMessageJSONO);
                                                     }
+
+                                                    JSONObject newMessageJSONO = toMessageJSONO(
+                                                            messageBytes,
+                                                            address.getName(),
+                                                            address.getDeviceId(),
+                                                            serverTimestamp);
+
+                                                    messageStorage.storeMessage(address.getName(), newMessageJSONO, tag);
+                                                    receivedMessagesJSONA.put(newMessageJSONO);
 
                                                     signalServer.call(
                                                             URL_MESSAGES + "/" + address.getName() + "/" + serverTimestamp,
