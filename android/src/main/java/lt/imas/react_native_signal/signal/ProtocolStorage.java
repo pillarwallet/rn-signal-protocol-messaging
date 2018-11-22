@@ -6,6 +6,8 @@ import org.whispersystems.libsignal.IdentityKey;
 import org.whispersystems.libsignal.IdentityKeyPair;
 import org.whispersystems.libsignal.InvalidKeyException;
 import org.whispersystems.libsignal.SignalProtocolAddress;
+import org.whispersystems.libsignal.ecc.Curve;
+import org.whispersystems.libsignal.ecc.ECPublicKey;
 import org.whispersystems.libsignal.state.PreKeyRecord;
 import org.whispersystems.libsignal.state.SessionRecord;
 import org.whispersystems.libsignal.state.SignalProtocolStore;
@@ -196,51 +198,55 @@ public class ProtocolStorage implements SignalProtocolStore {
 
     @Override
     public boolean saveIdentity(SignalProtocolAddress address, IdentityKey identityKey) {
-        boolean alreadyExists = isTrustedIdentity(address, identityKey, Direction.SENDING);
-        if (!alreadyExists){
-            try {
-                String data = readFromStorage(IDENTITES_JSON_FILENAME);
-                if (data == null || data.isEmpty()) data = "{}";
-                JSONObject dataJSONO = new JSONObject(data);
-                JSONObject addressJSONO = new JSONObject();
-                addressJSONO.put("address", address.toString());
-                addressJSONO.put("identityKey", Base64.encodeBytes(identityKey.serialize()));
-                dataJSONO.put(address.toString(), addressJSONO);
-                writeToStorageFile(IDENTITES_JSON_FILENAME, dataJSONO.toString());
-                return true;
-            } catch (JSONException e) {
-                logSender.reportError(e);
-            }
+        try {
+            String data = readFromStorage(IDENTITES_JSON_FILENAME);
+            if (data == null || data.isEmpty()) data = "{}";
+            JSONObject dataJSONO = new JSONObject(data);
+            JSONObject addressJSONO = new JSONObject();
+            addressJSONO.put("identityKey", Base64.encodeBytes(identityKey.serialize()));
+            dataJSONO.put(address.toString(), addressJSONO);
+            writeToStorageFile(IDENTITES_JSON_FILENAME, dataJSONO.toString());
+            return true;
+        } catch (JSONException e) {
+            logSender.reportError(e);
         }
         return false;
     }
 
-    /*
-        This method returns force true as it didn't affect basic flow of Signal.
+    public void removeIdentity(SignalProtocolAddress address) {
+        String data = readFromStorage(IDENTITES_JSON_FILENAME);
+        if (data == null || data.isEmpty()) data = "{}";
+        try {
+            JSONObject dataJSONO = new JSONObject(data);
+            if (dataJSONO.has(address.toString())){
+                dataJSONO.remove(address.toString());
+                writeToStorageFile(IDENTITES_JSON_FILENAME, dataJSONO.toString());
+            }
+        } catch (JSONException e) {
+            logSender.reportError(e);
+        }
+    }
 
-        On 2018-10-10 discovered (on iOS) that this method checks PreKey identity while
-        renewing PreKey over existing addresses in device (stale device flow).
-
-        TODO: Get into more details at Signal structure level how this method works and prevent force true return.
-     */
     @Override
     public boolean isTrustedIdentity(SignalProtocolAddress address, IdentityKey identityKey, Direction direction) {
-        return true;
-//        String data = readFromStorage(IDENTITES_JSON_FILENAME);
-//        if (data == null || data.isEmpty()) return false;
-//        try {
-//            JSONObject dataJSONO = new JSONObject(data);
-//            if (dataJSONO.has(address.toString())){
-//                JSONObject addressJSONO = dataJSONO.getJSONObject(address.toString());
-//                byte[] identityKeyBytes = Base64.decode(addressJSONO.getString("identityKey"));
-//                return identityKey.serialize() == identityKeyBytes;
-//            }
-//        } catch (JSONException e) {
-//            logSender.reportError(e);
-//        } catch (IOException e) {
-//            logSender.reportError(e);
-//        }
-//        return false;
+        // direction used for additional checks if needed
+        String data = readFromStorage(IDENTITES_JSON_FILENAME);
+        if (data == null || data.isEmpty()) return true;  // trust on first use
+        try {
+            JSONObject dataJSONO = new JSONObject(data);
+            if (dataJSONO.has(address.toString())){
+                JSONObject addressJSONO = dataJSONO.getJSONObject(address.toString());
+                byte[] identityKeyBytes = Base64.decode(addressJSONO.getString("identityKey"));
+                ECPublicKey preKeyPublic = Curve.decodePoint(identityKeyBytes, 0);
+                return identityKey.getPublicKey().equals(preKeyPublic);
+            } else {
+                return true; // trust on first use
+            }
+        } catch (JSONException | IOException | InvalidKeyException e) {
+            logSender.reportError(e);
+            e.printStackTrace();
+        }
+        return false;
     }
 
     @Override

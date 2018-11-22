@@ -176,7 +176,13 @@ public class SignalClient {
                             JSONArray devicesJSONA = responseJSONO.getJSONArray("devices");
                             JSONObject firstDevice = devicesJSONA.getJSONObject(0);
 
-                            SessionBuilder sessionBuilder = new SessionBuilder(signalProtocolStore, new SignalProtocolAddress(username, 1));
+                            SignalProtocolAddress address = new SignalProtocolAddress(username, 1);
+
+                            // force delete: anytime when method is requested it will add new Identity Key and new Pre Key
+                            signalProtocolStore.removeIdentity(address);
+                            signalProtocolStore.deleteSession(address);
+
+                            SessionBuilder sessionBuilder = new SessionBuilder(signalProtocolStore, address);
 
                             JSONObject preKeyJSONO = firstDevice.getJSONObject("preKey");
                             String preKeyPublicString = preKeyJSONO.getString("publicKey");
@@ -373,9 +379,12 @@ public class SignalClient {
                                                 unreadJSONO.put(source, unreadSourceJSONO);
                                             }
 
-                                            if (username.equals(address.getName())
+                                            if (username != null
+                                                    && username.equals(address.getName())
                                                     && signalProtocolStore.containsSession(address)
                                                     && decodeAndSave) {
+
+                                                boolean duplicate = false;
 
                                                 if (messageString != null && !messageString.isEmpty()) {
                                                     byte[] decodeMessageString = Base64.decode(messageString);
@@ -384,8 +393,9 @@ public class SignalClient {
 
                                                     try {
                                                         messageBytes = sessionCipher.decrypt(new SignalMessage(decodeMessageString));
-                                                    } catch (InvalidMessageException | LegacyMessageException e) {
+                                                    } catch (InvalidMessageException | LegacyMessageException | DuplicateMessageException | UntrustedIdentityException e) {
                                                         Timber.e(e);
+                                                        if (!duplicate) duplicate = e.getClass() == DuplicateMessageException.class;
                                                     }
 
                                                     if (messageBytes == null) {
@@ -393,41 +403,47 @@ public class SignalClient {
                                                             messageBytes = sessionCipher.decrypt(new PreKeySignalMessage(decodeMessageString));
                                                         } catch (LegacyMessageException | InvalidMessageException
                                                                 | InvalidKeyIdException | InvalidKeyException
-                                                                | InvalidVersionException e) {
+                                                                | InvalidVersionException | DuplicateMessageException
+                                                                | UntrustedIdentityException e) {
                                                             Timber.e(e);
+                                                            if (!duplicate) duplicate = e.getClass() == DuplicateMessageException.class;
                                                         }
                                                     }
 
-                                                    JSONObject newMessageJSONO = toMessageJSONO(
-                                                            messageBytes,
-                                                            address.getName(),
-                                                            address.getDeviceId(),
-                                                            serverTimestamp);
+                                                    if (!duplicate) {
+                                                        JSONObject newMessageJSONO = toMessageJSONO(
+                                                                messageBytes,
+                                                                address.getName(),
+                                                                address.getDeviceId(),
+                                                                serverTimestamp);
 
-                                                    messageStorage.storeMessage(address.getName(), newMessageJSONO, tag);
-                                                    receivedMessagesJSONA.put(newMessageJSONO);
+                                                        messageStorage.storeMessage(address.getName(), newMessageJSONO, tag);
+                                                        receivedMessagesJSONA.put(newMessageJSONO);
+                                                    } else {
+                                                        Timber.e("DUPLICATE!");
+                                                    }
+
+                                                    signalServer.call(
+                                                            URL_MESSAGES + "/" + address.getName() + "/" + serverTimestamp,
+                                                            "DELETE",
+                                                            null,
+                                                            new Callback() {
+                                                                @Override
+                                                                public void onFailure(Call call, IOException e) {
+                                                                    logSender.reportError(e);
+                                                                }
+
+                                                                @Override
+                                                                public void onResponse(Call call, Response res) {
+                                                                    Timber.d(String.format("DELETE messages: %s, %s", res.code(), res.message()));
+                                                                }
+                                                            },
+                                                            true
+                                                    );
                                                 }
-
-                                                signalServer.call(
-                                                        URL_MESSAGES + "/" + address.getName() + "/" + serverTimestamp,
-                                                        "DELETE",
-                                                        null,
-                                                        new Callback() {
-                                                            @Override
-                                                            public void onFailure(Call call, IOException e) {
-                                                                logSender.reportError(e);
-                                                            }
-
-                                                            @Override
-                                                            public void onResponse(Call call, Response res) {
-                                                                Timber.d(String.format("DELETE messages: %s, %s", res.code(), res.message()));
-                                                            }
-                                                        },
-                                                        true
-                                                );
                                             }
                                         }
-                                    } catch (JSONException | IOException | DuplicateMessageException | NoSessionException | UntrustedIdentityException e) {
+                                    } catch (JSONException | IOException | NoSessionException e) {
                                         promise.reject(ERR_NATIVE_FAILED, e.getMessage());
                                         logSender.reportError(e);
                                         return;
@@ -475,7 +491,7 @@ public class SignalClient {
                                     JSONObject messageJSONO = messagesJSONA.getJSONObject(i);
                                     String source = messageJSONO.getString("source");
                                     String tag = messageJSONO.getString("tag");
-                                    if (messageTag.equals(tag)){
+                                    if (messageTag.equals(tag) || messageTag.equals("*")){
                                         long serverTimestamp = messageJSONO.optLong("timestamp", 0);
                                         if (source != null && source.equals(username)) {
                                             signalServer.call(

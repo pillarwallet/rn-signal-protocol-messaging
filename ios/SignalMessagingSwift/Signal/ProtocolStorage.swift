@@ -82,6 +82,12 @@ class ProtocolStorage: NSObject {
             print(error)
         }
     }
+    
+    func removeRemoteIdentity(for address: SignalAddress) {
+        var identities = self.get(for: .IDENTITES_JSON_FILENAME)
+        identities[address.name] = nil
+        self.save(array: identities, type: .IDENTITES_JSON_FILENAME)
+    }
 
     // MARK: - Helpers
 

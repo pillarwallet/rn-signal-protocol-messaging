@@ -216,6 +216,11 @@ class SignalClient: NSObject {
                     }
 
                     let address = SignalAddress(name: username, deviceId: 1)
+                    
+                    // force delete: anytime when method is requested it will add new Identity Key and new Pre Key
+                    ProtocolStorage().removeRemoteIdentity(for: address)
+                    store.sessionStore.deleteSession(for: address)
+                    
                     let sessionBuilder = SessionBuilder(for: address, in: store)
 
                     do {
@@ -394,7 +399,7 @@ class SignalClient: NSObject {
             
             messages.forEach { (messageDict) in
                 let message = MessageDTO(dictionary: messageDict)
-                if username == message.source, messageTag == message.tag {
+                if username == message.source && (messageTag == message.tag || messageTag == "*") {
                     self.signalServer.call(urlPath: "\(URL_MESSAGES)/\(username)/\(message.timestamp)", method: .DELETE, success: { (response) in }, failure: { (error) in })
                 }
             }

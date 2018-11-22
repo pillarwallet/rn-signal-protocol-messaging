@@ -40,22 +40,13 @@ class IdentityKeyStorePillar: IdentityKeyStore {
         return true
     }
     
-    /*
-         This method returns force true as it didn't affect basic flow of Signal.
-     
-         On 2018-10-10 discovered (on iOS) that this method checks PreKey identity while
-         renewing PreKey over existing addresses in device (stale device flow).
-     
-         TODO: Get into more details at Signal structure level how this method works and prevent force true return.
-     */
     func isTrusted(identity: Data, for address: SignalAddress) -> Bool? {
-        return true
-//        let identities = self.storage().get(for: .IDENTITES_JSON_FILENAME)
-//        guard let baseString = identities[address.name] as? String else {
-//            return true
-//        }
-//
-//        return baseString == identity.base64EncodedString()
+        let identities = self.storage().get(for: .IDENTITES_JSON_FILENAME)
+        guard let baseString = identities[address.name] as? String else {
+            return true // trust on first use
+        }
+        
+        return baseString == identity.base64EncodedString()
     }
     
     func destroy() {

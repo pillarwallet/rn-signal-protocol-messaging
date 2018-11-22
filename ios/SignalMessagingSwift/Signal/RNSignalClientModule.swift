@@ -89,7 +89,15 @@ class RNSignalClientModule: NSObject {
     }
 
     @objc func deleteContact(_ username: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        let result = self.signalClient.store()?.sessionStore.deleteSession(for: SignalAddress(name: username, deviceId: 1))
+        let address = SignalAddress(name: username, deviceId: 1);
+        _ = self.signalClient.store()?.sessionStore.deleteSession(for: address)
+        ProtocolStorage().removeRemoteIdentity(for: address)
+        MessagesStorage().deleteAllContactMessages(for: username)
+        self.signalClient.deleteContactPendingMessages(username: username, messageTag: "*", success: { (success) in
+            print("ok: pending messages deleted")
+        }) { (error, message) in
+            print("\(error): \(message)")
+        }
         resolve("ok")
     }
     
