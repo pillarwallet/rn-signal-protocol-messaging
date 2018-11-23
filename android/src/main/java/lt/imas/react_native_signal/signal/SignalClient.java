@@ -340,7 +340,7 @@ public class SignalClient {
                             messageJSONO
                                     .put("content", "\uD83D\uDD12 You cannot read this message.")
                                     .put("type", MessageType.WARNING)
-                                    .put("status", MessageStatus.UNDECRYPTABLE_MESSAGE);
+                                    .put("status", MessageStatus.UNDECRYPTABLE_MESSAGE)
                         } else {
                             messageJSONO
                                     .put("content", new String(messageBytes, "UTF-8"))
@@ -364,7 +364,7 @@ public class SignalClient {
                                         String source = messageJSONO.getString("source");
                                         SignalProtocolAddress address = new SignalProtocolAddress(source, 1);
                                         long serverTimestamp = messageJSONO.optLong("timestamp", 0);
-                                        String tag = messageJSONO.getString("tag");
+                                        String tag = messageJSONO.optString("tag");
                                         if (messageTag.equals(tag)){
                                             if (MESSAGE_TYPE_CIPHERTEXT.equals(messageJSONO.getString("type"))) {
                                                 JSONObject unreadSourceJSONO = unreadJSONO.optJSONObject(source);
@@ -395,18 +395,26 @@ public class SignalClient {
                                                         messageBytes = sessionCipher.decrypt(new SignalMessage(decodeMessageString));
                                                     } catch (InvalidMessageException | LegacyMessageException | DuplicateMessageException | UntrustedIdentityException e) {
                                                         Timber.e(e);
-                                                        if (!duplicate) duplicate = e.getClass() == DuplicateMessageException.class;
-                                                    }
-
-                                                    if (messageBytes == null) {
+                                                        duplicate = e.getClass() == DuplicateMessageException.class;
                                                         try {
                                                             messageBytes = sessionCipher.decrypt(new PreKeySignalMessage(decodeMessageString));
+                                                        } catch (UntrustedIdentityException e2){
+                                                            signalProtocolStore.removeIdentity(address);
+                                                            Timber.e(e2);
+                                                            try {
+                                                                messageBytes = sessionCipher.decrypt(new PreKeySignalMessage(decodeMessageString));
+                                                            } catch (DuplicateMessageException | LegacyMessageException
+                                                                    | InvalidKeyIdException | InvalidMessageException
+                                                                    | InvalidVersionException | InvalidKeyException
+                                                                    | UntrustedIdentityException e1) {
+                                                                Timber.e(e1);
+                                                                if (!duplicate) duplicate = e1.getClass() == DuplicateMessageException.class;
+                                                            }
                                                         } catch (LegacyMessageException | InvalidMessageException
                                                                 | InvalidKeyIdException | InvalidKeyException
-                                                                | InvalidVersionException | DuplicateMessageException
-                                                                | UntrustedIdentityException e) {
-                                                            Timber.e(e);
-                                                            if (!duplicate) duplicate = e.getClass() == DuplicateMessageException.class;
+                                                                | InvalidVersionException | DuplicateMessageException e3) {
+                                                            Timber.e(e3);
+                                                            if (!duplicate) duplicate = e3.getClass() == DuplicateMessageException.class;
                                                         }
                                                     }
 
@@ -419,8 +427,6 @@ public class SignalClient {
 
                                                         messageStorage.storeMessage(address.getName(), newMessageJSONO, tag);
                                                         receivedMessagesJSONA.put(newMessageJSONO);
-                                                    } else {
-                                                        Timber.e("DUPLICATE!");
                                                     }
 
                                                     signalServer.call(
