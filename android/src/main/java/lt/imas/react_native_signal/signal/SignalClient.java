@@ -340,7 +340,7 @@ public class SignalClient {
                             messageJSONO
                                     .put("content", "\uD83D\uDD12 You cannot read this message.")
                                     .put("type", MessageType.WARNING)
-                                    .put("status", MessageStatus.UNDECRYPTABLE_MESSAGE)
+                                    .put("status", MessageStatus.UNDECRYPTABLE_MESSAGE);
                         } else {
                             messageJSONO
                                     .put("content", new String(messageBytes, "UTF-8"))

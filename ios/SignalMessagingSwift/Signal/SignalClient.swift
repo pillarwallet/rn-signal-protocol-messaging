@@ -350,6 +350,17 @@ class SignalClient: NSObject {
                         do {
                             let cipher = CiphertextMessage(type: .preKey, message: data)
                             preKeyData = try sessionCipher.decrypt(message: cipher)
+                        } catch SignalError.untrustedIdentity {
+                            ProtocolStorage().removeRemoteIdentity(for: address)
+                            do {
+                                let cipher = CiphertextMessage(type: .preKey, message: data)
+                                preKeyData = try sessionCipher.decrypt(message: cipher)
+                            } catch SignalError.duplicateMessage {
+                                isDuplicateMessage = true;
+                            } catch {
+                                print(ERR_NATIVE_FAILED)
+                                print("Error info: \(error)")
+                            }
                         } catch SignalError.duplicateMessage {
                             isDuplicateMessage = true;
                         } catch {
