@@ -399,6 +399,7 @@ public class SignalClient {
                                                         try {
                                                             messageBytes = sessionCipher.decrypt(new PreKeySignalMessage(decodeMessageString));
                                                         } catch (UntrustedIdentityException e2){
+                                                            logSender.send("Captured UntrustedIdentityException, session resets");
                                                             signalProtocolStore.removeIdentity(address);
                                                             Timber.e(e2);
                                                             try {
