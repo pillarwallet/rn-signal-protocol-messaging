@@ -151,18 +151,31 @@ class RNSignalClientModule: NSObject {
         }
     }
     
-    @objc func sendMessageByContact(_ username: String, messageString: String, messageTag: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        self.signalClient.sendMessage(username: username, messageString: messageString, messageTag: messageTag, silent: false, success: { (success) in
-            resolve(success)
-        }) { (error, message) in
+    @objc func sendMessageByContact(_ messageTag: String, config: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        self.signalClient.sendMessage(
+            username: config.object(forKey: "username") as! String,
+            messageString: config.object(forKey: "message") as! String,
+            userId: config.object(forKey: "userId") as! String,
+            connectionAccessToken: config.object(forKey: "connectionAccessToken") as! String,
+            messageTag: messageTag,
+            silent: false,
+            success: { (success) in resolve(success) }
+        ) { (error, message) in
             reject(error, message, nil)
         }
     }
     
-    @objc func sendSilentMessageByContact(_ username: String, messageString: String, messageTag: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        self.signalClient.sendMessage(username: username, messageString: messageString, messageTag: messageTag, silent: true, success: { (success) in
-            resolve(success)
-        }) { (error, message) in
+    @objc func sendSilentMessageByContact(_ messageTag: String, config: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        
+        self.signalClient.sendMessage(
+            username: config.object(forKey: "username") as! String,
+            messageString: config.object(forKey: "message") as! String,
+            userId: config.object(forKey: "userId") as! String,
+            connectionAccessToken: config.object(forKey: "connectionAccessToken") as! String,
+            messageTag: messageTag,
+            silent: true,
+            success: { (success) in resolve(success) }
+        ) { (error, message) in
             reject(error, message, nil)
         }
     }

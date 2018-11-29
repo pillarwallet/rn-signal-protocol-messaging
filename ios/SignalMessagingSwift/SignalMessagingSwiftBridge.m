@@ -22,7 +22,7 @@ RCT_EXTERN_METHOD(receiveNewMessagesByContact:(NSString *)username messageTag:(N
 RCT_EXTERN_METHOD(getMessagesByContact:(NSString *)username messageTag:(NSString *)messageTag resolver: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject);
 RCT_EXTERN_METHOD(getExistingMessages:(NSString *)messageTag resolve:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject);
 RCT_EXTERN_METHOD(getUnreadMessagesCount:(NSString *)messageTag resolve:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject);
-RCT_EXTERN_METHOD(sendMessageByContact:(NSString *)username messageString:(NSString *)messageString messageTag:(NSString *)messageTag resolver: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject);
-RCT_EXTERN_METHOD(sendSilentMessageByContact:(NSString *)username messageString:(NSString *)messageString messageTag:(NSString *)messageTag resolver: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject);
+RCT_EXTERN_METHOD(sendMessageByContact:(NSString *)messageTag config:(NSDictionary *)config resolver: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject);
+RCT_EXTERN_METHOD(sendSilentMessageByContact:(NSString *)messageTag config:(NSDictionary *)config resolver: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject);
 
 @end
