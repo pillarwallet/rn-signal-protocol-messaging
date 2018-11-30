@@ -41,7 +41,6 @@ import java.util.List;
 import lt.imas.react_native_signal.signal.helpers.Base64;
 import lt.imas.react_native_signal.signal.helpers.LogSender;
 import lt.imas.react_native_signal.signal.helpers.MessageStatus;
-import lt.imas.react_native_signal.signal.helpers.MessageStorage;
 import lt.imas.react_native_signal.signal.helpers.MessageType;
 import lt.imas.react_native_signal.signal.helpers.ServerResponse;
 import okhttp3.Call;
@@ -538,101 +537,104 @@ public class SignalClient {
         });
     }
 
-    public void sendMessage(final String username, final String messageString, final String messageTag, final boolean silent, final Promise promise) {
-        signalServer.requestServerTimestamp(new Callback() {
+    public void retryMessageOnStaleDevice(final String username, final String messageString, final String messageTag, final boolean silent, final Promise promise) {
+        Runnable retrySendMessage = new Runnable() {
             @Override
-            public void onFailure(Call call, final IOException e) {
-                signalServer.mainThreadCallback(new Runnable() {
-                    @Override
-                    public void run() {
-                        logSender.reportError(e);
-                        promise.reject(ERR_NATIVE_FAILED, e.getMessage());
-                    }
-                });
+            public void run() {
+                sendMessage(username, messageString, messageTag, silent, promise);
             }
+        };
+        requestPreKeys(username, null, retrySendMessage);
+    }
 
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                final ServerResponse serverResponse = new ServerResponse(response);
-                signalServer.mainThreadCallback(new Runnable() {
-                    @Override
-                    public void run() {
-                        final int timestamp = serverResponse.getResponseJSONObject().optInt("timestamp", 0);
-                        SignalProtocolAddress address = new SignalProtocolAddress(username, 1);
-                        SessionCipher sessionCipher = new SessionCipher(signalProtocolStore, address);
-                        JSONObject requestJSONO = new JSONObject();
-                        try {
-                            CiphertextMessage message = sessionCipher.encrypt(messageString.getBytes("UTF-8"));
-                            JSONArray messagesJSONA = new JSONArray();
-                            JSONObject messageJSONO = new JSONObject();
-                            messageJSONO.put("type", 1);
-                            messageJSONO.put("tag", messageTag);
-                            messageJSONO.put("destination", username);
-                            messageJSONO.put("silent", silent);
-                            messageJSONO.put("content", ""); //Base64.encodeBytes(String.valueOf(signalProtocolStore.getLocalRegistrationId()).getBytes()));
-                            messageJSONO.put("timestamp", timestamp);
-                            messageJSONO.put("destinationDeviceId", 1);
-                            messageJSONO.put("destinationRegistrationId", sessionCipher.getRemoteRegistrationId());
-                            messageJSONO.put("body", Base64.encodeBytes(message.serialize()));
-                            messagesJSONA.put(messageJSONO);
-                            requestJSONO.put("messages", messagesJSONA);
-                            signalServer.call(URL_MESSAGES + "/" + username, "PUT", requestJSONO, new Callback() {
-                                @Override
-                                public void onFailure(Call call, final IOException e) {
-                                    signalServer.mainThreadCallback(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            promise.reject(ERR_SERVER_FAILED, e.getMessage());
-                                            Timber.d("Signal server failed: %s", e.getMessage());
-                                        }
-                                    });
-                                }
+    public void sendMessage(final String username, final String messageString, final String messageTag, final boolean silent, final Promise promise) {
+        final JSONObject messageJSONO = new JSONObject();
+        final JSONArray messagesJSONA = new JSONArray();
+        final JSONObject requestJSONO = new JSONObject();
+        try {
+            SignalProtocolAddress address = new SignalProtocolAddress(username, 1);
+            SessionCipher sessionCipher = new SessionCipher(signalProtocolStore, address);
+            CiphertextMessage message = null;
+            message = sessionCipher.encrypt(messageString.getBytes("UTF-8"));
+            messageJSONO.put("type", 1);
+            messageJSONO.put("tag", messageTag);
+            messageJSONO.put("destination", username);
+            messageJSONO.put("silent", silent);
+            messageJSONO.put("content", ""); //Base64.encodeBytes(String.valueOf(signalProtocolStore.getLocalRegistrationId()).getBytes()));
+            messageJSONO.put("destinationDeviceId", 1);
+            messageJSONO.put("destinationRegistrationId", sessionCipher.getRemoteRegistrationId());
+            messageJSONO.put("body", Base64.encodeBytes(message.serialize()));
+        } catch (JSONException | UnsupportedEncodingException | UntrustedIdentityException e) {
+            logSender.reportError(e);
+            promise.reject(ERR_NATIVE_FAILED, e.getMessage());
+        }
+        if (signalServer.webSocketClient.isRunning()){
 
-                                @Override
-                                public void onResponse(Call call, Response response) {
-                                    final ServerResponse serverResponse = new ServerResponse(response);
-                                    signalServer.mainThreadCallback(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            if (serverResponse.getResponseJSONObject() != null
-                                                    && serverResponse.getResponseJSONObject().optJSONArray("staleDevices") != null){
-                                                // staleDevices found, request new user PreKey and retry message send
-                                                Runnable retrySendMessage = new Runnable() {
-                                                    @Override
-                                                    public void run() {
-                                                        sendMessage(username, messageString, messageTag, silent, promise);
-                                                    }
-                                                };
-                                                requestPreKeys(username, null, retrySendMessage);
-                                            } else {
-                                                JSONObject messageJSONO = new JSONObject();
-                                                try {
-                                                    messageJSONO.put("content", messageString);
-                                                    messageJSONO.put("username", signalServer.username);
-                                                    messageJSONO.put("device", 1);
-                                                    messageJSONO.put("serverTimestamp", (long) (timestamp) * 1000);
-                                                    messageJSONO.put("savedTimestamp", timestamp);
-                                                    messageStorage.storeMessage(username, messageJSONO, messageTag);
-                                                } catch (JSONException e) {
-                                                    logSender.reportError(e);
-                                                }
-                                                promise.resolve("ok");
-                                            }
-                                        }
-                                    });
-                                }
-                            }, true, timestamp);
-                        } catch (JSONException
-                                | IllegalArgumentException
-                                | UntrustedIdentityException
-                                | UnsupportedEncodingException e) {
+        } else {
+            signalServer.requestServerTimestamp(new Callback() {
+                @Override
+                public void onFailure(Call call, final IOException e) {
+                    signalServer.mainThreadCallback(new Runnable() {
+                        @Override
+                        public void run() {
                             logSender.reportError(e);
                             promise.reject(ERR_NATIVE_FAILED, e.getMessage());
                         }
-                    }
-                });
-            };
-        });
+                    });
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    final ServerResponse serverResponse = new ServerResponse(response);
+                    signalServer.mainThreadCallback(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                final int timestamp = serverResponse.getResponseJSONObject().optInt("timestamp", 0);
+                                messageJSONO.put("timestamp", timestamp);
+                                messagesJSONA.put(messageJSONO);
+                                requestJSONO.put("messages", messagesJSONA);
+                                signalServer.call(URL_MESSAGES + "/" + username, "PUT", requestJSONO, new Callback() {
+                                    @Override
+                                    public void onFailure(Call call, final IOException e) {
+                                        signalServer.mainThreadCallback(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                promise.reject(ERR_SERVER_FAILED, e.getMessage());
+                                                Timber.d("Signal server failed: %s", e.getMessage());
+                                            }
+                                        });
+                                    }
+
+                                    @Override
+                                    public void onResponse(Call call, Response response) {
+                                        final ServerResponse serverResponse = new ServerResponse(response);
+                                        signalServer.mainThreadCallback(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                if (serverResponse.getResponseJSONObject() != null
+                                                        && serverResponse.getResponseJSONObject().optJSONArray("staleDevices") != null) {
+                                                    // staleDevices found, request new user PreKey and retry message send
+                                                    retryMessageOnStaleDevice(username, messageString, messageTag, silent, promise);
+                                                } else {
+                                                    messageStorage.storeMessage(messageString, signalServer.username, timestamp, messageTag);
+                                                    promise.resolve("ok");
+                                                }
+                                            }
+                                        });
+                                    }
+                                }, true, timestamp);
+                            } catch (JSONException | IllegalArgumentException e) {
+                                logSender.reportError(e);
+                                promise.reject(ERR_NATIVE_FAILED, e.getMessage());
+                            }
+                        }
+                    });
+                }
+
+                ;
+            });
+        }
     }
 
     public void setFcmId(String fcmId, final Promise promise) {

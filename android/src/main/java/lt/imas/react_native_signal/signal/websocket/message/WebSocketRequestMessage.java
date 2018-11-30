@@ -10,7 +10,7 @@ public interface WebSocketRequestMessage {
     public String             getVerb();
     public String             getPath();
     public Map<String,String> getHeaders();
-    public ByteString         getBody();
+    public byte[]             getBody();
     public long               getRequestId();
     public boolean            hasRequestId();
 

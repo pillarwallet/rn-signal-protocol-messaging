@@ -15,7 +15,7 @@ import java.util.Collections;
 import java.util.Comparator;
 
 import lt.imas.react_native_signal.signal.helpers.LogSender;
-import lt.imas.react_native_signal.signal.helpers.MessageStorage;
+import lt.imas.react_native_signal.signal.MessageStorage;
 import lt.imas.react_native_signal.signal.SignalClient;
 import lt.imas.react_native_signal.signal.SignalServer;
 import lt.imas.react_native_signal.signal.ProtocolStorage;

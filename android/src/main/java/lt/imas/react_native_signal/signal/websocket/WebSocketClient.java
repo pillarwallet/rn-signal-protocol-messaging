@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Random;
 
 import lt.imas.react_native_signal.signal.ProtocolStorage;
+import lt.imas.react_native_signal.signal.SignalClient;
 import lt.imas.react_native_signal.signal.websocket.message.ProtobufWebSocketMessageFactory;
 import lt.imas.react_native_signal.signal.websocket.message.WebSocketMessage;
 import lt.imas.react_native_signal.signal.websocket.message.WebSocketMessageFactory;
@@ -59,7 +60,7 @@ public class WebSocketClient extends okhttp3.WebSocketListener {
         try {
             WebSocketMessage message = factory.parseMessage(com.google.protobuf.ByteString.copyFrom(bytes.toByteArray()));
             if (message.getType() == WebSocketMessage.Type.REQUEST_MESSAGE) {
-                com.google.protobuf.ByteString body = message.getRequestMessage().getBody();
+                byte[] body = message.getRequestMessage().getBody();
                 if (message.getRequestMessage().getVerb().equals("PUT") && message.getRequestMessage().getPath().equals("/api/v1/message")){
 
                 }

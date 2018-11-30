@@ -1,4 +1,4 @@
-package lt.imas.react_native_signal.signal.helpers;
+package lt.imas.react_native_signal.signal;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -147,4 +147,19 @@ public class MessageStorage {
         }
         return chatsJSONA;
     }
+
+    public void storeMessage(String content, String username, int timestamp, String tag){
+        JSONObject messageJSONO = new JSONObject();
+        try {
+            messageJSONO.put("content", content);
+            messageJSONO.put("username", username);
+            messageJSONO.put("device", 1);
+            messageJSONO.put("serverTimestamp", (long) (timestamp) * 1000);
+            messageJSONO.put("savedTimestamp", timestamp);
+            storeMessage(username, messageJSONO, tag);
+        } catch (JSONException e) {
+            logSender.reportError(e);
+        }
+    }
+
 }

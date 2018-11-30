@@ -42,9 +42,9 @@ public class ProtobufWebSocketRequestMessage implements WebSocketRequestMessage 
     }
 
     @Override
-    public ByteString getBody() {
+    public byte[] getBody() {
         if (message.hasBody() && message.getBody() != null && !message.getBody().isEmpty()) {
-            return message.getBody();
+            return message.getBody().toByteArray();
         }
         return null;
     }
