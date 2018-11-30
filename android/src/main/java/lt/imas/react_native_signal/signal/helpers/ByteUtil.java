@@ -1,4 +1,4 @@
-package lt.imas.react_native_signal.helpers;
+package lt.imas.react_native_signal.signal.helpers;
 
 import org.spongycastle.util.encoders.Hex;
 

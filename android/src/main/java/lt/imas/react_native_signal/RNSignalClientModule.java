@@ -14,12 +14,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
-import lt.imas.react_native_signal.signal.LogSender;
-import lt.imas.react_native_signal.signal.MessageStorage;
+import lt.imas.react_native_signal.signal.helpers.LogSender;
+import lt.imas.react_native_signal.signal.helpers.MessageStorage;
 import lt.imas.react_native_signal.signal.SignalClient;
 import lt.imas.react_native_signal.signal.SignalServer;
 import lt.imas.react_native_signal.signal.ProtocolStorage;
-import static lt.imas.react_native_signal.signal.PromiseRejectCode.ERR_WRONG_CONFIG;
+import static lt.imas.react_native_signal.signal.helpers.PromiseRejectCode.ERR_WRONG_CONFIG;
 import timber.log.Timber;
 
 public class RNSignalClientModule extends ReactContextBaseJavaModule {

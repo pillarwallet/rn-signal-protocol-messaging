@@ -1,4 +1,4 @@
-package lt.imas.react_native_signal.signal;
+package lt.imas.react_native_signal.signal.helpers;
 
 public final class PromiseRejectCode {
     public static final String ERR_WRONG_CONFIG = "ERR_WRONG_CONFIG";

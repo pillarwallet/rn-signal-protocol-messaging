@@ -1,4 +1,4 @@
-package lt.imas.react_native_signal.signal;
+package lt.imas.react_native_signal.signal.helpers;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -10,6 +10,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+
+import lt.imas.react_native_signal.signal.helpers.LogSender;
 
 public class MessageStorage {
     private LogSender logSender = LogSender.getInstance();

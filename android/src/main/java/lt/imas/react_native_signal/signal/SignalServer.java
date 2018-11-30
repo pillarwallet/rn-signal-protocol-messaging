@@ -13,6 +13,8 @@ import org.web3j.crypto.Hash;
 
 import java.io.IOException;
 
+import lt.imas.react_native_signal.signal.helpers.LogSender;
+import lt.imas.react_native_signal.signal.helpers.ServerResponse;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Credentials;
@@ -190,9 +192,9 @@ public class SignalServer {
 //            throw new RuntimeException("Could not construct a recoverable key. This should never happen.");
 //        byte v = (byte) (recId + 27);
 
-        final String hexR = lt.imas.react_native_signal.helpers.ByteUtil.toZeroPaddedHexString(lt.imas.react_native_signal.helpers.ByteUtil.bigIntegerToBytes(signature.r), 64);
-        final String hexS = lt.imas.react_native_signal.helpers.ByteUtil.toZeroPaddedHexString(lt.imas.react_native_signal.helpers.ByteUtil.bigIntegerToBytes(signature.s), 64);
-        final String hexV = lt.imas.react_native_signal.helpers.ByteUtil.toHexString(new byte[]{27});
+        final String hexR = lt.imas.react_native_signal.signal.helpers.ByteUtil.toZeroPaddedHexString(lt.imas.react_native_signal.signal.helpers.ByteUtil.bigIntegerToBytes(signature.r), 64);
+        final String hexS = lt.imas.react_native_signal.signal.helpers.ByteUtil.toZeroPaddedHexString(lt.imas.react_native_signal.signal.helpers.ByteUtil.bigIntegerToBytes(signature.s), 64);
+        final String hexV = lt.imas.react_native_signal.signal.helpers.ByteUtil.toHexString(new byte[]{27});
 
 
         return "0x" + hexR + hexS + hexV;

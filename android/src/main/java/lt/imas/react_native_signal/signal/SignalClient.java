@@ -38,15 +38,20 @@ import java.io.UnsupportedEncodingException;
 import java.security.SecureRandom;
 import java.util.List;
 
-import lt.imas.react_native_signal.helpers.Base64;
+import lt.imas.react_native_signal.signal.helpers.Base64;
+import lt.imas.react_native_signal.signal.helpers.LogSender;
+import lt.imas.react_native_signal.signal.helpers.MessageStatus;
+import lt.imas.react_native_signal.signal.helpers.MessageStorage;
+import lt.imas.react_native_signal.signal.helpers.MessageType;
+import lt.imas.react_native_signal.signal.helpers.ServerResponse;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
 import timber.log.Timber;
 
-import static lt.imas.react_native_signal.signal.PromiseRejectCode.ERR_NATIVE_FAILED;
-import static lt.imas.react_native_signal.signal.PromiseRejectCode.ERR_SERVER_FAILED;
-import static lt.imas.react_native_signal.signal.PromiseRejectCode.ERR_ADD_CONTACT_FAILED;
+import static lt.imas.react_native_signal.signal.helpers.PromiseRejectCode.ERR_NATIVE_FAILED;
+import static lt.imas.react_native_signal.signal.helpers.PromiseRejectCode.ERR_SERVER_FAILED;
+import static lt.imas.react_native_signal.signal.helpers.PromiseRejectCode.ERR_ADD_CONTACT_FAILED;
 
 public class SignalClient {
     private LogSender logSender = LogSender.getInstance();

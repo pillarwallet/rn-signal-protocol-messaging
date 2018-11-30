@@ -24,7 +24,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import lt.imas.react_native_signal.helpers.Base64;
+import lt.imas.react_native_signal.signal.helpers.Base64;
+import lt.imas.react_native_signal.signal.helpers.LogSender;
 
 public class ProtocolStorage implements SignalProtocolStore {
     private LogSender logSender = LogSender.getInstance();

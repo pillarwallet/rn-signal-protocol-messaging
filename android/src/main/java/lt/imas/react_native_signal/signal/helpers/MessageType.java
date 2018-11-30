@@ -1,4 +1,4 @@
-package lt.imas.react_native_signal.signal;
+package lt.imas.react_native_signal.signal.helpers;
 
 import android.support.annotation.NonNull;
 

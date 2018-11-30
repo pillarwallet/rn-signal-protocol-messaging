@@ -1,10 +1,11 @@
-package lt.imas.react_native_signal.signal;
+package lt.imas.react_native_signal.signal.helpers;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
 
+import lt.imas.react_native_signal.signal.helpers.LogSender;
 import okhttp3.Response;
 
 public class ServerResponse {
