@@ -533,7 +533,7 @@ public class SignalClient {
         });
     }
 
-    public void sendMessage(final String username, final String messageString, final String messageTag, final boolean silent, final Promise promise) {
+    public void sendMessage(final String username, final String messageString, final String userId, final String connectionAccessToken, final String messageTag, final boolean silent, final Promise promise) {
         signalServer.requestServerTimestamp(new Callback() {
             @Override
             public void onFailure(Call call, final IOException e) {
@@ -561,6 +561,8 @@ public class SignalClient {
                             JSONArray messagesJSONA = new JSONArray();
                             JSONObject messageJSONO = new JSONObject();
                             messageJSONO.put("type", 1);
+                            messageJSONO.put("userId", userId);
+                            messageJSONO.put("connectionAccessToken", connectionAccessToken);
                             messageJSONO.put("tag", messageTag);
                             messageJSONO.put("destination", username);
                             messageJSONO.put("silent", silent);
@@ -595,7 +597,7 @@ public class SignalClient {
                                                 Runnable retrySendMessage = new Runnable() {
                                                     @Override
                                                     public void run() {
-                                                        sendMessage(username, messageString, messageTag, silent, promise);
+                                                        sendMessage(username, messageString, userId, connectionAccessToken, messageTag, silent, promise);
                                                     }
                                                 };
                                                 requestPreKeys(username, null, retrySendMessage);
