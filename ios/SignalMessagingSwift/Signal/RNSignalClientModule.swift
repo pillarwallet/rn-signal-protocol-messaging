@@ -156,7 +156,7 @@ class RNSignalClientModule: NSObject {
             username: config.object(forKey: "username") as! String,
             messageString: config.object(forKey: "message") as! String,
             userId: config.object(forKey: "userId") as! String,
-            connectionAccessToken: config.object(forKey: "userConnectionAccessToken") as! String,
+            userConnectionAccessToken: config.object(forKey: "userConnectionAccessToken") as! String,
             messageTag: messageTag,
             silent: false,
             success: { (success) in resolve(success) }
@@ -171,7 +171,7 @@ class RNSignalClientModule: NSObject {
             username: config.object(forKey: "username") as! String,
             messageString: config.object(forKey: "message") as! String,
             userId: config.object(forKey: "userId") as! String,
-            connectionAccessToken: config.object(forKey: "userConnectionAccessToken") as! String,
+            userConnectionAccessToken: config.object(forKey: "userConnectionAccessToken") as! String,
             messageTag: messageTag,
             silent: true,
             success: { (success) in resolve(success) }
