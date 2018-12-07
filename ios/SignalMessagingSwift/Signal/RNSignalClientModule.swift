@@ -66,11 +66,11 @@ class RNSignalClientModule: NSObject {
         resolve("ok")
     }
     
-    @objc func addContact(_ username: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc func addContact(_ username: String, userId: String, userConnectionAccessToken: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         let address = SignalAddress(name: username, deviceId: 1)
         if let result = self.signalClient.store()?.sessionStore.containsSession(for: address), result == false {
 //            _ = self.signalClient.store()?.sessionStore.deleteSession(for: address)
-            self.signalClient.requestPreKeys(username: username, success: { (success) in
+            self.signalClient.requestPreKeys(username: username, userId: userId, userConnectionAccessToken: userConnectionAccessToken, success: { (success) in
                 resolve(success)
             }) { (error, message) in
                 reject(error, message, nil)
@@ -156,7 +156,7 @@ class RNSignalClientModule: NSObject {
             username: config.object(forKey: "username") as! String,
             messageString: config.object(forKey: "message") as! String,
             userId: config.object(forKey: "userId") as! String,
-            connectionAccessToken: config.object(forKey: "userConnectionAccessToken") as! String,
+            userConnectionAccessToken: config.object(forKey: "userConnectionAccessToken") as! String,
             messageTag: messageTag,
             silent: false,
             success: { (success) in resolve(success) }
@@ -171,7 +171,7 @@ class RNSignalClientModule: NSObject {
             username: config.object(forKey: "username") as! String,
             messageString: config.object(forKey: "message") as! String,
             userId: config.object(forKey: "userId") as! String,
-            connectionAccessToken: config.object(forKey: "userConnectionAccessToken") as! String,
+            userConnectionAccessToken: config.object(forKey: "userConnectionAccessToken") as! String,
             messageTag: messageTag,
             silent: true,
             success: { (success) in resolve(success) }

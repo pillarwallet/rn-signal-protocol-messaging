@@ -186,8 +186,8 @@ class SignalClient: NSObject {
         }
     }
 
-    func requestPreKeys(username: String, success: @escaping (_ success: String) -> Void, failure: @escaping (_ error: String, _ message: String) -> Void) {
-        self.signalServer.call(urlPath: URL_KEYS + "/" + username + "/1", method: .GET, success: { (dict) in
+    func requestPreKeys(username: String, userId: String, userConnectionAccessToken: String, success: @escaping (_ success: String) -> Void, failure: @escaping (_ error: String, _ message: String) -> Void) {
+        self.signalServer.call(urlPath: URL_KEYS + "/" + username + "/1?userId=" + userId + "&userConnectionAccessToken=" + userConnectionAccessToken, method: .GET, success: { (dict) in
             if let devices = dict["devices"] as? [[String : Any]] {
                 if let identityKey: String = dict["identityKey"] as? String,
                     let identityData = Data(base64Encoded: identityKey),
@@ -422,7 +422,7 @@ class SignalClient: NSObject {
         }
     }
 
-    func sendMessage(username: String, messageString: String, userId: String, connectionAccessToken: String, messageTag: String, silent: Bool, success: @escaping (_ success: String) -> Void, failure: @escaping (_ error: String, _ message: String) -> Void) {
+    func sendMessage(username: String, messageString: String, userId: String, userConnectionAccessToken: String, messageTag: String, silent: Bool, success: @escaping (_ success: String) -> Void, failure: @escaping (_ error: String, _ message: String) -> Void) {
         guard let store = self.store() else {
             failure(ERR_NATIVE_FAILED, "Store is invalid")
             return
@@ -452,7 +452,7 @@ class SignalClient: NSObject {
         message["content"] = ""
         message["tag"] = messageTag
         message["userId"] = userId
-        message["connectionAccessToken"] = connectionAccessToken
+        message["userConnectionAccessToken"] = userConnectionAccessToken
         message["silent"] = silent
         message["timestamp"] = self.currentTimestamp()
         message["destinationDeviceId"] = 1
@@ -465,8 +465,8 @@ class SignalClient: NSObject {
         self.signalServer.call(urlPath: URL_MESSAGES + "/" + username, method: .PUT, parameters: params, success: { (dict) in
             if dict.count != 0 && dict["staleDevices"] != nil {
                 // staleDevices found, request new user PreKey and retry message send
-                self.requestPreKeys(username: username, success: { _ in
-                    self.sendMessage(username: username, messageString: messageString, userId: userId, connectionAccessToken: connectionAccessToken, messageTag: messageTag, silent: silent, success: { (message) in
+                self.requestPreKeys(username: username, userId: userId, userConnectionAccessToken: userConnectionAccessToken, success: { _ in
+                    self.sendMessage(username: username, messageString: messageString, userId: userId, userConnectionAccessToken: userConnectionAccessToken, messageTag: messageTag, silent: silent, success: { (message) in
                         success(message)
                     }, failure: { (code, error) in
                         failure(code, "\(error)")

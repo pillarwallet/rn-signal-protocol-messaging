@@ -148,8 +148,9 @@ public class SignalClient {
         }
     }
 
-    public void requestPreKeys(final String username, final Promise promise, final Runnable callback){
-        signalServer.call(URL_KEYS + "/" + username + "/1", "GET", new Callback() {
+    public void requestPreKeys(final String username, final String userId, final String userConnectionAccessToken, final Promise promise, final Runnable callback){
+        String url = String.format("%s/%s/1?userId=%s&userConnectionAccessToken=%s", URL_KEYS, username, userId, userConnectionAccessToken);
+        signalServer.call(url, "GET", new Callback() {
             @Override
             public void onFailure(Call call, final IOException e) {
                 signalServer.mainThreadCallback(new Runnable() {
@@ -222,8 +223,8 @@ public class SignalClient {
         });
     }
 
-    public void requestPreKeys(final String username, final Promise promise){
-        requestPreKeys(username, promise, null);
+    public void requestPreKeys(final String username, final String userId, final String userConnectionAccessToken, final Promise promise){
+        requestPreKeys(username, userId, userConnectionAccessToken, promise, null);
     }
 
     public void checkRemotePreKeys(final Promise promise){
@@ -533,7 +534,7 @@ public class SignalClient {
         });
     }
 
-    public void sendMessage(final String username, final String messageString, final String userId, final String connectionAccessToken, final String messageTag, final boolean silent, final Promise promise) {
+    public void sendMessage(final String username, final String messageString, final String userId, final String userConnectionAccessToken, final String messageTag, final boolean silent, final Promise promise) {
         signalServer.requestServerTimestamp(new Callback() {
             @Override
             public void onFailure(Call call, final IOException e) {
@@ -562,7 +563,7 @@ public class SignalClient {
                             JSONObject messageJSONO = new JSONObject();
                             messageJSONO.put("type", 1);
                             messageJSONO.put("userId", userId);
-                            messageJSONO.put("connectionAccessToken", connectionAccessToken);
+                            messageJSONO.put("userConnectionAccessToken", userConnectionAccessToken);
                             messageJSONO.put("tag", messageTag);
                             messageJSONO.put("destination", username);
                             messageJSONO.put("silent", silent);
@@ -597,10 +598,10 @@ public class SignalClient {
                                                 Runnable retrySendMessage = new Runnable() {
                                                     @Override
                                                     public void run() {
-                                                        sendMessage(username, messageString, userId, connectionAccessToken, messageTag, silent, promise);
+                                                        sendMessage(username, messageString, userId, userConnectionAccessToken, messageTag, silent, promise);
                                                     }
                                                 };
-                                                requestPreKeys(username, null, retrySendMessage);
+                                                requestPreKeys(username, userId, userConnectionAccessToken, null, retrySendMessage);
                                             } else {
                                                 JSONObject messageJSONO = new JSONObject();
                                                 try {
