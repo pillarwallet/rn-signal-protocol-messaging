@@ -174,7 +174,12 @@ public class SignalClient {
                         }
                         try {
                             JSONObject responseJSONO = serverResponse.getResponseJSONObject();
-                            JSONArray devicesJSONA = responseJSONO.getJSONArray("devices");
+                            JSONArray devicesJSONA = responseJSONO.optJSONArray("devices");
+                            if (devicesJSONA == null || devicesJSONA.length() == 0){
+                                // remote user haven't provided any keys to Signal back-end or didn't complete Signal server registration
+                                promise.reject(ERR_ADD_CONTACT_FAILED, String.format("User %s doesn't exist.", username));
+                                return;
+                            }
                             JSONObject firstDevice = devicesJSONA.getJSONObject(0);
 
                             SignalProtocolAddress address = new SignalProtocolAddress(username, 1);
