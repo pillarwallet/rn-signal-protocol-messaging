@@ -49,7 +49,7 @@ workflows:
           filters:
             branches:
               only:
-                  - feature/add-whitesource
+                  - master
       - build-publish:
           filters:
             branches:
