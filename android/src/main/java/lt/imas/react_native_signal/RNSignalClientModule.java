@@ -51,16 +51,16 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
         try {
             if (!config.hasKey("host")
                     || !config.hasKey("username")
-                    || !config.hasKey("password")) {
+                    || !config.hasKey("accessToken")) {
                 promise.reject(ERR_WRONG_CONFIG, "Wrong config provided.");
             } else {
                 logSender.init(config);
 
-                String password = config.getString("password");
+                String accessToken = config.getString("accessToken");
                 String host = config.getString("host");
                 username = config.getString("username");
 
-                SignalServer signalServer = new SignalServer(host, username, password);
+                SignalServer signalServer = new SignalServer(host, username, accessToken);
                 signalClient = new SignalClient(signalServer, protocolStorage, messageStorage);
 
                 if (protocolStorage.getLocalUsername().equals(username) && protocolStorage.isLocalRegistered()){
