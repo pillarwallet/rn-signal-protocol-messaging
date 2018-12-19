@@ -60,7 +60,7 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
                 String host = config.getString("host");
                 username = config.getString("username");
 
-                SignalServer signalServer = new SignalServer(host, username, accessToken);
+                SignalServer signalServer = new SignalServer(host, accessToken);
                 signalClient = new SignalClient(signalServer, protocolStorage, messageStorage);
 
                 if (protocolStorage.getLocalUsername().equals(username) && protocolStorage.isLocalRegistered()){

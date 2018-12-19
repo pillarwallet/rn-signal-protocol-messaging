@@ -29,13 +29,11 @@ public class SignalServer {
 
     public final String URL_ACCOUNTS_BOOTSTRAP = "/v1/accounts/bootstrap";
 
-    public String username;
     public String accessToken;
     public String host;
 
-    public SignalServer(String host, String username, String accessToken){
+    public SignalServer(String host, String accessToken){
         this.host = host;
-        this.username = username;
         this.accessToken = accessToken;
     }
 
