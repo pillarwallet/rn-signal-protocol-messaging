@@ -38,19 +38,15 @@ import java.io.UnsupportedEncodingException;
 import java.security.SecureRandom;
 import java.util.List;
 
-import lt.imas.react_native_signal.signal.helpers.Base64;
-import lt.imas.react_native_signal.signal.helpers.LogSender;
-import lt.imas.react_native_signal.signal.helpers.MessageStatus;
-import lt.imas.react_native_signal.signal.helpers.MessageType;
-import lt.imas.react_native_signal.signal.helpers.ServerResponse;
+import lt.imas.react_native_signal.helpers.Base64;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
 import timber.log.Timber;
 
-import static lt.imas.react_native_signal.signal.helpers.PromiseRejectCode.ERR_NATIVE_FAILED;
-import static lt.imas.react_native_signal.signal.helpers.PromiseRejectCode.ERR_SERVER_FAILED;
-import static lt.imas.react_native_signal.signal.helpers.PromiseRejectCode.ERR_ADD_CONTACT_FAILED;
+import static lt.imas.react_native_signal.signal.PromiseRejectCode.ERR_NATIVE_FAILED;
+import static lt.imas.react_native_signal.signal.PromiseRejectCode.ERR_SERVER_FAILED;
+import static lt.imas.react_native_signal.signal.PromiseRejectCode.ERR_ADD_CONTACT_FAILED;
 
 public class SignalClient {
     private LogSender logSender = LogSender.getInstance();
@@ -111,15 +107,15 @@ public class SignalClient {
             if (lastResortKey != null) {
                 JSONObject requestJSON = new JSONObject();
                 requestJSON.put("lastResortKey", new JSONObject()
-                    .put("keyId", lastResortKey.getId())
-                    .put("publicKey", Base64.encodeBytes(lastResortKey.getKeyPair().getPublicKey().serialize()))
+                        .put("keyId", lastResortKey.getId())
+                        .put("publicKey", Base64.encodeBytes(lastResortKey.getKeyPair().getPublicKey().serialize()))
                 );
                 requestJSON.put("preKeys", preKeysJSONA);
                 requestJSON.put("identityKey", Base64.encodeBytes(identityKeyPair.getPublicKey().serialize()));
                 requestJSON.put("signedPreKey", new JSONObject()
-                    .put("keyId", signedPreKey.getId())
-                    .put("publicKey", Base64.encodeBytes(signedPreKey.getKeyPair().getPublicKey().serialize()))
-                    .put("signature", Base64.encodeBytes(signedPreKey.getSignature()))
+                        .put("keyId", signedPreKey.getId())
+                        .put("publicKey", Base64.encodeBytes(signedPreKey.getKeyPair().getPublicKey().serialize()))
+                        .put("signature", Base64.encodeBytes(signedPreKey.getSignature()))
                 );
                 signalServer.call(URL_KEYS, "PUT", requestJSON, new Callback() {
                     @Override
@@ -152,8 +148,9 @@ public class SignalClient {
         }
     }
 
-    public void requestPreKeys(final String username, final Promise promise, final Runnable callback){
-        signalServer.call(URL_KEYS + "/" + username + "/1", "GET", new Callback() {
+    public void requestPreKeys(final String username, final String userId, final String userConnectionAccessToken, final Promise promise, final Runnable callback){
+        String url = String.format("%s/%s/1?userId=%s&userConnectionAccessToken=%s", URL_KEYS, username, userId, userConnectionAccessToken);
+        signalServer.call(url, "GET", new Callback() {
             @Override
             public void onFailure(Call call, final IOException e) {
                 signalServer.mainThreadCallback(new Runnable() {
@@ -177,7 +174,12 @@ public class SignalClient {
                         }
                         try {
                             JSONObject responseJSONO = serverResponse.getResponseJSONObject();
-                            JSONArray devicesJSONA = responseJSONO.getJSONArray("devices");
+                            JSONArray devicesJSONA = responseJSONO.optJSONArray("devices");
+                            if (devicesJSONA == null || devicesJSONA.length() == 0){
+                                // remote user haven't provided any keys to Signal back-end or didn't complete Signal server registration
+                                promise.reject(ERR_ADD_CONTACT_FAILED, String.format("User %s doesn't exist.", username));
+                                return;
+                            }
                             JSONObject firstDevice = devicesJSONA.getJSONObject(0);
 
                             SignalProtocolAddress address = new SignalProtocolAddress(username, 1);
@@ -201,14 +203,14 @@ public class SignalClient {
                             IdentityKey identityKey = new IdentityKey(Base64.decode(identityKeyString), 0);
 
                             PreKeyBundle preKeyBundle = new PreKeyBundle(
-                                firstDevice.getInt("registrationId"),
-                                firstDevice.getInt("deviceId"),
-                                preKeyJSONO.getInt("keyId"),
-                                preKeyPublic,
-                                signedPreKeyJSONO.getInt("keyId"),
-                                signedPreKeyPublic,
-                                Base64.decode(signedPreKeySignature),
-                                identityKey
+                                    firstDevice.getInt("registrationId"),
+                                    firstDevice.getInt("deviceId"),
+                                    preKeyJSONO.getInt("keyId"),
+                                    preKeyPublic,
+                                    signedPreKeyJSONO.getInt("keyId"),
+                                    signedPreKeyPublic,
+                                    Base64.decode(signedPreKeySignature),
+                                    identityKey
                             );
                             sessionBuilder.process(preKeyBundle);
                             if (promise != null) promise.resolve("ok");
@@ -226,8 +228,8 @@ public class SignalClient {
         });
     }
 
-    public void requestPreKeys(final String username, final Promise promise){
-        requestPreKeys(username, promise, null);
+    public void requestPreKeys(final String username, final String userId, final String userConnectionAccessToken, final Promise promise){
+        requestPreKeys(username, userId, userConnectionAccessToken, promise, null);
     }
 
     public void checkRemotePreKeys(final Promise promise){
@@ -537,104 +539,103 @@ public class SignalClient {
         });
     }
 
-    public void retryMessageOnStaleDevice(final String username, final String messageString, final String messageTag, final boolean silent, final Promise promise) {
-        Runnable retrySendMessage = new Runnable() {
+    public void sendMessage(final String username, final String messageString, final String userId, final String userConnectionAccessToken, final String messageTag, final boolean silent, final Promise promise) {
+        signalServer.requestServerTimestamp(new Callback() {
             @Override
-            public void run() {
-                sendMessage(username, messageString, messageTag, silent, promise);
+            public void onFailure(Call call, final IOException e) {
+                signalServer.mainThreadCallback(new Runnable() {
+                    @Override
+                    public void run() {
+                        logSender.reportError(e);
+                        promise.reject(ERR_NATIVE_FAILED, e.getMessage());
+                    }
+                });
             }
-        };
-        requestPreKeys(username, null, retrySendMessage);
-    }
 
-    public void sendMessage(final String username, final String messageString, final String messageTag, final boolean silent, final Promise promise) {
-        final JSONObject messageJSONO = new JSONObject();
-        final JSONArray messagesJSONA = new JSONArray();
-        final JSONObject requestJSONO = new JSONObject();
-        try {
-            SignalProtocolAddress address = new SignalProtocolAddress(username, 1);
-            SessionCipher sessionCipher = new SessionCipher(signalProtocolStore, address);
-            CiphertextMessage message = null;
-            message = sessionCipher.encrypt(messageString.getBytes("UTF-8"));
-            messageJSONO.put("type", 1);
-            messageJSONO.put("tag", messageTag);
-            messageJSONO.put("destination", username);
-            messageJSONO.put("silent", silent);
-            messageJSONO.put("content", ""); //Base64.encodeBytes(String.valueOf(signalProtocolStore.getLocalRegistrationId()).getBytes()));
-            messageJSONO.put("destinationDeviceId", 1);
-            messageJSONO.put("destinationRegistrationId", sessionCipher.getRemoteRegistrationId());
-            messageJSONO.put("body", Base64.encodeBytes(message.serialize()));
-        } catch (JSONException | UnsupportedEncodingException | UntrustedIdentityException e) {
-            logSender.reportError(e);
-            promise.reject(ERR_NATIVE_FAILED, e.getMessage());
-        }
-        if (signalServer.webSocketClient.isRunning()){
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                final ServerResponse serverResponse = new ServerResponse(response);
+                signalServer.mainThreadCallback(new Runnable() {
+                    @Override
+                    public void run() {
+                        final int timestamp = serverResponse.getResponseJSONObject().optInt("timestamp", 0);
+                        SignalProtocolAddress address = new SignalProtocolAddress(username, 1);
+                        SessionCipher sessionCipher = new SessionCipher(signalProtocolStore, address);
+                        JSONObject requestJSONO = new JSONObject();
+                        try {
+                            CiphertextMessage message = sessionCipher.encrypt(messageString.getBytes("UTF-8"));
+                            JSONArray messagesJSONA = new JSONArray();
+                            JSONObject messageJSONO = new JSONObject();
+                            messageJSONO.put("type", 1);
+                            messageJSONO.put("userId", userId);
+                            messageJSONO.put("userConnectionAccessToken", userConnectionAccessToken);
+                            messageJSONO.put("tag", messageTag);
+                            messageJSONO.put("destination", username);
+                            messageJSONO.put("silent", silent);
+                            messageJSONO.put("content", ""); //Base64.encodeBytes(String.valueOf(signalProtocolStore.getLocalRegistrationId()).getBytes()));
+                            messageJSONO.put("timestamp", timestamp);
+                            messageJSONO.put("destinationDeviceId", 1);
+                            messageJSONO.put("destinationRegistrationId", sessionCipher.getRemoteRegistrationId());
+                            messageJSONO.put("body", Base64.encodeBytes(message.serialize()));
+                            messagesJSONA.put(messageJSONO);
+                            requestJSONO.put("messages", messagesJSONA);
+                            signalServer.call(URL_MESSAGES + "/" + username, "PUT", requestJSONO, new Callback() {
+                                @Override
+                                public void onFailure(Call call, final IOException e) {
+                                    signalServer.mainThreadCallback(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            promise.reject(ERR_SERVER_FAILED, e.getMessage());
+                                            Timber.d("Signal server failed: %s", e.getMessage());
+                                        }
+                                    });
+                                }
 
-        } else {
-            signalServer.requestServerTimestamp(new Callback() {
-                @Override
-                public void onFailure(Call call, final IOException e) {
-                    signalServer.mainThreadCallback(new Runnable() {
-                        @Override
-                        public void run() {
+                                @Override
+                                public void onResponse(Call call, Response response) {
+                                    final ServerResponse serverResponse = new ServerResponse(response);
+                                    signalServer.mainThreadCallback(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            if (serverResponse.getResponseJSONObject() != null
+                                                    && serverResponse.getResponseJSONObject().optJSONArray("staleDevices") != null){
+                                                // staleDevices found, request new user PreKey and retry message send
+                                                Runnable retrySendMessage = new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        sendMessage(username, messageString, userId, userConnectionAccessToken, messageTag, silent, promise);
+                                                    }
+                                                };
+                                                requestPreKeys(username, userId, userConnectionAccessToken, null, retrySendMessage);
+                                            } else {
+                                                JSONObject messageJSONO = new JSONObject();
+                                                try {
+                                                    messageJSONO.put("content", messageString);
+                                                    messageJSONO.put("username", signalServer.username);
+                                                    messageJSONO.put("device", 1);
+                                                    messageJSONO.put("serverTimestamp", (long) (timestamp) * 1000);
+                                                    messageJSONO.put("savedTimestamp", timestamp);
+                                                    messageStorage.storeMessage(username, messageJSONO, messageTag);
+                                                } catch (JSONException e) {
+                                                    logSender.reportError(e);
+                                                }
+                                                promise.resolve("ok");
+                                            }
+                                        }
+                                    });
+                                }
+                            }, true, timestamp);
+                        } catch (JSONException
+                                | IllegalArgumentException
+                                | UntrustedIdentityException
+                                | UnsupportedEncodingException e) {
                             logSender.reportError(e);
                             promise.reject(ERR_NATIVE_FAILED, e.getMessage());
                         }
-                    });
-                }
-
-                @Override
-                public void onResponse(Call call, Response response) throws IOException {
-                    final ServerResponse serverResponse = new ServerResponse(response);
-                    signalServer.mainThreadCallback(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                final int timestamp = serverResponse.getResponseJSONObject().optInt("timestamp", 0);
-                                messageJSONO.put("timestamp", timestamp);
-                                messagesJSONA.put(messageJSONO);
-                                requestJSONO.put("messages", messagesJSONA);
-                                signalServer.call(URL_MESSAGES + "/" + username, "PUT", requestJSONO, new Callback() {
-                                    @Override
-                                    public void onFailure(Call call, final IOException e) {
-                                        signalServer.mainThreadCallback(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                promise.reject(ERR_SERVER_FAILED, e.getMessage());
-                                                Timber.d("Signal server failed: %s", e.getMessage());
-                                            }
-                                        });
-                                    }
-
-                                    @Override
-                                    public void onResponse(Call call, Response response) {
-                                        final ServerResponse serverResponse = new ServerResponse(response);
-                                        signalServer.mainThreadCallback(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                if (serverResponse.getResponseJSONObject() != null
-                                                        && serverResponse.getResponseJSONObject().optJSONArray("staleDevices") != null) {
-                                                    // staleDevices found, request new user PreKey and retry message send
-                                                    retryMessageOnStaleDevice(username, messageString, messageTag, silent, promise);
-                                                } else {
-                                                    messageStorage.storeMessage(messageString, signalServer.username, timestamp, messageTag);
-                                                    promise.resolve("ok");
-                                                }
-                                            }
-                                        });
-                                    }
-                                }, true, timestamp);
-                            } catch (JSONException | IllegalArgumentException e) {
-                                logSender.reportError(e);
-                                promise.reject(ERR_NATIVE_FAILED, e.getMessage());
-                            }
-                        }
-                    });
-                }
-
-                ;
-            });
-        }
+                    }
+                });
+            };
+        });
     }
 
     public void setFcmId(String fcmId, final Promise promise) {

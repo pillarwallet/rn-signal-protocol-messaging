@@ -15,7 +15,6 @@ import java.io.IOException;
 
 import lt.imas.react_native_signal.signal.helpers.LogSender;
 import lt.imas.react_native_signal.signal.helpers.ServerResponse;
-import lt.imas.react_native_signal.signal.websocket.WebSocketClient;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Credentials;
@@ -35,23 +34,11 @@ public class SignalServer {
     public String username;
     public String password;
     public String host;
-    public WebSocketClient webSocketClient;
 
     public SignalServer(String host, String username, String password){
         this.host = host;
         this.username = username;
         this.password = password;
-        String webSocketUrl = "ws://" + host.replace("https://", "").replace("http://", "");
-        this.webSocketClient = new WebSocketClient(String.format("%s/v1/websocket/?login=%s&password=%s", webSocketUrl, username, password));
-        Timber.d("%s:%s", username, password);
-    }
-
-    public void listenWebSockets(){
-        webSocketClient.start();
-    }
-
-    public void stopWebSockets(){
-        webSocketClient.stop();
     }
 
     public OkHttpClient call(String url, String method, JSONObject requestJSONO, Callback responseHandler) {
