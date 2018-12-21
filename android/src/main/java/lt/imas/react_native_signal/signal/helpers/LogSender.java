@@ -1,5 +1,8 @@
 package lt.imas.react_native_signal.signal.helpers;
 
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+
 import com.facebook.react.bridge.ReadableMap;
 
 import java.util.Arrays;
@@ -8,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 
 import io.sentry.Sentry;
+import io.sentry.SentryClient;
+import io.sentry.SentryClientFactory;
 import io.sentry.event.UserBuilder;
 import timber.log.Timber;
 
@@ -34,18 +39,21 @@ public class LogSender {
 
             if (dsn == null || !isSendingLogs) return;
 
-            Sentry
-                .init(dsn)
-                .addTag("artifact", "android-rn-signal-protocol-messaging");
-
-            initUserContext(config);
+            SentryClient sentryClient = Sentry.init(dsn);
+            sentryClient.addTag("artifact", "android-rn-signal-protocol-messaging");
+            addUserContext(sentryClient, config);
+            if (config.hasKey("host")) sentryClient.setServerName(config.getString("host"));
+            if (config.hasKey("buildNumber")) sentryClient.addTag("build_number", config.getString("buildNumber"));
+            if (config.hasKey("os")) sentryClient.addTag("os", config.getString("os"));
+            if (config.hasKey("device")) sentryClient.addTag("device", config.getString("device"));
+            Sentry.setStoredClient(sentryClient);
         } catch (Throwable e) {
             Timber.e(e);
             isSendingLogs = false;
         }
     }
 
-    private void initUserContext(ReadableMap config) {
+    private void addUserContext(SentryClient sentryClient, ReadableMap config) {
         if (config == null) return;
 
         try {
@@ -59,14 +67,12 @@ public class LogSender {
 
             UserBuilder userBuilder = new UserBuilder();
 
-            if (config.hasKey("userId"))
-                userBuilder.setId(config.getString("userId"));
-            if (config.hasKey("username"))
-                userBuilder.setUsername(config.getString("username"));
-            if (extra.size() > 0)
-                userBuilder.setData(extra);
+            if (config.hasKey("userId")) userBuilder.setId(config.getString("userId"));
+            if (config.hasKey("username")) userBuilder.setUsername(config.getString("username"));
+            if (extra.size() > 0) userBuilder.setData(extra);
 
-            Sentry.getContext().setUser(userBuilder.build());
+            sentryClient.getContext()
+                    .setUser(userBuilder.build());
         } catch (Throwable e) {
             Timber.e(e);
         }
