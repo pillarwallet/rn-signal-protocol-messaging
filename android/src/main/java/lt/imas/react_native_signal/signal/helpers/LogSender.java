@@ -3,6 +3,9 @@ package lt.imas.react_native_signal.signal.helpers;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+
 import com.facebook.react.bridge.ReadableMap;
 
 import java.util.Arrays;
@@ -71,8 +74,7 @@ public class LogSender {
             if (config.hasKey("username")) userBuilder.setUsername(config.getString("username"));
             if (extra.size() > 0) userBuilder.setData(extra);
 
-            sentryClient.getContext()
-                    .setUser(userBuilder.build());
+            sentryClient.getContext().setUser(userBuilder.build());
         } catch (Throwable e) {
             Timber.e(e);
         }

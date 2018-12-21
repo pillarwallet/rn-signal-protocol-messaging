@@ -58,7 +58,6 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
 
                 String password = config.getString("password");
                 String host = config.getString("host");
-
                 username = config.getString("username");
 
                 SignalServer signalServer = new SignalServer(host, username, password);
@@ -101,11 +100,11 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void addContact(String username, Promise promise){
+    public void addContact(String username, String userId, String userConnectionAccessToken, Promise promise){
         try {
             SignalProtocolAddress address = new SignalProtocolAddress(username, 1);
             if (!protocolStorage.containsSession(address)){
-                signalClient.requestPreKeys(username, promise);
+                signalClient.requestPreKeys(username, userId, userConnectionAccessToken, promise);
             } else {
                 promise.resolve("ok");
             }
@@ -194,9 +193,9 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void sendSilentMessageByContact(String username, String message, String tag, final Promise promise) {
+    public void sendSilentMessageByContact(String tag, ReadableMap params, final Promise promise) {
         try {
-            signalClient.sendMessage(username, message, tag, true, promise);
+            signalClient.sendMessage(params.getString("username"), params.getString("message"), params.getString("userId"), params.getString("userConnectionAccessToken"), tag, true, promise);
         } catch (Throwable e) {
             logSender.reportError(e);
             promise.reject(e);
@@ -204,9 +203,9 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void sendMessageByContact(String username, String message, String tag, final Promise promise) {
+    public void sendMessageByContact(String tag, ReadableMap params, final Promise promise) {
         try {
-            signalClient.sendMessage(username, message, tag, false, promise);
+            signalClient.sendMessage(params.getString("username"), params.getString("message"), params.getString("userId"), params.getString("userConnectionAccessToken"), tag, false, promise);
         } catch (Throwable e) {
             logSender.reportError(e);
             promise.reject(e);
