@@ -45,11 +45,7 @@ workflows:
   version: 2
   publish:
     jobs:
-      - whitesource:
-          filters:
-            branches:
-              only:
-                  - master
+      - whitesource
       - build-publish:
           filters:
             branches:
