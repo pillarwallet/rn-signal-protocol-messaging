@@ -259,7 +259,8 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
             promise.resolve(Base64.encodeBytes(messageBytes));
         } catch (IOException e) {
             e.printStackTrace();
+            logSender.reportError(e);
+            promise.reject(ERR_NATIVE_FAILED, e.getMessage());
         }
-        promise.resolve("ok");
     }
 }
