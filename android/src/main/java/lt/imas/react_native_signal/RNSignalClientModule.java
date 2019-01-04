@@ -7,18 +7,26 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.whispersystems.libsignal.SignalProtocolAddress;
+import org.whispersystems.libsignal.UntrustedIdentityException;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
+import lt.imas.react_native_signal.helpers.Base64;
+import lt.imas.react_native_signal.signal.LegacyMessage;
 import lt.imas.react_native_signal.signal.LogSender;
 import lt.imas.react_native_signal.signal.MessageStorage;
 import lt.imas.react_native_signal.signal.SignalClient;
 import lt.imas.react_native_signal.signal.SignalServer;
 import lt.imas.react_native_signal.signal.ProtocolStorage;
+
+import static lt.imas.react_native_signal.signal.PromiseRejectCode.ERR_NATIVE_FAILED;
 import static lt.imas.react_native_signal.signal.PromiseRejectCode.ERR_WRONG_CONFIG;
 import timber.log.Timber;
 
@@ -220,5 +228,38 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
             logSender.reportError(e);
             promise.reject(e);
         }
+    }
+
+    @ReactMethod
+    public void prepareApiBody(String tag, ReadableMap params, final Promise promise) {
+        try {
+            JSONObject request = signalClient.prepareApiBody(params.getString("username"), params.getString("message"), params.getString("userId"), params.getString("userConnectionAccessToken"), tag);
+            promise.resolve(request.toString());
+        } catch (JSONException
+                | IllegalArgumentException
+                | UntrustedIdentityException
+                | UnsupportedEncodingException e) {
+            logSender.reportError(e);
+            promise.reject(ERR_NATIVE_FAILED, e.getMessage());
+        }
+    }
+
+    @ReactMethod
+    public void saveSentMessage(String tag, ReadableMap params, final Promise promise) {
+        signalClient.saveSentMessage(tag, params.getString("username"), params.getString("message"), params.getInt("timestamp"), promise);
+        promise.resolve("ok");
+    }
+
+    @ReactMethod
+    public void decodeReceivedBody(String receivedBody, final Promise promise) {
+        try {
+            byte[] ciphertext = Base64.decode(receivedBody);
+            LegacyMessage legacyMessage = new LegacyMessage(ciphertext, protocolStorage.getSignalingKey());
+            byte[] messageBytes = legacyMessage.getBytes();
+            promise.resolve(Base64.encodeBytes(messageBytes));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        promise.resolve("ok");
     }
 }

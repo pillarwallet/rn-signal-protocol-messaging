@@ -149,6 +149,18 @@ public class ProtocolStorage implements SignalProtocolStore {
         }
     }
 
+    public void storeSignalingKey(String signalingKey){
+        String data = readFromStorage(LOCAL_JSON_FILENAME);
+        if (data == null || data.isEmpty()) data = "{}";
+        try {
+            JSONObject dataJSONO = new JSONObject(data);
+            dataJSONO.put("signalingKey", signalingKey);
+            writeToStorageFile(LOCAL_JSON_FILENAME, dataJSONO.toString());
+        } catch (JSONException e) {
+            logSender.reportError(e);
+        }
+    }
+
     @Override
     public IdentityKeyPair getIdentityKeyPair() {
         IdentityKeyPair identityKeyPair = null;
@@ -194,6 +206,20 @@ public class ProtocolStorage implements SignalProtocolStore {
             logSender.reportError(e);
         }
         return localUsername;
+    }
+
+    public String getSignalingKey() {
+        String signalingKey = null;
+        try {
+            String data = readFromStorage(LOCAL_JSON_FILENAME);
+            if (data == null || data.isEmpty()) return signalingKey;
+            JSONObject dataJSONO = new JSONObject(data);
+            if (!dataJSONO.has("signalingKey") || dataJSONO.isNull("signalingKey")) return signalingKey;
+            signalingKey = dataJSONO.getString("signalingKey");
+        } catch (JSONException e) {
+            logSender.reportError(e);
+        }
+        return signalingKey;
     }
 
     @Override
