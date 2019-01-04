@@ -233,7 +233,7 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void prepareApiBody(String tag, ReadableMap params, final Promise promise) {
         try {
-            JSONObject request = signalClient.prepareApiBody(params.getString("username"), params.getString("message"), params.getString("userId"), params.getString("userConnectionAccessToken"), tag);
+            JSONObject request = signalClient.prepareApiBody(params.getString("username"), params.getString("message"), params.getString("userId"), params.getString("userConnectionAccessToken"), tag, false);
             promise.resolve(request.toString());
         } catch (JSONException
                 | IllegalArgumentException
@@ -251,7 +251,7 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void decodeReceivedBody(String receivedBody, final Promise promise) {
+    public void decryptReceivedBody(String receivedBody, final Promise promise) {
         try {
             byte[] ciphertext = Base64.decode(receivedBody);
             LegacyMessage legacyMessage = new LegacyMessage(ciphertext, protocolStorage.getSignalingKey());

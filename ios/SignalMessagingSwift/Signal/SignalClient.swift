@@ -441,44 +441,14 @@ class SignalClient: NSObject {
     }
 
     func sendMessage(username: String, messageString: String, userId: String, userConnectionAccessToken: String, messageTag: String, silent: Bool, success: @escaping (_ success: String) -> Void, failure: @escaping (_ error: String, _ message: String) -> Void) {
-        guard let store = self.store() else {
-            failure(ERR_NATIVE_FAILED, "Store is invalid")
-            return
-        }
 
-        let address = SignalAddress(name: username, deviceId: 1)
-        let sessionCipher = SessionCipher(for: address, in: store)
-        var cipherTextMessage: CiphertextMessage
-        var remoteRegistrationId: UInt32
-
-        guard let data = messageString.data(using: .utf8) else {
-            failure(ERR_NATIVE_FAILED, "String encoding to bytes failed")
-            return
-        }
-
-        do {
-            cipherTextMessage = try sessionCipher.encrypt(data)
-            remoteRegistrationId = try sessionCipher.getRemoteRegistrationId();
-        } catch {
+        let params = self.prepareApiBody(username: username, messageString: messageString, userId: userId, userConnectionAccessToken: userConnectionAccessToken, messageTag: messageTag, silent: silent, failure: { (error) in
             failure(ERR_NATIVE_FAILED, "\(error)")
+        });
+        
+        if (params.isEmpty) {
             return
         }
-
-        var message = [String : Any]()
-        message["type"] = 1
-        message["destination"] = username
-        message["content"] = ""
-        message["tag"] = messageTag
-        message["userId"] = userId
-        message["userConnectionAccessToken"] = userConnectionAccessToken
-        message["silent"] = silent
-        message["timestamp"] = self.currentTimestamp()
-        message["destinationDeviceId"] = 1
-        message["destinationRegistrationId"] = remoteRegistrationId
-        message["body"] = cipherTextMessage.message.base64EncodedString()
-
-
-        let params = ["messages" : [message]]
 
         self.signalServer.call(urlPath: URL_MESSAGES + "/" + username, method: .PUT, parameters: params, success: { (dict) in
             if dict.count != 0 && dict["staleDevices"] != nil {
@@ -493,18 +463,61 @@ class SignalClient: NSObject {
                     failure(code, "\(error)")
                 })
             } else {
-                let parsedMessage = ParsedMessageDTO()
-                parsedMessage.username = self.username
-                parsedMessage.device = 1
-                parsedMessage.serverTimestamp = self.currentTimestamp() * 1000
-                parsedMessage.savedTimestamp = self.currentTimestamp()
-                parsedMessage.content = messageString
-                MessagesStorage().save(message: parsedMessage, for: username, tag: messageTag)
+                self.saveSentMessage(messageTag: messageTag, username: self.username, messageString: messageString, timestamp: self.currentTimestamp());
                 success("ok")
             }
         }) { (error) in
             failure(ERR_SERVER_FAILED, "\(error)")
         }
+    }
+    
+    func prepareApiBody(username: String, messageString: String, userId: String, userConnectionAccessToken: String, messageTag: String, silent: Bool, failure: @escaping (_ message: String) -> Void) -> [String : Any] {
+        guard let store = self.store() else {
+            failure("Store is invalid")
+            return [:]
+        }
+        
+        let address = SignalAddress(name: username, deviceId: 1)
+        let sessionCipher = SessionCipher(for: address, in: store)
+        var cipherTextMessage: CiphertextMessage
+        var remoteRegistrationId: UInt32
+        guard let data = messageString.data(using: .utf8) else {
+            failure("String encoding to bytes failed")
+            return [:]
+        }
+        do {
+            cipherTextMessage = try sessionCipher.encrypt(data)
+            remoteRegistrationId = try sessionCipher.getRemoteRegistrationId();
+        } catch {
+            failure("\(error)")
+            return [:]
+        }
+        var message = [String : Any]()
+        message["type"] = 1
+        message["destination"] = username
+        message["content"] = ""
+        message["tag"] = messageTag
+        if (userId != nil && !userId.isEmpty){
+            message["userId"] = userId
+        }
+        if (userConnectionAccessToken != nil && !userConnectionAccessToken.isEmpty){
+            message["userConnectionAccessToken"] = userConnectionAccessToken
+        }
+        message["silent"] = silent
+        message["destinationDeviceId"] = 1
+        message["destinationRegistrationId"] = remoteRegistrationId
+        message["body"] = cipherTextMessage.message.base64EncodedString()
+        return ["messages" : [message]]
+    }
+    
+    func saveSentMessage(messageTag: String, username: String, messageString: String, timestamp: Int64) -> Void {
+        let parsedMessage = ParsedMessageDTO()
+        parsedMessage.username = self.username
+        parsedMessage.device = 1
+        parsedMessage.serverTimestamp = timestamp * 1000
+        parsedMessage.savedTimestamp = timestamp
+        parsedMessage.content = messageString
+        MessagesStorage().save(message: parsedMessage, for: username, tag: messageTag)
     }
 
 }

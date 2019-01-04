@@ -267,6 +267,7 @@ public class SignalClient {
     public void registerAccount(String username, final Promise promise){
         if (signalProtocolStore.isLocalRegistered()){
             if (signalProtocolStore.getSignalingKey() == null || signalProtocolStore.getSignalingKey().isEmpty()){
+                // updating signalingKey on migration to websocket messaging
                 String signalingKey = generateSignalingKey();
                 signalProtocolStore.storeSignalingKey(signalingKey);
                 JSONObject requestJSON = new JSONObject();
@@ -598,7 +599,7 @@ public class SignalClient {
                     public void run() {
                         final int timestamp = serverResponse.getResponseJSONObject().optInt("timestamp", 0);
                         try {
-                            JSONObject requestJSONO = prepareApiBody(username, messageString, userId, userConnectionAccessToken, messageTag);
+                            JSONObject requestJSONO = prepareApiBody(username, messageString, userId, userConnectionAccessToken, messageTag, silent);
                             signalServer.call(URL_MESSAGES + "/" + username, "PUT", requestJSONO, new Callback() {
                                 @Override
                                 public void onFailure(Call call, final IOException e) {
@@ -678,7 +679,7 @@ public class SignalClient {
         }
     }
 
-    public JSONObject prepareApiBody(String username, String message, String userId, String userConnectionAccessToken, String tag)
+    public JSONObject prepareApiBody(String username, String message, String userId, String userConnectionAccessToken, String tag, boolean silent)
             throws JSONException, UnsupportedEncodingException, UntrustedIdentityException {
         SignalProtocolAddress address = new SignalProtocolAddress(username, 1);
         SessionCipher sessionCipher = new SessionCipher(signalProtocolStore, address);
@@ -691,6 +692,7 @@ public class SignalClient {
         if (userId != null) messageJSONO.put("userId", userId);
         if (userConnectionAccessToken != null) messageJSONO.put("userConnectionAccessToken", userConnectionAccessToken);
         messageJSONO.put("destination", username);
+        messageJSONO.put("silent", silent);
         messageJSONO.put("content", ""); //Base64.encodeBytes(String.valueOf(signalProtocolStore.getLocalRegistrationId()).getBytes()));
         messageJSONO.put("destinationDeviceId", 1);
         messageJSONO.put("destinationRegistrationId", sessionCipher.getRemoteRegistrationId());

@@ -179,4 +179,43 @@ class RNSignalClientModule: NSObject {
             reject(error, message, nil)
         }
     }
+    
+    @objc func prepareApiBody(_ messageTag: String, config: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        
+        let params = self.signalClient.prepareApiBody(
+            username: config.object(forKey: "username") as! String,
+            messageString: config.object(forKey: "message") as! String,
+            userId: config.object(forKey: "userId") as! String,
+            userConnectionAccessToken: config.object(forKey: "userConnectionAccessToken") as! String,
+            messageTag: messageTag,
+            silent: true,
+            failure: { (error) in
+                reject(ERR_NATIVE_FAILED, "\(error)", nil)
+            }
+        );
+        
+        if (params.isEmpty) {
+            return
+        }
+        
+        if let data = try? JSONSerialization.data(withJSONObject: params, options: .prettyPrinted) {
+            let jsonSring = String(data: data, encoding: .utf8)
+            resolve(jsonSring)
+        }
+
+    }
+    
+    @objc func saveSentMessage(_ messageTag: String, config: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        self.signalClient.saveSentMessage(
+            messageTag: messageTag,
+            username: config.object(forKey: "username") as! String,
+            messageString: config.object(forKey: "message") as! String,
+            timestamp: config.object(forKey: "timestamp") as! Int64
+        );
+        resolve("ok")
+    }
+    
+    @objc func decryptReceivedBody(_ receivedBody: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        // legacy message decrypt
+    }
 }
