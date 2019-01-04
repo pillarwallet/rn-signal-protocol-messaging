@@ -44,8 +44,26 @@ class SignalClient: NSObject {
             failure(ERR_NATIVE_FAILED, "Store is invalid")
             return
         }
+        
+        var parameters = [String : Any]()
 
         guard store.identityKeyStore.localRegistrationId() == nil else {
+            if (ProtocolStorage().getSignalingKey().isEmpty) {
+                // updating signalingKey on migration to websocket messaging
+                let signalingKey = self.generateRandomBytes()
+                ProtocolStorage().storeSignalingKey(signalingKey: signalingKey)
+                parameters["signalingKey"] = signalingKey
+                parameters["fetchesMessages"] = true
+                parameters["registrationId"] = ProtocolStorage().getLocalRegistrationId()
+                parameters["name"] = ProtocolStorage().getLocalUsername()
+                parameters["voice"] = false
+                self.signalServer.call(urlPath: URL_ACCOUNTS + "/attributes", method: .PUT, parameters: parameters, success: { (dict) in
+                    success("ok")
+                }) { (error) in
+                    failure(ERR_SERVER_FAILED, "\(error)")
+                }
+                return;
+            }
             success("ok")
             return
         }
@@ -60,12 +78,12 @@ class SignalClient: NSObject {
             failure(ERR_NATIVE_FAILED, "\(error)")
             return
         }
+        
+        let signalingKey = self.generateRandomBytes()
 
         ProtocolStorage().storeLocalRegistrationId(registrationId: registrationId)
         ProtocolStorage().storeLocalUsername(username: self.username)
-
-        var parameters = [String : Any]()
-        let signalingKey = self.generateRandomBytes()
+        ProtocolStorage().storeSignalingKey(signalingKey: signalingKey)
 
         parameters["signalingKey"] = signalingKey
         parameters["fetchesMessages"] = true
