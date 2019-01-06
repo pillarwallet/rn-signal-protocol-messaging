@@ -368,33 +368,6 @@ public class SignalClient {
             public void onResponse(Call call, Response response) {
                 final ServerResponse serverResponse = new ServerResponse(response);
                 signalServer.mainThreadCallback(new Runnable() {
-
-                    private JSONObject toMessageJSONO(byte[] messageBytes,
-                                                      String username,
-                                                      int device,
-                                                      long serverTimestamp)
-                            throws JSONException, UnsupportedEncodingException {
-                        int currentUnixTime = Integer.parseInt(String.valueOf(System.currentTimeMillis()/1000L));
-                        JSONObject messageJSONO = new JSONObject()
-                                .put("username", username)
-                                .put("device", device)
-                                .put("serverTimestamp", serverTimestamp)
-                                .put("savedTimestamp", currentUnixTime);
-
-                        if (messageBytes == null) {
-                            messageJSONO
-                                    .put("content", "\uD83D\uDD12 You cannot read this message.")
-                                    .put("type", MessageType.WARNING)
-                                    .put("status", MessageStatus.UNDECRYPTABLE_MESSAGE);
-                        } else {
-                            messageJSONO
-                                    .put("content", new String(messageBytes, "UTF-8"))
-                                    .put("type", MessageType.MESSAGE);
-                        }
-
-                        return messageJSONO;
-                    }
-
                     @Override
                     public void run() {
                         try {
@@ -407,7 +380,6 @@ public class SignalClient {
                                         JSONObject messageJSONO = messagesJSONA.getJSONObject(i);
                                         String messageString = messageJSONO.getString("message");
                                         String source = messageJSONO.getString("source");
-                                        SignalProtocolAddress address = new SignalProtocolAddress(source, 1);
                                         long serverTimestamp = messageJSONO.optLong("timestamp", 0);
                                         String tag = messageJSONO.optString("tag");
                                         if (messageTag.equals(tag)){
@@ -423,6 +395,8 @@ public class SignalClient {
                                                 unreadSourceJSONO.put("latest", latestTimestamp);
                                                 unreadJSONO.put(source, unreadSourceJSONO);
                                             }
+
+                                            SignalProtocolAddress address = new SignalProtocolAddress(source, 1);
 
                                             if (username != null
                                                     && username.equals(address.getName())
@@ -722,5 +696,92 @@ public class SignalClient {
         byte[] bytes = new byte[52];
         new SecureRandom().nextBytes(bytes);
         return Base64.encodeBytes(bytes);
+    }
+
+    private JSONObject toMessageJSONO(byte[] messageBytes,
+                                      String username,
+                                      int device,
+                                      long serverTimestamp)
+            throws JSONException, UnsupportedEncodingException {
+        int currentUnixTime = Integer.parseInt(String.valueOf(System.currentTimeMillis()/1000L));
+        JSONObject messageJSONO = new JSONObject()
+                .put("username", username)
+                .put("device", device)
+                .put("serverTimestamp", serverTimestamp)
+                .put("savedTimestamp", currentUnixTime);
+
+        if (messageBytes == null) {
+            messageJSONO
+                    .put("content", "\uD83D\uDD12 You cannot read this message.")
+                    .put("type", MessageType.WARNING)
+                    .put("status", MessageStatus.UNDECRYPTABLE_MESSAGE);
+        } else {
+            messageJSONO
+                    .put("content", new String(messageBytes, "UTF-8"))
+                    .put("type", MessageType.MESSAGE);
+        }
+
+        return messageJSONO;
+    }
+
+    public void decryptSignalMessage(String messageTag, String receivedMessage, Promise promise) {
+        try {
+            JSONObject messageJSONO = new JSONObject(receivedMessage);
+            String messageString = messageJSONO.getString("legacyMessage");
+            String source = messageJSONO.getString("source");
+            long serverTimestamp = messageJSONO.optLong("timestamp", 0);
+            SignalProtocolAddress address = new SignalProtocolAddress(source, 1);
+            if (signalProtocolStore.containsSession(address)) {
+                boolean duplicate = false;
+                if (messageString != null && !messageString.isEmpty()) {
+                    byte[] decodeMessageString = Base64.decode(messageString);
+                    byte[] messageBytes = null;
+                    SessionCipher sessionCipher = new SessionCipher(signalProtocolStore, address);
+
+                    try {
+                        messageBytes = sessionCipher.decrypt(new SignalMessage(decodeMessageString));
+                    } catch (InvalidMessageException | LegacyMessageException | DuplicateMessageException | UntrustedIdentityException e) {
+                        Timber.e(e);
+                        duplicate = e.getClass() == DuplicateMessageException.class;
+                        try {
+                            messageBytes = sessionCipher.decrypt(new PreKeySignalMessage(decodeMessageString));
+                        } catch (UntrustedIdentityException e2){
+                            logSender.send("Captured UntrustedIdentityException, session resets");
+                            signalProtocolStore.removeIdentity(address);
+                            Timber.e(e2);
+                            try {
+                                messageBytes = sessionCipher.decrypt(new PreKeySignalMessage(decodeMessageString));
+                            } catch (DuplicateMessageException | LegacyMessageException
+                                    | InvalidKeyIdException | InvalidMessageException
+                                    | InvalidVersionException | InvalidKeyException
+                                    | UntrustedIdentityException e1) {
+                                Timber.e(e1);
+                                if (!duplicate) duplicate = e1.getClass() == DuplicateMessageException.class;
+                            }
+                        } catch (LegacyMessageException | InvalidMessageException
+                                | InvalidKeyIdException | InvalidKeyException
+                                | InvalidVersionException | DuplicateMessageException e3) {
+                            Timber.e(e3);
+                            if (!duplicate) duplicate = e3.getClass() == DuplicateMessageException.class;
+                        }
+                    }
+
+                    if (!duplicate) {
+                        JSONObject newMessageJSONO = toMessageJSONO(
+                                messageBytes,
+                                address.getName(),
+                                address.getDeviceId(),
+                                serverTimestamp);
+
+                        messageStorage.storeMessage(address.getName(), newMessageJSONO, messageTag);
+                    }
+                }
+            }
+        } catch (JSONException | IOException | NoSessionException e) {
+            promise.reject(ERR_NATIVE_FAILED, e.getMessage());
+            logSender.reportError(e);
+            return;
+        }
+        promise.resolve("ok");
     }
 }
