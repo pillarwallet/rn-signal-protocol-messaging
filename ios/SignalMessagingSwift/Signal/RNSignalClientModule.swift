@@ -216,6 +216,16 @@ class RNSignalClientModule: NSObject {
     }
     
     @objc func decryptReceivedBody(_ receivedBody: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        // legacy message decrypt
+        let decryptedBytes = self.signalClient.decryptReceivedBody(body: receivedBody)
+        if (decryptedBytes.length == 0) {
+            reject(ERR_NATIVE_FAILED, "Failed to decrypt received body", nil)
+            return;
+        }
+        let encoded = decryptedBytes.base64EncodedString(options: NSData.Base64EncodingOptions.endLineWithLineFeed);
+        if (encoded.count == 0) {
+            reject(ERR_NATIVE_FAILED, "Failed to Base64 encode decrypted body", nil)
+            return;
+        }
+        resolve(encoded)
     }
 }

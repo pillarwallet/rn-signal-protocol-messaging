@@ -9,7 +9,6 @@
 import UIKit
 import SignalProtocol
 
-
 class SignalClient: NSObject {
 
     public let MESSAGE_TYPE_CIPHERTEXT: Int = 1;
@@ -518,6 +517,11 @@ class SignalClient: NSObject {
         parsedMessage.savedTimestamp = timestamp
         parsedMessage.content = messageString
         MessagesStorage().save(message: parsedMessage, for: username, tag: messageTag)
+    }
+    
+    func decryptReceivedBody(body: String) -> NSData {
+        let legacyMessage = LegacyMessage(body: body, signalingKey: ProtocolStorage().getSignalingKey())
+        return legacyMessage.serialized
     }
 
 }
