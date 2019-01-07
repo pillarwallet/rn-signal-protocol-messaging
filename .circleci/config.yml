@@ -51,3 +51,4 @@ workflows:
             branches:
               only:
                   - master
+                  - feature/signal-websockets-simplified
