@@ -614,5 +614,10 @@ class SignalClient: NSObject {
         }
         success("ok");
     }
-
+    
+    func deleteSignalMessage(username: String, timestamp: NSInteger, success: @escaping (_ message: String) -> Void) -> Void {
+        self.signalServer.call(urlPath: "\(URL_MESSAGES)/\(username)/\(timestamp)", method: .DELETE, success: { (response) in }, failure: { (error) in })
+        success("ok")
+    }
+    
 }

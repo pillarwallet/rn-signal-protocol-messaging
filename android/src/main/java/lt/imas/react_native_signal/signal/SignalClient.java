@@ -784,4 +784,24 @@ public class SignalClient {
         }
         promise.resolve("ok");
     }
+
+    public void deleteSignalMessage(String username, long timestamp){
+        signalServer.call(
+            URL_MESSAGES + "/" + username + "/" + timestamp,
+            "DELETE",
+            null,
+            new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    logSender.reportError(e);
+                }
+
+                @Override
+                public void onResponse(Call call, Response res) {
+                    //
+                }
+            },
+            true
+        );
+    }
 }

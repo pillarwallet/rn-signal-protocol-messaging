@@ -239,4 +239,13 @@ class RNSignalClientModule: NSObject {
             }
         )
     }
+    
+    
+    @objc func deleteSignalMessage(_ username: String, timestamp: NSInteger, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        self.signalClient.deleteSignalMessage(
+            username: username,
+            timestamp: timestamp,
+            success: { (message) in resolve(message) }
+        )
+    }
 }
