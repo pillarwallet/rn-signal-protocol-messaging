@@ -210,7 +210,7 @@ class RNSignalClientModule: NSObject {
             messageTag: messageTag,
             username: config.object(forKey: "username") as! String,
             messageString: config.object(forKey: "message") as! String,
-            timestamp: config.object(forKey: "timestamp") as! Int64
+            timestamp: Int64(config.object(forKey: "timestamp") as! NSNumber)
         );
         resolve("ok")
     }
@@ -227,5 +227,16 @@ class RNSignalClientModule: NSObject {
             return;
         }
         resolve(encoded)
+    }
+    
+    @objc func decryptSignalMessage(_ messageTag: String, receivedMessage: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        self.signalClient.decryptSignalMessage(
+            messageTag: messageTag,
+            receivedMessage: receivedMessage,
+            success: { (message) in resolve(message) },
+            failure: { (error) in
+                reject(ERR_NATIVE_FAILED, "\(error)", nil)
+            }
+        )
     }
 }

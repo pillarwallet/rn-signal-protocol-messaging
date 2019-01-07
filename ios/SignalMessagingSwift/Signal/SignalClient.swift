@@ -521,7 +521,98 @@ class SignalClient: NSObject {
     
     func decryptReceivedBody(body: String) -> NSData {
         let legacyMessage = LegacyMessage(body: body, signalingKey: ProtocolStorage().getSignalingKey())
-        return legacyMessage.serialized
+        return legacyMessage.serialized as NSData
+    }
+    
+    func decryptSignalMessage(messageTag: String, receivedMessage: String, success: @escaping (_ message: String) -> Void, failure: @escaping (_ message: String) -> Void) -> Void {
+        
+        guard let store = self.store() else {
+            failure("No store found")
+            return
+        }
+    
+        var parsedMessages = [ParsedMessageDTO]()
+        var isDuplicateMessage: Bool = false;
+        
+        let data = receivedMessage.data(using: .utf8)
+        let decoded : Any;
+        
+        do {
+            decoded = try JSONSerialization.jsonObject(with: data ?? Data(), options: .mutableContainers)
+        } catch {
+            failure("Decoding error: \(error.localizedDescription)");
+            return
+        }
+        guard let dictFromJSON = decoded as? [String: Any] else {
+            failure("Failed to parse JSON")
+            return
+        }
+        
+        let message = MessageDTO(dictionary: dictFromJSON)
+        let serverTimestamp = message.timestamp
+        let username = message.source
+        let address = SignalAddress(name: username, deviceId: 1)
+        
+        if store.sessionStore.containsSession(for: address),
+            let data = message.messageData() {
+            
+            let sessionCipher = SessionCipher(for: address, in: store)
+            
+            let parsedMessage = ParsedMessageDTO()
+            parsedMessage.username = message.source
+            parsedMessage.device = 1
+            parsedMessage.serverTimestamp = serverTimestamp
+            parsedMessage.savedTimestamp = self.currentTimestamp()
+            parsedMessage.type = "message"
+            
+            var preKeyData: Data? = nil
+            do {
+                let cipher = CiphertextMessage(type: .signal, message: data)
+                preKeyData = try sessionCipher.decrypt(message: cipher)
+            } catch SignalError.duplicateMessage {
+                isDuplicateMessage = true;
+            } catch {
+                do {
+                    let cipher = CiphertextMessage(type: .preKey, message: data)
+                    preKeyData = try sessionCipher.decrypt(message: cipher)
+                } catch SignalError.untrustedIdentity {
+                    ProtocolStorage().removeRemoteIdentity(for: address)
+                    do {
+                        let cipher = CiphertextMessage(type: .preKey, message: data)
+                        preKeyData = try sessionCipher.decrypt(message: cipher)
+                    } catch SignalError.duplicateMessage {
+                        isDuplicateMessage = true;
+                    } catch {
+                        print(ERR_NATIVE_FAILED)
+                        failure("Error info: \(error)")
+                        return
+                    }
+                } catch SignalError.duplicateMessage {
+                    isDuplicateMessage = true;
+                } catch {
+                    print(ERR_NATIVE_FAILED)
+                    failure("Error info: \(error)")
+                    return
+                }
+            }
+            
+            if !isDuplicateMessage {
+                if preKeyData != nil  {
+                    if let receivedMessage = String(data: preKeyData!, encoding: .utf8) {
+                        parsedMessage.content = receivedMessage
+                    }
+                    
+                } else {
+                    parsedMessage.content = "🔒 You cannot read this message."
+                    parsedMessage.type = "warning"
+                    parsedMessage.status = "UNDECRYPTABLE_MESSAGE"
+                }
+                
+                parsedMessages.append(parsedMessage)
+                MessagesStorage().save(message: parsedMessage, for: username, tag: messageTag)
+            }
+        }
+        success("ok");
     }
 
 }

@@ -27,5 +27,6 @@ RCT_EXTERN_METHOD(sendSilentMessageByContact:(NSString *)messageTag config:(NSDi
 RCT_EXTERN_METHOD(prepareApiBody:(NSString *)messageTag config:(NSDictionary *)config resolver: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject);
 RCT_EXTERN_METHOD(saveSentMessage:(NSString *)messageTag config:(NSDictionary *)config resolver: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject);
 RCT_EXTERN_METHOD(decryptReceivedBody:(NSString *)receivedBody resolver: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject);
+RCT_EXTERN_METHOD(decryptSignalMessage:(NSString *)messageTag receivedMessage:(NSString *)receivedMessage  resolver: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject);
 
 @end

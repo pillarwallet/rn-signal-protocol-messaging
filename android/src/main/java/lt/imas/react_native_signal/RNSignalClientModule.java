@@ -247,7 +247,6 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void saveSentMessage(String tag, ReadableMap params, final Promise promise) {
         signalClient.saveSentMessage(tag, params.getString("username"), params.getString("message"), params.getInt("timestamp"), promise);
-        promise.resolve("ok");
     }
 
     @ReactMethod
@@ -262,5 +261,10 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
             logSender.reportError(e);
             promise.reject(ERR_NATIVE_FAILED, e.getMessage());
         }
+    }
+
+    @ReactMethod
+    public void decryptSignalMessage(String tag, String receivedMessage, final Promise promise) {
+        signalClient.decryptSignalMessage(tag, receivedMessage, promise);
     }
 }
