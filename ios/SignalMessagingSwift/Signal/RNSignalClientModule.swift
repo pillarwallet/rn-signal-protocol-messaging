@@ -66,10 +66,9 @@ class RNSignalClientModule: NSObject {
         resolve("ok")
     }
     
-    @objc func addContact(_ username: String, userId: String, userConnectionAccessToken: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc func addContact(_ username: String, userId: String, userConnectionAccessToken: String, forceAdd: Bool, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         let address = SignalAddress(name: username, deviceId: 1)
-        if let result = self.signalClient.store()?.sessionStore.containsSession(for: address), result == false {
-//            _ = self.signalClient.store()?.sessionStore.deleteSession(for: address)
+        if let result = self.signalClient.store()?.sessionStore.containsSession(for: address), result == false || forceAdd {
             self.signalClient.requestPreKeys(username: username, userId: userId, userConnectionAccessToken: userConnectionAccessToken, success: { (success) in
                 resolve(success)
             }) { (error, message) in
