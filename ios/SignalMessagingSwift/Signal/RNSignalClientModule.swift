@@ -18,15 +18,13 @@ let ERR_ADD_CONTACT_FAILED = "ERR_ADD_CONTACT_FAILED"
 class RNSignalClientModule: NSObject {
     
     private var username: String
-    private var password: String
     private var host: String
     private var signalClient: SignalClient
     
     override init() {
         self.username = ""
-        self.password = ""
         self.host = ""
-        self.signalClient = SignalClient(username: "", password: "", host: "")
+        self.signalClient = SignalClient(username: "", accessToken: "", host: "")
         super.init()
     }
     
@@ -34,11 +32,10 @@ class RNSignalClientModule: NSObject {
         return true
     }
     
-    @objc func createClient(_ username: String, password: String, host: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc func createClient(_ username: String, accessToken: String, host: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         self.username = username
-        self.password = password
         self.host = host
-        self.signalClient = SignalClient(username: username, password: password, host: host)
+        self.signalClient = SignalClient(username: username, accessToken: accessToken, host: host)
         
         if ProtocolStorage().getLocalUsername() == username && ProtocolStorage().isLocalRegistered() {
             self.signalClient.checkPreKeys()

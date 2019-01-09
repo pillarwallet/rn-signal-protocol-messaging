@@ -28,13 +28,11 @@ enum RuntimeError: Error {
 
 class SignalServer: NSObject {
   
-  private let signalUsername: String
-  private let signalPassword: String
+  private let accessToken: String
   private let host: String
   
-  init(username: String, password: String, host: String) {
-    self.signalUsername = username
-    self.signalPassword = password
+  init(accessToken: String, host: String) {
+    self.accessToken = accessToken
     self.host = host
     super.init()
   }
@@ -59,10 +57,7 @@ class SignalServer: NSObject {
         request.setValue("application/json", forHTTPHeaderField: "Accept")
     }
     
-    let loginString = String(format: "%@:%@", self.signalUsername, self.signalPassword)
-    let loginData = loginString.data(using: String.Encoding.utf8)!
-    let base64LoginString = loginData.base64EncodedString()
-    request.setValue("Basic \(base64LoginString)", forHTTPHeaderField: "Authorization")
+    request.setValue("Bearer \(self.accessToken)", forHTTPHeaderField: "Authorization")
     
     if (parameters.keys.count > 0) {
       do {
