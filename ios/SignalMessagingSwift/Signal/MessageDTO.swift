@@ -19,6 +19,9 @@ class MessageDTO: NSObject {
     }
     
     func messageData() -> Data? {
+        if (!self.legacyMessage.isEmpty) {
+            return Data(base64Encoded: self.legacyMessage)
+        }
         return Data(base64Encoded: self.message)
     }
     
@@ -61,6 +64,12 @@ class MessageDTO: NSObject {
     var message: String {
         get {
             return self.dictionary["message"] as? String ?? ""
+        }
+    }
+    
+    var legacyMessage: String {
+        get {
+            return self.dictionary["legacyMessage"] as? String ?? ""
         }
     }
 

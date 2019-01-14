@@ -15,7 +15,7 @@ RCT_EXTERN_METHOD(createClient:(NSString *)username accessToken:(NSString *)acce
 RCT_EXTERN_METHOD(registerAccount: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject);
 RCT_EXTERN_METHOD(resetAccount: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject);
 RCT_EXTERN_METHOD(setFcmId:(NSString *)fcmId resolver: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject);
-RCT_EXTERN_METHOD(addContact:(NSString *)username userId:(NSString *)userId userConnectionAccessToken:(NSString *)userConnectionAccessToken resolver: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject);
+RCT_EXTERN_METHOD(addContact:(NSString *)username userId:(NSString *)userId userConnectionAccessToken:(NSString *)userConnectionAccessToken forceAdd:(BOOL *) forceAdd resolver: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject);
 RCT_EXTERN_METHOD(deleteContact:(NSString *)username resolver: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject);
 RCT_EXTERN_METHOD(deleteContactMessages:(NSString *)username messageTag:(NSString *)messageTag resolver: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject);
 RCT_EXTERN_METHOD(receiveNewMessagesByContact:(NSString *)username messageTag:(NSString *)messageTag resolver: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject);
@@ -24,5 +24,10 @@ RCT_EXTERN_METHOD(getExistingMessages:(NSString *)messageTag resolve:(RCTPromise
 RCT_EXTERN_METHOD(getUnreadMessagesCount:(NSString *)messageTag resolve:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject);
 RCT_EXTERN_METHOD(sendMessageByContact:(NSString *)messageTag config:(NSDictionary *)config resolver: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject);
 RCT_EXTERN_METHOD(sendSilentMessageByContact:(NSString *)messageTag config:(NSDictionary *)config resolver: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject);
+RCT_EXTERN_METHOD(prepareApiBody:(NSString *)messageTag config:(NSDictionary *)config resolver: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject);
+RCT_EXTERN_METHOD(saveSentMessage:(NSString *)messageTag config:(NSDictionary *)config resolver: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject);
+RCT_EXTERN_METHOD(decryptReceivedBody:(NSString *)receivedBody resolver: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject);
+RCT_EXTERN_METHOD(decryptSignalMessage:(NSString *)messageTag receivedMessage:(NSString *)receivedMessage resolver: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject);
+RCT_EXTERN_METHOD(deleteSignalMessage:(NSString *)username timestamp:(NSInteger *)timestamp resolver: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject);
 
 @end

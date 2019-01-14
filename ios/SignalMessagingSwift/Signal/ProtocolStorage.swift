@@ -62,6 +62,17 @@ class ProtocolStorage: NSObject {
         let localJson = self.get(for: .LOCAL_JSON_FILENAME)
         return localJson["username"] as? String ?? ""
     }
+    
+    func getSignalingKey() -> String {
+        let localJson = self.get(for: .LOCAL_JSON_FILENAME)
+        return localJson["signalingKey"] as? String ?? ""
+    }
+    
+    func storeSignalingKey(signalingKey: String) {
+        var localJson = self.get(for: .LOCAL_JSON_FILENAME)
+        localJson["signalingKey"] = signalingKey
+        self.save(array: localJson, type: .LOCAL_JSON_FILENAME)
+    }
 
     func isLocalRegistered() -> Bool {
         let localJson = self.get(for: .LOCAL_JSON_FILENAME)

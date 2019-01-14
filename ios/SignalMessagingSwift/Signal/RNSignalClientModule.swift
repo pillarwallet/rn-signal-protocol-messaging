@@ -63,10 +63,9 @@ class RNSignalClientModule: NSObject {
         resolve("ok")
     }
     
-    @objc func addContact(_ username: String, userId: String, userConnectionAccessToken: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    @objc func addContact(_ username: String, userId: String, userConnectionAccessToken: String, forceAdd: Bool, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         let address = SignalAddress(name: username, deviceId: 1)
-        if let result = self.signalClient.store()?.sessionStore.containsSession(for: address), result == false {
-//            _ = self.signalClient.store()?.sessionStore.deleteSession(for: address)
+        if let result = self.signalClient.store()?.sessionStore.containsSession(for: address), result == false || forceAdd {
             self.signalClient.requestPreKeys(username: username, userId: userId, userConnectionAccessToken: userConnectionAccessToken, success: { (success) in
                 resolve(success)
             }) { (error, message) in
@@ -175,5 +174,74 @@ class RNSignalClientModule: NSObject {
         ) { (error, message) in
             reject(error, message, nil)
         }
+    }
+    
+    @objc func prepareApiBody(_ messageTag: String, config: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        
+        let params = self.signalClient.prepareApiBody(
+            username: config.object(forKey: "username") as! String,
+            messageString: config.object(forKey: "message") as! String,
+            userId: config.object(forKey: "userId") as! String,
+            userConnectionAccessToken: config.object(forKey: "userConnectionAccessToken") as! String,
+            messageTag: messageTag,
+            silent: true,
+            failure: { (error) in
+                reject(ERR_NATIVE_FAILED, "\(error)", nil)
+            }
+        );
+        
+        if (params.isEmpty) {
+            return
+        }
+        
+        if let data = try? JSONSerialization.data(withJSONObject: params, options: .prettyPrinted) {
+            let jsonSring = String(data: data, encoding: .utf8)
+            resolve(jsonSring)
+        }
+
+    }
+    
+    @objc func saveSentMessage(_ messageTag: String, config: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        self.signalClient.saveSentMessage(
+            messageTag: messageTag,
+            username: config.object(forKey: "username") as! String,
+            messageString: config.object(forKey: "message") as! String,
+            timestamp: Int64(config.object(forKey: "timestamp") as! NSNumber)
+        );
+        resolve("ok")
+    }
+    
+    @objc func decryptReceivedBody(_ receivedBody: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        let decryptedBytes = self.signalClient.decryptReceivedBody(body: receivedBody)
+        if (decryptedBytes.length == 0) {
+            reject(ERR_NATIVE_FAILED, "Failed to decrypt received body", nil)
+            return;
+        }
+        let encoded = decryptedBytes.base64EncodedString(options: NSData.Base64EncodingOptions.endLineWithLineFeed);
+        if (encoded.count == 0) {
+            reject(ERR_NATIVE_FAILED, "Failed to Base64 encode decrypted body", nil)
+            return;
+        }
+        resolve(encoded)
+    }
+    
+    @objc func decryptSignalMessage(_ messageTag: String, receivedMessage: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        self.signalClient.decryptSignalMessage(
+            messageTag: messageTag,
+            receivedMessage: receivedMessage,
+            success: { (message) in resolve(message) },
+            failure: { (error) in
+                reject(ERR_NATIVE_FAILED, "\(error)", nil)
+            }
+        )
+    }
+    
+    
+    @objc func deleteSignalMessage(_ username: String, timestamp: NSInteger, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        self.signalClient.deleteSignalMessage(
+            username: username,
+            timestamp: timestamp,
+            success: { (message) in resolve(message) }
+        )
     }
 }
