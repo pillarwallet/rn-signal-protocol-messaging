@@ -15,14 +15,12 @@ class SignalClient: NSObject {
 
     private let signalServer: SignalServer
     private let username: String
-    private let password: String
     private let host: String
 
-    init(username: String, password: String, host: String) {
-        self.username = username
-        self.password = password
+    init(username: String, accessToken: String, host: String) {
+        self.username = username;
         self.host = host
-        self.signalServer = SignalServer(username: username, password: password, host: host)
+        self.signalServer = SignalServer(accessToken: accessToken, host: host)
 
         super.init()
     }

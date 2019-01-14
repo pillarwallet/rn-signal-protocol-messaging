@@ -29,14 +29,12 @@ public class SignalServer {
 
     public final String URL_ACCOUNTS_BOOTSTRAP = "/v1/accounts/bootstrap";
 
-    public String username;
-    public String password;
+    public String accessToken;
     public String host;
 
-    public SignalServer(String host, String username, String password){
+    public SignalServer(String host, String accessToken){
         this.host = host;
-        this.username = username;
-        this.password = password;
+        this.accessToken = accessToken;
     }
 
     public OkHttpClient call(String url, String method, JSONObject requestJSONO, Callback responseHandler) {
@@ -71,10 +69,8 @@ public class SignalServer {
 
         RequestBody requestBody = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), requestJSONO.toString());
 
-        String credential = Credentials.basic(username, password);
-
         requestBuilder.addHeader("Token-Timestamp", String.valueOf(timestamp));
-        requestBuilder.addHeader("Authorization", credential).build();
+        requestBuilder.addHeader("Authorization", String.format("Bearer %s", accessToken)).build();
         requestBuilder.addHeader("Token-ID-Address", "address");
         requestBuilder.addHeader("Token-Signature", "signature");
         requestBuilder.addHeader("Content-Type", "application/json");
