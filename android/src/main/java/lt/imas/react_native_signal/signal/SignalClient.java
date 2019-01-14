@@ -680,7 +680,7 @@ public class SignalClient {
         JSONObject messageJSONO = new JSONObject();
         try {
             messageJSONO.put("content", message);
-            messageJSONO.put("username", signalServer.username);
+            messageJSONO.put("username", signalProtocolStore.getLocalUsername());
             messageJSONO.put("device", 1);
             messageJSONO.put("serverTimestamp", (long) (timestamp) * 1000);
             messageJSONO.put("savedTimestamp", timestamp);
