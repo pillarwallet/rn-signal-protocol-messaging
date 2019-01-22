@@ -12,15 +12,19 @@ import org.json.JSONObject;
 import org.web3j.crypto.Hash;
 
 import java.io.IOException;
+import java.util.Collections;
 
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.CipherSuite;
+import okhttp3.ConnectionSpec;
 import okhttp3.Credentials;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import okhttp3.TlsVersion;
 import okio.Buffer;
 import timber.log.Timber;
 
@@ -60,11 +64,6 @@ public class SignalServer {
         Request.Builder requestBuilder = new Request.Builder()
                 .url(getFullApiUrl(url));
 
-//        apiClient.setSSLSocketFactory(MySSLSocketFactory.getFixedSocketFactory());
-//        apiClient.setConnectTimeout(5000);
-//        apiClient.setMaxRetriesAndTimeout(5, 5000);
-//        apiClient.setEnableRedirects(true);
-
         if (requestJSONO == null) requestJSONO = new JSONObject();
 
         RequestBody requestBody = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), requestJSONO.toString());
@@ -84,6 +83,20 @@ public class SignalServer {
                 requestBuilder.put(requestBody);
                 break;
         }
+
+        ConnectionSpec spec = new ConnectionSpec.Builder(ConnectionSpec.COMPATIBLE_TLS)
+                .tlsVersions(TlsVersion.TLS_1_2, TlsVersion.TLS_1_1, TlsVersion.TLS_1_0)
+                .cipherSuites(
+                        CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+                        CipherSuite.TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,
+                        CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,
+                        CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
+                )
+                .build();
+
+        clientBuilder.connectionSpecs(Collections.singletonList(spec));
+        clientBuilder.followRedirects(true);
+        clientBuilder.followSslRedirects(true);
 
         OkHttpClient client = clientBuilder.build();
         Request request = requestBuilder.build();
