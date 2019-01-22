@@ -248,11 +248,12 @@ public class SignalClient {
             @Override
             public void onResponse(Call call, Response response) {
                 final ServerResponse serverResponse = new ServerResponse(response);
+                final int responseCode = response.code();
                 signalServer.mainThreadCallback(new Runnable() {
                     @Override
                     public void run() {
                         int preKeyCount = serverResponse.getResponseJSONObject().optInt("count", 0);
-                        if (preKeyCount <= 10) {
+                        if (preKeyCount <= 10 && responseCode == 200) {
                             int count = 100 - preKeyCount;
                             registerPreKeys(promise, signalProtocolStore.getLastPreKeyIndex(), count);
                         } else {
