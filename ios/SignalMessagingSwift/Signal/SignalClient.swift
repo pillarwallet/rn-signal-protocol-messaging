@@ -202,7 +202,11 @@ class SignalClient: NSObject {
     }
 
     func requestPreKeys(username: String, userId: String, userConnectionAccessToken: String, success: @escaping (_ success: String) -> Void, failure: @escaping (_ error: String, _ message: String) -> Void) {
-        self.signalServer.call(urlPath: URL_KEYS + "/" + username + "/1?userId=" + userId + "&userConnectionAccessToken=" + userConnectionAccessToken, method: .GET, success: { (dict) in
+        var callUrl = URL_KEYS + "/" + username + "/1";
+        if (userId != nil && userConnectionAccessToken != nil && !userId.isEmpty && !userConnectionAccessToken.isEmpty) {
+            callUrl.append("?userId=" + userId + "&userConnectionAccessToken=" + userConnectionAccessToken);
+        }
+        self.signalServer.call(urlPath: callUrl, method: .GET, success: { (dict) in
             if let devices = dict["devices"] as? [[String : Any]] {
                 if let identityKey: String = dict["identityKey"] as? String,
                     let identityData = Data(base64Encoded: identityKey),

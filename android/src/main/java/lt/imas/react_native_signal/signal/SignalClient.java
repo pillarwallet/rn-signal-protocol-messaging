@@ -149,7 +149,13 @@ public class SignalClient {
     }
 
     public void requestPreKeys(final String username, final String userId, final String userConnectionAccessToken, final Promise promise, final Runnable callback){
-        String url = String.format("%s/%s/1?userId=%s&userConnectionAccessToken=%s", URL_KEYS, username, userId, userConnectionAccessToken);
+        String url = String.format("%s/%s/1", URL_KEYS, username);
+        if (userId != null
+            && userConnectionAccessToken != null
+            && !userId.isEmpty()
+            && !userConnectionAccessToken.isEmpty()) {
+            url += String.format("?userId=%s&userConnectionAccessToken=%s", userId, userConnectionAccessToken);
+        }
         signalServer.call(url, "GET", new Callback() {
             @Override
             public void onFailure(Call call, final IOException e) {
@@ -664,8 +670,8 @@ public class SignalClient {
         JSONObject messageJSONO = new JSONObject();
         messageJSONO.put("type", 1);
         messageJSONO.put("tag", tag);
-        if (userId != null) messageJSONO.put("userId", userId);
-        if (userConnectionAccessToken != null) messageJSONO.put("userConnectionAccessToken", userConnectionAccessToken);
+        if (userId != null && !userId.isEmpty()) messageJSONO.put("userId", userId);
+        if (userConnectionAccessToken != null && !userConnectionAccessToken.isEmpty()) messageJSONO.put("userConnectionAccessToken", userConnectionAccessToken);
         messageJSONO.put("destination", username);
         messageJSONO.put("silent", silent);
         messageJSONO.put("content", ""); //Base64.encodeBytes(String.valueOf(signalProtocolStore.getLocalRegistrationId()).getBytes()));
