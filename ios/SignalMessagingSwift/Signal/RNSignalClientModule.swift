@@ -148,11 +148,13 @@ class RNSignalClientModule: NSObject {
     }
     
     @objc func sendMessageByContact(_ messageTag: String, config: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        let userId = config.object(forKey: "userId") as? String;
+        let userConnectionAccessToken = config.object(forKey: "userConnectionAccessToken") as? String;
         self.signalClient.sendMessage(
             username: config.object(forKey: "username") as! String,
             messageString: config.object(forKey: "message") as! String,
-            userId: config.object(forKey: "userId") as! String,
-            userConnectionAccessToken: config.object(forKey: "userConnectionAccessToken") as! String,
+            userId: userId != nil ? userId! : "",
+            userConnectionAccessToken: userConnectionAccessToken != nil ? userConnectionAccessToken! : "",
             messageTag: messageTag,
             silent: false,
             success: { (success) in resolve(success) }
@@ -162,12 +164,13 @@ class RNSignalClientModule: NSObject {
     }
     
     @objc func sendSilentMessageByContact(_ messageTag: String, config: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        
+        let userId = config.object(forKey: "userId") as? String;
+        let userConnectionAccessToken = config.object(forKey: "userConnectionAccessToken") as? String;
         self.signalClient.sendMessage(
             username: config.object(forKey: "username") as! String,
             messageString: config.object(forKey: "message") as! String,
-            userId: config.object(forKey: "userId") as! String,
-            userConnectionAccessToken: config.object(forKey: "userConnectionAccessToken") as! String,
+            userId: userId != nil ? userId! : "",
+            userConnectionAccessToken: userConnectionAccessToken != nil ? userConnectionAccessToken! : "",
             messageTag: messageTag,
             silent: true,
             success: { (success) in resolve(success) }
@@ -177,12 +180,13 @@ class RNSignalClientModule: NSObject {
     }
     
     @objc func prepareApiBody(_ messageTag: String, config: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        
+        let userId = config.object(forKey: "userId") as? String;
+        let userConnectionAccessToken = config.object(forKey: "userConnectionAccessToken") as? String;
         let params = self.signalClient.prepareApiBody(
             username: config.object(forKey: "username") as! String,
             messageString: config.object(forKey: "message") as! String,
-            userId: config.object(forKey: "userId") as! String,
-            userConnectionAccessToken: config.object(forKey: "userConnectionAccessToken") as! String,
+            userId: userId != nil ? userId! : "",
+            userConnectionAccessToken: userConnectionAccessToken != nil ? userConnectionAccessToken! : "",
             messageTag: messageTag,
             silent: true,
             failure: { (error) in
