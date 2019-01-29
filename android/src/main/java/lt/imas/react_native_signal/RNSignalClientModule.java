@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
+import io.sentry.Sentry;
 import lt.imas.react_native_signal.helpers.Base64;
 import lt.imas.react_native_signal.signal.LegacyMessage;
 import lt.imas.react_native_signal.signal.LogSender;
@@ -68,7 +69,7 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
                 String host = config.getString("host");
                 username = config.getString("username");
 
-                SignalServer signalServer = new SignalServer(host, accessToken);
+                SignalServer signalServer = new SignalServer(host, accessToken, getReactApplicationContext());
                 signalClient = new SignalClient(signalServer, protocolStorage, messageStorage);
 
                 if (protocolStorage.getLocalUsername().equals(username) && protocolStorage.isLocalRegistered()){

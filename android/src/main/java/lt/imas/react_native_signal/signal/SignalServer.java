@@ -2,6 +2,7 @@ package lt.imas.react_native_signal.signal;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Base64;
@@ -35,10 +36,32 @@ public class SignalServer {
 
     public String accessToken;
     public String host;
+    public Context context;
 
-    public SignalServer(String host, String accessToken){
+    public SignalServer(String host, String accessToken, Context context){
         this.host = host;
         this.accessToken = accessToken;
+        this.context = context;
+    }
+
+    public OkHttpClient.Builder initHttpClientBuilder(){
+        OkHttpClient.Builder clientBuilder = new OkHttpClient().newBuilder();
+
+        ConnectionSpec spec = new ConnectionSpec.Builder(ConnectionSpec.COMPATIBLE_TLS)
+                .tlsVersions(TlsVersion.TLS_1_2, TlsVersion.TLS_1_1, TlsVersion.TLS_1_0, TlsVersion.SSL_3_0)
+                .cipherSuites(
+                        CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+                        CipherSuite.TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,
+                        CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,
+                        CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
+                )
+                .build();
+
+        clientBuilder.connectionSpecs(Collections.singletonList(spec));
+        clientBuilder.followRedirects(true);
+        clientBuilder.followRedirects(true);
+        clientBuilder.followSslRedirects(true);
+        return clientBuilder;
     }
 
     public OkHttpClient call(String url, String method, JSONObject requestJSONO, Callback responseHandler) {
@@ -50,14 +73,16 @@ public class SignalServer {
     }
 
     public OkHttpClient requestServerTimestamp(Callback callback) {
-        OkHttpClient client = new OkHttpClient();
+        OkHttpClient.Builder clientBuilder = initHttpClientBuilder();
+        OkHttpClient client = clientBuilder.build();
         Request request = new Request.Builder().url(getFullApiUrl(URL_ACCOUNTS_BOOTSTRAP)).build();
+        if (!isNetworkAvailable()) return client;
         client.newCall(request).enqueue(callback);
         return client;
     }
 
     public OkHttpClient call(String url, String method, JSONObject requestJSONO, Callback responseHandler, boolean async, int timestamp) {
-        OkHttpClient.Builder clientBuilder = new OkHttpClient().newBuilder();
+        OkHttpClient.Builder clientBuilder = initHttpClientBuilder();
 
         method = method != null ? method.toLowerCase().trim() : "";
 
@@ -105,6 +130,8 @@ public class SignalServer {
         Timber.d("API REQUEST URL: " + url);
         Timber.d("API REQUEST BODY: " + bodyToString(request));
 
+        if (!isNetworkAvailable()) return client;
+
         if (async) {
             client.newCall(request).enqueue(responseHandler);
         } else {
@@ -113,8 +140,8 @@ public class SignalServer {
                 Response response = call.execute();
                 responseHandler.onResponse(call, response);
             } catch (IOException e) {
-                logSender.reportError(e);
-                responseHandler.onFailure(call, e);
+                if (responseHandler != null) responseHandler.onFailure(call, e);
+                else logSender.reportError(e);
             }
         }
 
@@ -205,5 +232,11 @@ public class SignalServer {
 
 
         return "0x" + hexR + hexS + hexV;
+    }
+
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 }
