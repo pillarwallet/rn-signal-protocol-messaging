@@ -273,47 +273,46 @@ public class SignalClient {
 
     public void registerAccount(String username, final Promise promise){
         if (signalProtocolStore.isLocalRegistered()){
-            if (signalProtocolStore.getSignalingKey() == null || signalProtocolStore.getSignalingKey().isEmpty()){
+            String signalingKey = signalProtocolStore.getSignalingKey();
+            if (signalingKey == null || signalingKey.isEmpty()) {
                 // updating signalingKey on migration to websocket messaging
-                String signalingKey = generateSignalingKey();
+                signalingKey = generateSignalingKey();
                 signalProtocolStore.storeSignalingKey(signalingKey);
-                JSONObject requestJSON = new JSONObject();
-                try {
-                    requestJSON.put("signalingKey", signalingKey);
-                    requestJSON.put("fetchesMessages", true);
-                    requestJSON.put("registrationId", signalProtocolStore.getLocalRegistrationId());
-                    requestJSON.put("name", signalProtocolStore.getLocalUsername());
-                    requestJSON.put("voice", false);
-                } catch (JSONException e) {
-                    logSender.reportError(e);
-                    promise.reject(ERR_NATIVE_FAILED, e.getMessage());
-                    return;
-                }
-                signalServer.call(URL_ACCOUNTS + "/attributes", "PUT", requestJSON, new Callback() {
-                    @Override
-                    public void onFailure(Call call, final IOException e) {
-                        signalServer.mainThreadCallback(new Runnable() {
-                            @Override
-                            public void run() {
-                                promise.reject(ERR_SERVER_FAILED, e.getMessage());
-                                logSender.reportError(e);
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void onResponse(Call call, Response response) {
-                        signalServer.mainThreadCallback(new Runnable() {
-                            @Override
-                            public void run() {
-                                promise.resolve("ok");
-                            }
-                        });
-                    }
-                });
+            }
+            JSONObject requestJSON = new JSONObject();
+            try {
+                requestJSON.put("signalingKey", signalingKey);
+                requestJSON.put("fetchesMessages", true);
+                requestJSON.put("registrationId", signalProtocolStore.getLocalRegistrationId());
+                requestJSON.put("name", signalProtocolStore.getLocalUsername());
+                requestJSON.put("voice", false);
+            } catch (JSONException e) {
+                logSender.reportError(e);
+                promise.reject(ERR_NATIVE_FAILED, e.getMessage());
                 return;
             }
-            promise.resolve("ok");
+            signalServer.call(URL_ACCOUNTS + "/attributes", "PUT", requestJSON, new Callback() {
+                @Override
+                public void onFailure(Call call, final IOException e) {
+                    signalServer.mainThreadCallback(new Runnable() {
+                        @Override
+                        public void run() {
+                            promise.reject(ERR_SERVER_FAILED, e.getMessage());
+                            logSender.reportError(e);
+                        }
+                    });
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) {
+                    signalServer.mainThreadCallback(new Runnable() {
+                        @Override
+                        public void run() {
+                            promise.resolve("ok");
+                        }
+                    });
+                }
+            });
             return;
         }
         JSONObject requestJSON = new JSONObject();

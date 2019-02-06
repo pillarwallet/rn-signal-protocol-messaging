@@ -45,24 +45,23 @@ class SignalClient: NSObject {
         var parameters = [String : Any]()
 
         guard store.identityKeyStore.localRegistrationId() == nil else {
-            if (ProtocolStorage().getSignalingKey().isEmpty) {
+            var signalingKey = ProtocolStorage().getSignalingKey();
+            if (signalingKey.isEmpty) {
                 // updating signalingKey on migration to websocket messaging
-                let signalingKey = self.generateRandomBytes()
+                signalingKey = self.generateRandomBytes()
                 ProtocolStorage().storeSignalingKey(signalingKey: signalingKey)
-                parameters["signalingKey"] = signalingKey
-                parameters["fetchesMessages"] = true
-                parameters["registrationId"] = ProtocolStorage().getLocalRegistrationId()
-                parameters["name"] = ProtocolStorage().getLocalUsername()
-                parameters["voice"] = false
-                self.signalServer.call(urlPath: URL_ACCOUNTS + "/attributes", method: .PUT, parameters: parameters, success: { (dict) in
-                    success("ok")
-                }) { (error) in
-                    failure(ERR_SERVER_FAILED, "\(error)")
-                }
-                return;
             }
-            success("ok")
-            return
+            parameters["signalingKey"] = signalingKey
+            parameters["fetchesMessages"] = true
+            parameters["registrationId"] = ProtocolStorage().getLocalRegistrationId()
+            parameters["name"] = ProtocolStorage().getLocalUsername()
+            parameters["voice"] = false
+            self.signalServer.call(urlPath: URL_ACCOUNTS + "/attributes", method: .PUT, parameters: parameters, success: { (dict) in
+                success("ok")
+            }) { (error) in
+                failure(ERR_SERVER_FAILED, "\(error)")
+            }
+            return;
         }
 
         store.identityKeyStore.destroy()
