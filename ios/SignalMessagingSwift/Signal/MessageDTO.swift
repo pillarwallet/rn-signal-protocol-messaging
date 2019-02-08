@@ -25,6 +25,13 @@ class MessageDTO: NSObject {
         return Data(base64Encoded: self.message)
     }
     
+    func getMessageDataType() -> String {
+        if (!self.legacyMessage.isEmpty) {
+            return "legacy message"
+        }
+        return "regular message"
+    }
+    
     var type: Int {
         get {
             return self.dictionary["type"] as? Int ?? 0

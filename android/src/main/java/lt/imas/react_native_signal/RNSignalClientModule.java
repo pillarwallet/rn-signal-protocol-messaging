@@ -271,7 +271,6 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void deleteSignalMessage(String username, int timestamp, final Promise promise) {
-        signalClient.deleteSignalMessage(username, timestamp);
-        promise.resolve("ok");
+        signalClient.deleteSignalMessage(username, timestamp, promise);
     }
 }

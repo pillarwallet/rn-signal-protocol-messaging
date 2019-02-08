@@ -455,23 +455,7 @@ public class SignalClient {
                                                         receivedMessagesJSONA.put(newMessageJSONO);
                                                     }
 
-                                                    signalServer.call(
-                                                            URL_MESSAGES + "/" + address.getName() + "/" + serverTimestamp,
-                                                            "DELETE",
-                                                            null,
-                                                            new Callback() {
-                                                                @Override
-                                                                public void onFailure(Call call, IOException e) {
-                                                                    logSender.reportError(e);
-                                                                }
-
-                                                                @Override
-                                                                public void onResponse(Call call, Response res) {
-                                                                    Timber.d(String.format("DELETE messages: %s, %s", res.code(), res.message()));
-                                                                }
-                                                            },
-                                                            true
-                                                    );
+                                                    deleteSignalMessage(address.getName(), serverTimestamp, null);
                                                 }
                                             }
                                         }
@@ -791,7 +775,7 @@ public class SignalClient {
         promise.resolve("ok");
     }
 
-    public void deleteSignalMessage(String username, long timestamp){
+    public void deleteSignalMessage(String username, final long timestamp, final Promise promise){
         signalServer.call(
             URL_MESSAGES + "/" + username + "/" + timestamp,
             "DELETE",
@@ -804,7 +788,7 @@ public class SignalClient {
 
                 @Override
                 public void onResponse(Call call, Response res) {
-                    //
+                    if (promise != null) promise.resolve("ok");
                 }
             },
             true
