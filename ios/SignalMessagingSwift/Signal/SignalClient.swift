@@ -378,13 +378,13 @@ class SignalClient: NSObject {
                                 isDuplicateMessage = true;
                             } catch {
                                 print(ERR_NATIVE_FAILED)
-                                print("Error info: \(error)")
+                                print("Error (\(message.getMessageDataType())) in untrustedIdentity exception: \(error)")
                             }
                         } catch SignalError.duplicateMessage {
                             isDuplicateMessage = true;
                         } catch {
                             print(ERR_NATIVE_FAILED)
-                            print("Error info: \(error)")
+                            print("Error (\(message.getMessageDataType())) in first exception: \(error)")
                         }
                     }
 
@@ -585,14 +585,14 @@ class SignalClient: NSObject {
                         isDuplicateMessage = true;
                     } catch {
                         print(ERR_NATIVE_FAILED)
-                        failure("Error info: \(error)")
+                        failure("Error (\(message.getMessageDataType())) in untrustedIdentity exception: \(error)")
                         return
                     }
                 } catch SignalError.duplicateMessage {
                     isDuplicateMessage = true;
                 } catch {
                     print(ERR_NATIVE_FAILED)
-                    failure("Error info: \(error)")
+                    failure("Error (\(message.getMessageDataType())) in first message exception: \(error)")
                     return
                 }
             }
