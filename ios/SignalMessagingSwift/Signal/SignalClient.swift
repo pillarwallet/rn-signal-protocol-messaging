@@ -402,9 +402,10 @@ class SignalClient: NSObject {
 
                         parsedMessages.append(parsedMessage)
                         MessagesStorage().save(message: parsedMessage, for: username, tag: messageTag)
-                
-                        self.signalServer.call(urlPath: "\(URL_MESSAGES)/\(username)/\(message.timestamp)", method: .DELETE, success: { (response) in }, failure: { (error) in })
+                        
                     }
+                    
+                    self.signalServer.call(urlPath: "\(URL_MESSAGES)/\(username)/\(message.timestamp)", method: .DELETE, success: { (response) in }, failure: { (error) in })
                 }
             }
         }
