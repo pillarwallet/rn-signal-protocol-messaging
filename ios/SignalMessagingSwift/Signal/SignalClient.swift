@@ -178,9 +178,9 @@ class SignalClient: NSObject {
 
     func checkPreKeys() {
         self.signalServer.call(urlPath: URL_KEYS, method: .GET, success: { (dict) in
-            let count = dict["count"] as? Int ?? 0
+            let count = dict["count"] as? Int ?? -1
     
-            guard let store = self.store(), count <= 10 else {
+            guard let store = self.store(), count <= 10, count != -1 else {
                 return
             }
 
@@ -618,8 +618,7 @@ class SignalClient: NSObject {
     }
     
     func deleteSignalMessage(username: String, timestamp: NSInteger, success: @escaping (_ message: String) -> Void) -> Void {
-        self.signalServer.call(urlPath: "\(URL_MESSAGES)/\(username)/\(timestamp)", method: .DELETE, success: { (response) in }, failure: { (error) in })
-        success("ok")
+        self.signalServer.call(urlPath: "\(URL_MESSAGES)/\(username)/\(timestamp)", method: .DELETE, success: { (response) in success("ok") }, failure: { (error) in success("ok") })
     }
     
 }
