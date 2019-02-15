@@ -15,16 +15,19 @@ class Logger: NSObject {
     func sendInfoMessage(message: String) {
         let event = Event(level: .info)
         event.message = message
-        sentEvent(event: event)
+        sendEvent(event: event)
     }
     
     func sendErrorMessage(message: String) {
-        let event = Event(level: .error)
-        event.message = message
-        sentEvent(event: event)
+        Client.shared?.snapshotStacktrace {
+            let event = Event(level: .error)
+            event.message = message
+            Client.shared?.appendStacktrace(to: event)
+            self.sendEvent(event: event)
+        }
     }
     
-    func sentEvent(event: Event) {
+    func sendEvent(event: Event) {
         Client.shared?.send(event: event)
     }
     
