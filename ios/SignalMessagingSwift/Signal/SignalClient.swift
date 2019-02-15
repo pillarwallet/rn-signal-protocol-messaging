@@ -8,6 +8,7 @@
 
 import UIKit
 import SignalProtocol
+import Sentry
 
 class SignalClient: NSObject {
 
@@ -16,11 +17,13 @@ class SignalClient: NSObject {
     private let signalServer: SignalServer
     private let username: String
     private let host: String
+    private let logger: Logger
 
-    init(username: String, accessToken: String, host: String) {
+    init(username: String, accessToken: String, host: String, isLoggable: Bool) {
         self.username = username;
         self.host = host
         self.signalServer = SignalServer(accessToken: accessToken, host: host)
+        self.logger = Logger(isLoggable: isLoggable);
 
         super.init()
     }
@@ -378,13 +381,17 @@ class SignalClient: NSObject {
                                 isDuplicateMessage = true;
                             } catch {
                                 print(ERR_NATIVE_FAILED)
-                                print("Error (\(message.getMessageDataType())) in untrustedIdentity exception: \(error)")
+                                let errMessage = "Error (\(message.getMessageDataType())) in untrustedIdentity exception: \(error)"
+                                logger.sendErrorMessage(message: errMessage)
+                                print(errMessage)
                             }
                         } catch SignalError.duplicateMessage {
                             isDuplicateMessage = true;
                         } catch {
                             print(ERR_NATIVE_FAILED)
-                            print("Error (\(message.getMessageDataType())) in first exception: \(error)")
+                            let errMessage = "Error (\(message.getMessageDataType())) in first exception: \(error)";
+                            logger.sendErrorMessage(message: errMessage)
+                            print(errMessage)
                         }
                     }
 
@@ -586,14 +593,18 @@ class SignalClient: NSObject {
                         isDuplicateMessage = true;
                     } catch {
                         print(ERR_NATIVE_FAILED)
-                        failure("Error (\(message.getMessageDataType())) in untrustedIdentity exception: \(error)")
+                        let errMessage = "Error (\(message.getMessageDataType())) in untrustedIdentity exception: \(error)";
+                        logger.sendErrorMessage(message: errMessage)
+                        failure(errMessage)
                         return
                     }
                 } catch SignalError.duplicateMessage {
                     isDuplicateMessage = true;
                 } catch {
                     print(ERR_NATIVE_FAILED)
-                    failure("Error (\(message.getMessageDataType())) in first message exception: \(error)")
+                    let errMessage = "Error (\(message.getMessageDataType())) in first message exception: \(error)";
+                    logger.sendErrorMessage(message: errMessage)
+                    failure(errMessage)
                     return
                 }
             }

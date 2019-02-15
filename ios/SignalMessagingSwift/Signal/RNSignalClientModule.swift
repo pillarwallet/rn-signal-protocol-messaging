@@ -8,6 +8,7 @@
 
 import UIKit
 import SignalProtocol
+import Sentry
 
 let ERR_WRONG_CONFIG = "ERR_WRONG_CONFIG"
 let ERR_SERVER_FAILED = "ERR_SERVER_FAILED"
@@ -24,7 +25,7 @@ class RNSignalClientModule: NSObject {
     override init() {
         self.username = ""
         self.host = ""
-        self.signalClient = SignalClient(username: "", accessToken: "", host: "")
+        self.signalClient = SignalClient(username: "", accessToken: "", host: "", isLoggable: false)
         super.init()
     }
     
@@ -32,11 +33,21 @@ class RNSignalClientModule: NSObject {
         return true
     }
     
-    @objc func createClient(_ username: String, accessToken: String, host: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        self.username = username
-        self.host = host
-        self.signalClient = SignalClient(username: username, accessToken: accessToken, host: host)
-        
+    @objc func createClient(_ config: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        self.username = config.object(forKey: "username") as! String
+        self.host = config.object(forKey: "host") as! String
+        let accessToken = config.object(forKey: "accessToken") as! String
+        let isLoggable = config.object(forKey: "isSendingLogs") as! Bool
+        self.signalClient = SignalClient(username: username, accessToken: accessToken, host: host, isLoggable: isLoggable)
+        if isLoggable {
+            do {
+                let sentryDSN = config.object(forKey: "errorTrackingDSN") as! String
+                Client.shared = try Client(dsn: sentryDSN)
+                try Client.shared?.startCrashHandler()
+            } catch {
+                // sentry unavailable
+            }
+        }
         if ProtocolStorage().getLocalUsername() == username && ProtocolStorage().isLocalRegistered() {
             self.signalClient.checkPreKeys()
             resolve("ok")

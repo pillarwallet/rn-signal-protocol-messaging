@@ -11,7 +11,7 @@
 
 @interface RCT_EXTERN_REMAP_MODULE(SignalClient, RNSignalClientModule, NSObject)
 
-RCT_EXTERN_METHOD(createClient:(NSString *)username accessToken:(NSString *)accessToken host:(NSString *)host resolver: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject);
+RCT_EXTERN_METHOD(createClient:(NSDictionary *)config resolver: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject);
 RCT_EXTERN_METHOD(registerAccount: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject);
 RCT_EXTERN_METHOD(resetAccount: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject);
 RCT_EXTERN_METHOD(setFcmId:(NSString *)fcmId resolver: (RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject);
