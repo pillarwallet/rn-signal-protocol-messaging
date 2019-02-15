@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		690DC5BB2216A250001EB112 /* Sentry.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 690DC5BA2216A250001EB112 /* Sentry.framework */; };
+		690DC61D22173C6E001EB112 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 690DC61722173C6E001EB112 /* Logger.swift */; };
 		691307102107F5B900B3C1FD /* SignalProtocol.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 95A5233720F47B4300EDA8BA /* SignalProtocol.framework */; };
 		6979038D21E2831B00484ABB /* legacy_message.m in Sources */ = {isa = PBXBuildFile; fileRef = 6979038921E2831B00484ABB /* legacy_message.m */; };
 		6979038E21E2831B00484ABB /* NSData+OWS.m in Sources */ = {isa = PBXBuildFile; fileRef = 6979038C21E2831B00484ABB /* NSData+OWS.m */; };
@@ -86,6 +87,7 @@
 
 /* Begin PBXFileReference section */
 		690DC5BA2216A250001EB112 /* Sentry.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Sentry.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		690DC61722173C6E001EB112 /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Logger.swift; path = SignalMessagingSwift/Signal/Logger.swift; sourceTree = SOURCE_ROOT; };
 		6979038921E2831B00484ABB /* legacy_message.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = legacy_message.m; path = "SignalMessagingSwift/legacy-support/legacy_message.m"; sourceTree = SOURCE_ROOT; };
 		6979038A21E2831B00484ABB /* NSData+OWS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSData+OWS.h"; path = "SignalMessagingSwift/legacy-support/NSData+OWS.h"; sourceTree = SOURCE_ROOT; };
 		6979038B21E2831B00484ABB /* legacy_message.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = legacy_message.h; path = "SignalMessagingSwift/legacy-support/legacy_message.h"; sourceTree = SOURCE_ROOT; };
@@ -149,6 +151,7 @@
 				95A5232D20F47B4300EDA8BA /* libsignal-protocol-swift.xcodeproj */,
 				9573BEC220F3D6B600C720C3 /* IdentityKeyStorePillar.swift */,
 				95A5234220F47B8700EDA8BA /* RNSignalClientModule.swift */,
+				690DC61722173C6E001EB112 /* Logger.swift */,
 				9573BEBF20F3D6B600C720C3 /* MessageDTO.swift */,
 				9573BEBD20F3D6B600C720C3 /* MessagesStorage.swift */,
 				9573BEC320F3D6B600C720C3 /* ParsedMessageDTO.swift */,
@@ -313,6 +316,7 @@
 				9573BECE20F3D6B700C720C3 /* ParsedMessageDTO.swift in Sources */,
 				9573BED220F3D6B700C720C3 /* ProtocolStorage.swift in Sources */,
 				9573BECB20F3D6B700C720C3 /* SignalServer.swift in Sources */,
+				690DC61D22173C6E001EB112 /* Logger.swift in Sources */,
 				6979039021E2844400484ABB /* LegacyMessage.swift in Sources */,
 				6979038E21E2831B00484ABB /* NSData+OWS.m in Sources */,
 				9573BECD20F3D6B700C720C3 /* IdentityKeyStorePillar.swift in Sources */,
