@@ -8,6 +8,7 @@
 
 import UIKit
 import SignalProtocol
+import Sentry
 
 class SignalClient: NSObject {
 
@@ -378,13 +379,17 @@ class SignalClient: NSObject {
                                 isDuplicateMessage = true;
                             } catch {
                                 print(ERR_NATIVE_FAILED)
-                                print("Error (\(message.getMessageDataType())) in untrustedIdentity exception: \(error)")
+                                let errMessage = "Error (\(message.getMessageDataType())) in untrustedIdentity exception: \(error)"
+                                Logger().sendErrorMessage(message: errMessage)
+                                print(errMessage)
                             }
                         } catch SignalError.duplicateMessage {
                             isDuplicateMessage = true;
                         } catch {
                             print(ERR_NATIVE_FAILED)
-                            print("Error (\(message.getMessageDataType())) in first exception: \(error)")
+                            let errMessage = "Error (\(message.getMessageDataType())) in first exception: \(error)";
+                            Logger().sendErrorMessage(message: errMessage)
+                            print(errMessage)
                         }
                     }
 
@@ -586,14 +591,18 @@ class SignalClient: NSObject {
                         isDuplicateMessage = true;
                     } catch {
                         print(ERR_NATIVE_FAILED)
-                        failure("Error (\(message.getMessageDataType())) in untrustedIdentity exception: \(error)")
+                        let errMessage = "Error (\(message.getMessageDataType())) in untrustedIdentity exception: \(error)";
+                        Logger().sendErrorMessage(message: errMessage)
+                        failure(errMessage)
                         return
                     }
                 } catch SignalError.duplicateMessage {
                     isDuplicateMessage = true;
                 } catch {
                     print(ERR_NATIVE_FAILED)
-                    failure("Error (\(message.getMessageDataType())) in first message exception: \(error)")
+                    let errMessage = "Error (\(message.getMessageDataType())) in first message exception: \(error)";
+                    Logger().sendErrorMessage(message: errMessage)
+                    failure(errMessage)
                     return
                 }
             }
