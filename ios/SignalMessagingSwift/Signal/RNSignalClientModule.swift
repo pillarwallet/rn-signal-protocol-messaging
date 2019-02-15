@@ -25,7 +25,7 @@ class RNSignalClientModule: NSObject {
     override init() {
         self.username = ""
         self.host = ""
-        self.signalClient = SignalClient(username: "", accessToken: "", host: "")
+        self.signalClient = SignalClient(username: "", accessToken: "", host: "", isLoggable: false)
         super.init()
     }
     
@@ -37,12 +37,13 @@ class RNSignalClientModule: NSObject {
         self.username = config.object(forKey: "username") as! String
         self.host = config.object(forKey: "host") as! String
         let accessToken = config.object(forKey: "accessToken") as! String
-        let isSendingLogs = config.object(forKey: "isSendingLogs") as! Bool
-        self.signalClient = SignalClient(username: username, accessToken: accessToken, host: host)
-        if isSendingLogs {
-            let sentryDSN = config.object(forKey: "errorTrackingDSN") as! String
+        let isLoggable = config.object(forKey: "isSendingLogs") as! Bool
+        self.signalClient = SignalClient(username: username, accessToken: accessToken, host: host, isLoggable: isLoggable)
+        if isLoggable {
             do {
+                let sentryDSN = config.object(forKey: "errorTrackingDSN") as! String
                 Client.shared = try Client(dsn: sentryDSN)
+                try Client.shared?.startCrashHandler()
             } catch {
                 // sentry unavailable
             }
