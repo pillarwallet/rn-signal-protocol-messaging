@@ -8,6 +8,7 @@
 
 import UIKit
 import SignalProtocol
+import Sentry
 
 let ERR_WRONG_CONFIG = "ERR_WRONG_CONFIG"
 let ERR_SERVER_FAILED = "ERR_SERVER_FAILED"
@@ -32,11 +33,20 @@ class RNSignalClientModule: NSObject {
         return true
     }
     
-    @objc func createClient(_ username: String, accessToken: String, host: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-        self.username = username
-        self.host = host
+    @objc func createClient(_ config: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        self.username = config.object(forKey: "username") as! String
+        self.host = config.object(forKey: "host") as! String
+        let accessToken = config.object(forKey: "accessToken") as! String
+        let isSendingLogs = config.object(forKey: "isSendingLogs") as! String
         self.signalClient = SignalClient(username: username, accessToken: accessToken, host: host)
-        
+        if isSendingLogs {
+            let sentryDSN = config.object(forKey: "errorTrackingDSN") as! String
+            do {
+                Client.shared = try Client(dsn: sentryDSN)
+            } catch {
+                // sentry unavailable
+            }
+        }
         if ProtocolStorage().getLocalUsername() == username && ProtocolStorage().isLocalRegistered() {
             self.signalClient.checkPreKeys()
             resolve("ok")

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		690DC5BB2216A250001EB112 /* Sentry.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 690DC5BA2216A250001EB112 /* Sentry.framework */; };
 		691307102107F5B900B3C1FD /* SignalProtocol.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 95A5233720F47B4300EDA8BA /* SignalProtocol.framework */; };
 		6979038D21E2831B00484ABB /* legacy_message.m in Sources */ = {isa = PBXBuildFile; fileRef = 6979038921E2831B00484ABB /* legacy_message.m */; };
 		6979038E21E2831B00484ABB /* NSData+OWS.m in Sources */ = {isa = PBXBuildFile; fileRef = 6979038C21E2831B00484ABB /* NSData+OWS.m */; };
@@ -84,6 +85,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		690DC5BA2216A250001EB112 /* Sentry.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Sentry.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		6979038921E2831B00484ABB /* legacy_message.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = legacy_message.m; path = "SignalMessagingSwift/legacy-support/legacy_message.m"; sourceTree = SOURCE_ROOT; };
 		6979038A21E2831B00484ABB /* NSData+OWS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSData+OWS.h"; path = "SignalMessagingSwift/legacy-support/NSData+OWS.h"; sourceTree = SOURCE_ROOT; };
 		6979038B21E2831B00484ABB /* legacy_message.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = legacy_message.h; path = "SignalMessagingSwift/legacy-support/legacy_message.h"; sourceTree = SOURCE_ROOT; };
@@ -112,6 +114,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				690DC5BB2216A250001EB112 /* Sentry.framework in Frameworks */,
 				691307102107F5B900B3C1FD /* SignalProtocol.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -122,6 +125,7 @@
 		6913070A2107F5B900B3C1FD /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				690DC5BA2216A250001EB112 /* Sentry.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
