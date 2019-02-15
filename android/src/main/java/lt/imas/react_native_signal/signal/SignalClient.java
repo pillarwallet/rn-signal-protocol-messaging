@@ -415,7 +415,6 @@ public class SignalClient {
                                                     byte[] decodeMessageString = Base64.decode(messageString);
                                                     byte[] messageBytes = null;
                                                     SessionCipher sessionCipher = new SessionCipher(signalProtocolStore, address);
-
                                                     try {
                                                         messageBytes = sessionCipher.decrypt(new SignalMessage(decodeMessageString));
                                                     } catch (InvalidMessageException | LegacyMessageException | DuplicateMessageException | UntrustedIdentityException e) {
@@ -432,13 +431,14 @@ public class SignalClient {
                                                             } catch (DuplicateMessageException | LegacyMessageException
                                                                     | InvalidKeyIdException | InvalidMessageException
                                                                     | InvalidVersionException | InvalidKeyException
-                                                                    | UntrustedIdentityException e1) {
+                                                                    | UntrustedIdentityException | NullPointerException e1) {
                                                                 Timber.e(e1);
                                                                 if (!duplicate) duplicate = e1.getClass() == DuplicateMessageException.class;
                                                             }
                                                         } catch (LegacyMessageException | InvalidMessageException
                                                                 | InvalidKeyIdException | InvalidKeyException
-                                                                | InvalidVersionException | DuplicateMessageException e3) {
+                                                                | InvalidVersionException | DuplicateMessageException
+                                                                | NullPointerException e3) {
                                                             Timber.e(e3);
                                                             if (!duplicate) duplicate = e3.getClass() == DuplicateMessageException.class;
                                                         }
@@ -459,7 +459,7 @@ public class SignalClient {
                                                 }
                                             }
                                         }
-                                    } catch (JSONException | IOException | NoSessionException e) {
+                                    } catch (JSONException | IOException | NoSessionException | NullPointerException e) {
                                         promise.reject(ERR_NATIVE_FAILED, e.getMessage());
                                         logSender.reportError(e);
                                         return;
