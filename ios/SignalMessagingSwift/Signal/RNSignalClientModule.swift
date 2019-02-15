@@ -37,7 +37,7 @@ class RNSignalClientModule: NSObject {
         self.username = config.object(forKey: "username") as! String
         self.host = config.object(forKey: "host") as! String
         let accessToken = config.object(forKey: "accessToken") as! String
-        let isSendingLogs = config.object(forKey: "isSendingLogs") as! String
+        let isSendingLogs = config.object(forKey: "isSendingLogs") as! Bool
         self.signalClient = SignalClient(username: username, accessToken: accessToken, host: host)
         if isSendingLogs {
             let sentryDSN = config.object(forKey: "errorTrackingDSN") as! String
