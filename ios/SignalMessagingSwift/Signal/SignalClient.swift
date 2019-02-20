@@ -24,7 +24,6 @@ class SignalClient: NSObject {
         self.host = host
         self.signalServer = SignalServer(accessToken: accessToken, host: host)
         self.logger = Logger(isLoggable: isLoggable);
-
         super.init()
     }
 
@@ -155,11 +154,16 @@ class SignalClient: NSObject {
             _ = store.preKeyStore.store(preKey: try preKey.data(), for: preKey.id)
             return ["keyId" : preKey.id, "publicKey" : preKey.keyPair.publicKey.base64EncodedString()]
         }
-
-        // store signed pre key
-        let signedPreKey: SessionSignedPreKey = try Signal.generate(signedPreKey: 1, identity: identityKeyPair!, timestamp: 0)
-        _ = store.signedPreKeyStore.store(signedPreKey: try signedPreKey.data(), for: signedPreKey.id)
-
+        
+        var signedPreKey: SessionSignedPreKey
+        let signedPreKeyData = store.signedPreKeyStore.load(signedPreKey: 1)
+        if (signedPreKeyData != nil) {
+            signedPreKey = try SessionSignedPreKey(from: signedPreKeyData!)
+        } else {
+            signedPreKey = try Signal.generate(signedPreKey: 1, identity: identityKeyPair!, timestamp: 0)
+            _ = store.signedPreKeyStore.store(signedPreKey: try signedPreKey.data(), for: signedPreKey.id)
+        }
+        
         var requestJSON = [String : Any]()
 
         guard let lastResortKey = lastRecordKey else {
