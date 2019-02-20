@@ -18,12 +18,14 @@ class SignalClient: NSObject {
     private let username: String
     private let host: String
     private let logger: Logger
+    private let signalResetVersion: Int
 
-    init(username: String, accessToken: String, host: String, isLoggable: Bool) {
-        self.username = username;
+    init(username: String, accessToken: String, host: String, isLoggable: Bool, signalResetVersion: Int) {
+        self.username = username
         self.host = host
         self.signalServer = SignalServer(accessToken: accessToken, host: host)
-        self.logger = Logger(isLoggable: isLoggable);
+        self.logger = Logger(isLoggable: isLoggable)
+        self.signalResetVersion = signalResetVersion
         super.init()
     }
 
@@ -66,8 +68,6 @@ class SignalClient: NSObject {
             return;
         }
 
-        store.identityKeyStore.destroy()
-
         var registrationId: UInt32
 
         do {
@@ -82,6 +82,7 @@ class SignalClient: NSObject {
         ProtocolStorage().storeLocalRegistrationId(registrationId: registrationId)
         ProtocolStorage().storeLocalUsername(username: self.username)
         ProtocolStorage().storeSignalingKey(signalingKey: signalingKey)
+        ProtocolStorage().storeSignalResetVersion(version: self.signalResetVersion)
 
         parameters["signalingKey"] = signalingKey
         parameters["fetchesMessages"] = true

@@ -81,6 +81,17 @@ class ProtocolStorage: NSObject {
         }
         return false;
     }
+    
+    func getSignalResetVersion() -> Int {
+        let localJson = self.get(for: .LOCAL_JSON_FILENAME)
+        return localJson["signalResetVersion"] as? Int ?? 0
+    }
+    
+    func storeSignalResetVersion(version: Int) {
+        var localJson = self.get(for: .LOCAL_JSON_FILENAME)
+        localJson["signalResetVersion"] = version
+        self.save(array: localJson, type: .LOCAL_JSON_FILENAME)
+    }
 
     func destroyAll() {
         let manager = FileManager.default
@@ -92,6 +103,27 @@ class ProtocolStorage: NSObject {
         } catch {
             print(error)
         }
+    }
+    
+    func destroyByType(for type: DownloadsType) {
+        let manager = FileManager.default
+        let url = manager.urls(for: .documentDirectory, in: .userDomainMask).first! as NSURL
+        let path = url.appendingPathComponent("signal")!
+        let typePath = path.appendingPathComponent(type.rawValue)
+        
+        do {
+            try manager.removeItem(atPath: typePath.path)
+        } catch {
+            print(error)
+        }
+    }
+    
+    func destroyAllExceptMessages() {
+        destroyByType(for: .PRE_KEYS_JSON_FILENAME)
+        destroyByType(for: .SIGNED_PRE_KEYS_JSON_FILENAME)
+        destroyByType(for: .SESSIONS_JSON_FILENAME)
+        destroyByType(for: .IDENTITES_JSON_FILENAME)
+        destroyByType(for: .LOCAL_JSON_FILENAME)
     }
     
     func removeRemoteIdentity(for address: SignalAddress) {

@@ -18,14 +18,16 @@ let ERR_ADD_CONTACT_FAILED = "ERR_ADD_CONTACT_FAILED"
 @objc(RNSignalClientModule)
 class RNSignalClientModule: NSObject {
     
+    private var signalResetVersion: Int
     private var username: String
     private var host: String
     private var signalClient: SignalClient
     
     override init() {
+        self.signalResetVersion = 1
         self.username = ""
         self.host = ""
-        self.signalClient = SignalClient(username: "", accessToken: "", host: "", isLoggable: false)
+        self.signalClient = SignalClient(username: "", accessToken: "", host: "", isLoggable: false, signalResetVersion: self.signalResetVersion)
         super.init()
     }
     
@@ -38,7 +40,7 @@ class RNSignalClientModule: NSObject {
         self.host = config.object(forKey: "host") as! String
         let accessToken = config.object(forKey: "accessToken") as! String
         let isLoggable = config.object(forKey: "isSendingLogs") as! Bool
-        self.signalClient = SignalClient(username: username, accessToken: accessToken, host: host, isLoggable: isLoggable)
+        self.signalClient = SignalClient(username: username, accessToken: accessToken, host: host, isLoggable: isLoggable, signalResetVersion: self.signalResetVersion)
         if isLoggable {
             do {
                 let sentryDSN = config.object(forKey: "errorTrackingDSN") as! String
@@ -48,11 +50,18 @@ class RNSignalClientModule: NSObject {
                 // sentry unavailable
             }
         }
-        if ProtocolStorage().getLocalUsername() == username && ProtocolStorage().isLocalRegistered() {
+        let existingSignalResetVersion = ProtocolStorage().getSignalResetVersion()
+        print("existingSignalResetVersion \(existingSignalResetVersion)")
+        if self.signalResetVersion == existingSignalResetVersion && ProtocolStorage().getLocalUsername() == username && ProtocolStorage().isLocalRegistered() {
             self.signalClient.checkPreKeys()
             resolve("ok")
         } else {
-            ProtocolStorage().destroyAll()
+            if (self.signalResetVersion > existingSignalResetVersion || existingSignalResetVersion == 0) {
+                print("RESET HAPPENING")
+                ProtocolStorage().destroyAllExceptMessages()
+            } else {
+                ProtocolStorage().destroyAll()
+            }
             self.signalClient.register(success: { (success) in
                 resolve(success)
             }) { (error, message) in
