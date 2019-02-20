@@ -209,53 +209,52 @@ class SignalClient: NSObject {
             callUrl.append("?userId=" + userId + "&userConnectionAccessToken=" + userConnectionAccessToken);
         }
         self.signalServer.call(urlPath: callUrl, method: .GET, success: { (dict) in
-            if let devices = dict["devices"] as? [[String : Any]] {
-                if let identityKey: String = dict["identityKey"] as? String,
-                    let identityData = Data(base64Encoded: identityKey),
-                    let firstDevice = devices.first as? [String : Any],
+            if let devices = dict["devices"] as? [[String : Any]],
+                let identityKey: String = dict["identityKey"] as? String,
+                let identityData = Data(base64Encoded: identityKey),
+                let firstDevice = devices.first as? [String : Any],
 
-                    let deviceId = firstDevice["deviceId"] as? Int,
-                    let registrationId = firstDevice["registrationId"] as? Int,
+                let deviceId = firstDevice["deviceId"] as? Int,
+                let registrationId = firstDevice["registrationId"] as? Int,
 
-                    let preKey = firstDevice["preKey"] as? [String : Any],
-                    let preKeyId = preKey["keyId"] as? Int,
-                    let preKeyDataString = preKey["publicKey"] as? String,
-                    let preKeyData = Data(base64Encoded: preKeyDataString),
+                let preKey = firstDevice["preKey"] as? [String : Any],
+                let preKeyId = preKey["keyId"] as? Int,
+                let preKeyDataString = preKey["publicKey"] as? String,
+                let preKeyData = Data(base64Encoded: preKeyDataString),
 
-                    let signedPreKey = firstDevice["signedPreKey"] as? [String : Any],
-                    let signedPreKeyId = signedPreKey["keyId"] as? Int,
-                    let signedPreKeyDataString = signedPreKey["publicKey"] as? String,
-                    let signedPreKeyData = Data(base64Encoded: signedPreKeyDataString),
+                let signedPreKey = firstDevice["signedPreKey"] as? [String : Any],
+                let signedPreKeyId = signedPreKey["keyId"] as? Int,
+                let signedPreKeyDataString = signedPreKey["publicKey"] as? String,
+                let signedPreKeyData = Data(base64Encoded: signedPreKeyDataString),
 
-                    let signatureString = signedPreKey["signature"] as? String,
-                    let signature = Data(base64Encoded: signatureString) {
+                let signatureString = signedPreKey["signature"] as? String,
+                let signature = Data(base64Encoded: signatureString) {
 
-                    let bundle = SessionPreKeyBundle(registrationId: UInt32(registrationId), deviceId: 1, preKeyId: UInt32(preKeyId), preKey: preKeyData, signedPreKeyId: UInt32(signedPreKeyId), signedPreKey: signedPreKeyData, signature: signature, identityKey: identityData)
+                let bundle = SessionPreKeyBundle(registrationId: UInt32(registrationId), deviceId: 1, preKeyId: UInt32(preKeyId), preKey: preKeyData, signedPreKeyId: UInt32(signedPreKeyId), signedPreKey: signedPreKeyData, signature: signature, identityKey: identityData)
 
-                    guard let store = self.store() else {
-                        failure(ERR_NATIVE_FAILED, "store failed")
-                        return
-                    }
-
-                    let address = SignalAddress(name: username, deviceId: 1)
-                    
-                    // force delete: anytime when method is requested it will add new Identity Key and new Pre Key
-                    ProtocolStorage().removeRemoteIdentity(for: address)
-                    store.sessionStore.deleteSession(for: address)
-                    
-                    let sessionBuilder = SessionBuilder(for: address, in: store)
-
-                    do {
-                        try sessionBuilder.process(preKeyBundle: bundle)
-                    } catch {
-                        failure(ERR_NATIVE_FAILED, "\(error)")
-                        return
-                    }
-
-                    success("ok")
-                } else {
-                    failure(ERR_SERVER_FAILED, "wrong data received")
+                guard let store = self.store() else {
+                    failure(ERR_NATIVE_FAILED, "store failed")
+                    return
                 }
+
+                let address = SignalAddress(name: username, deviceId: 1)
+                
+                // force delete: anytime when method is requested it will add new Identity Key and new Pre Key
+                ProtocolStorage().removeRemoteIdentity(for: address)
+                store.sessionStore.deleteSession(for: address)
+                
+                let sessionBuilder = SessionBuilder(for: address, in: store)
+
+                do {
+                    try sessionBuilder.process(preKeyBundle: bundle)
+                } catch {
+                    failure(ERR_NATIVE_FAILED, "\(error)")
+                    return
+                }
+
+                success("ok")
+            } else {
+                failure(ERR_ADD_CONTACT_FAILED, "User \(username) keys doesn't exist.")
             }
         }) { (error) in
             let errorCheck = error as NSError?
