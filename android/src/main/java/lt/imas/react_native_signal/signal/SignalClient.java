@@ -62,11 +62,13 @@ public class SignalClient {
     private SignalServer signalServer;
     private ProtocolStorage signalProtocolStore;
     private MessageStorage messageStorage;
+    private int signalResetVersion;
 
-    public SignalClient(SignalServer signalServer, ProtocolStorage protocolStorage, MessageStorage messageStorage) {
+    public SignalClient(SignalServer signalServer, ProtocolStorage protocolStorage, MessageStorage messageStorage, int signalResetVersion) {
         this.signalServer = signalServer;
         this.signalProtocolStore = protocolStorage;
         this.messageStorage = messageStorage;
+        this.signalResetVersion = signalResetVersion;
     }
 
     public void registerPreKeys(final Promise promise, int start, int count){
@@ -261,7 +263,7 @@ public class SignalClient {
                         int preKeyCount = serverResponse.getResponseJSONObject().optInt("count", 0);
                         if (preKeyCount <= 10 && responseCode == 200) {
                             int count = 100 - preKeyCount;
-                            registerPreKeys(promise, signalProtocolStore.getLastPreKeyIndex(), count);
+                            registerPreKeys(promise, signalProtocolStore.getLastPreKeyIndex()+1, count);
                         } else {
                             promise.resolve("ok");
                         }
@@ -321,6 +323,7 @@ public class SignalClient {
         signalProtocolStore.storeLocalUsername(username);
         signalProtocolStore.storeLocalRegistrationId(registrationId);
         signalProtocolStore.storeSignalingKey(signalingKey);
+        signalProtocolStore.storeSignalResetVersion(signalResetVersion);
         try {
             requestJSON.put("signalingKey", signalingKey);
             requestJSON.put("fetchesMessages", true);
@@ -423,7 +426,7 @@ public class SignalClient {
                                                         try {
                                                             messageBytes = sessionCipher.decrypt(new PreKeySignalMessage(decodeMessageString));
                                                         } catch (UntrustedIdentityException e2){
-                                                            logSender.send("Captured UntrustedIdentityException, session resets");
+                                                            logSender.sendInfo("Captured UntrustedIdentityException, session resets");
                                                             signalProtocolStore.removeIdentity(address);
                                                             Timber.e(e2);
                                                             try {
@@ -736,7 +739,7 @@ public class SignalClient {
                         try {
                             messageBytes = sessionCipher.decrypt(new PreKeySignalMessage(decodeMessageString));
                         } catch (UntrustedIdentityException e2){
-                            logSender.send("Captured UntrustedIdentityException, session resets");
+                            logSender.sendInfo("Captured UntrustedIdentityException, session resets");
                             signalProtocolStore.removeIdentity(address);
                             Timber.e(e2);
                             try {

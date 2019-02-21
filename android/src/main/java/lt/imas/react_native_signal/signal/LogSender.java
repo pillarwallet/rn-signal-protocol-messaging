@@ -13,6 +13,8 @@ import java.util.Map;
 import io.sentry.Sentry;
 import io.sentry.SentryClient;
 import io.sentry.SentryClientFactory;
+import io.sentry.event.Event;
+import io.sentry.event.EventBuilder;
 import io.sentry.event.UserBuilder;
 import timber.log.Timber;
 
@@ -76,6 +78,19 @@ public class LogSender {
         } catch (Throwable e) {
             Timber.e(e);
         }
+    }
+
+    public void sendInfo(String message) {
+        if (isSendingLogs)
+            try {
+                Event event = new EventBuilder()
+                        .withLevel(Event.Level.INFO)
+                        .withMessage(message)
+                        .build();
+                Sentry.capture(event);
+            } catch (Throwable e) {
+                Timber.e(e);
+            }
     }
 
     public void send(String message) {
