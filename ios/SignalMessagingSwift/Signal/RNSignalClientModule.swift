@@ -63,7 +63,7 @@ class RNSignalClientModule: NSObject {
             }
         }
         
-        if !performSoftReset && signalResetVersion == existingSignalResetVersion && ProtocolStorage().getLocalUsername() == username && ProtocolStorage().isLocalRegistered() {
+        if !performSoftReset && ProtocolStorage().getLocalUsername() == username && ProtocolStorage().isLocalRegistered() {
             self.signalClient.checkPreKeys()
             resolve("ok")
         } else {
