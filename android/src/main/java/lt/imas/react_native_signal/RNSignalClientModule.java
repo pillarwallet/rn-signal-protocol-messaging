@@ -37,6 +37,7 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
     private SignalClient signalClient;
     private ProtocolStorage protocolStorage;
     private MessageStorage messageStorage;
+    private int signalResetVersion = 0;
 
     private String username;
 
@@ -70,13 +71,24 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
                 username = config.getString("username");
 
                 SignalServer signalServer = new SignalServer(host, accessToken, getReactApplicationContext());
-                signalClient = new SignalClient(signalServer, protocolStorage, messageStorage);
+                signalClient = new SignalClient(signalServer, protocolStorage, messageStorage, signalResetVersion);
 
-                if (protocolStorage.getLocalUsername().equals(username) && protocolStorage.isLocalRegistered()){
+                int existingSignalResetVersion = protocolStorage.getSignalResetVersion();
+
+                // ---
+                // check pre key amount in order to reset from a version which was generating large amounts of prekeys
+                boolean performSoftReset = protocolStorage.getLastPreKeyIndex() > 300;
+                // ---
+
+                if (!performSoftReset && protocolStorage.getLocalUsername().equals(username) && protocolStorage.isLocalRegistered()){
                     signalClient.checkRemotePreKeys(promise);
                 } else {
                     protocolStorage.deleteAll();
-                    messageStorage.deleteAll();
+                    if (performSoftReset) {
+                        logSender.sendInfo(String.format("Android Signal soft reset version triggered: %s", signalResetVersion));
+                    } else {
+                        messageStorage.deleteAll();
+                    }
                     registerAccount(promise);
                 }
             }

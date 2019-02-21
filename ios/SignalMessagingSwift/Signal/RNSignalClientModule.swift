@@ -66,7 +66,7 @@ class RNSignalClientModule: NSObject {
             resolve("ok")
         } else {
             if (performSoftReset) {
-                logger.sendInfoMessage(message: "iOS Signal soft reset version triggered: \(self.signalResetVersion)" )
+                logger.sendInfoMessage(message: "iOS Signal soft reset version triggered: \(signalResetVersion)" )
                 ProtocolStorage().destroyAllExceptMessages()
             } else {
                 ProtocolStorage().destroyAll()

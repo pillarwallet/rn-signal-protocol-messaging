@@ -161,6 +161,18 @@ public class ProtocolStorage implements SignalProtocolStore {
         }
     }
 
+    public void storeSignalResetVersion(int version){
+        String data = readFromStorage(LOCAL_JSON_FILENAME);
+        if (data == null || data.isEmpty()) data = "{}";
+        try {
+            JSONObject dataJSONO = new JSONObject(data);
+            dataJSONO.put("signalResetVersion", version);
+            writeToStorageFile(LOCAL_JSON_FILENAME, dataJSONO.toString());
+        } catch (JSONException e) {
+            logSender.reportError(e);
+        }
+    }
+
     @Override
     public IdentityKeyPair getIdentityKeyPair() {
         IdentityKeyPair identityKeyPair = null;
@@ -220,6 +232,20 @@ public class ProtocolStorage implements SignalProtocolStore {
             logSender.reportError(e);
         }
         return signalingKey;
+    }
+
+    public int getSignalResetVersion() {
+        int signalResetVersion = 0;
+        try {
+            String data = readFromStorage(LOCAL_JSON_FILENAME);
+            if (data == null || data.isEmpty()) return signalResetVersion;
+            JSONObject dataJSONO = new JSONObject(data);
+            if (!dataJSONO.has("signalResetVersion") || dataJSONO.isNull("signalResetVersion")) return signalResetVersion;
+            signalResetVersion = dataJSONO.optInt("signalResetVersion", 0);
+        } catch (JSONException e) {
+            logSender.reportError(e);
+        }
+        return signalResetVersion;
     }
 
     @Override
@@ -544,7 +570,13 @@ public class ProtocolStorage implements SignalProtocolStore {
         if (data == null || data.isEmpty()) return 0;
         try {
             JSONObject dataJSONO = new JSONObject(data);
-            return dataJSONO.length();
+            int keyId = 0;
+            Iterator<String> keys = dataJSONO.keys();
+            while (keys.hasNext()) {
+                int numericKeyIndex = Integer.parseInt(keys.next());
+                keyId = numericKeyIndex > keyId ? numericKeyIndex : keyId;
+            }
+            return keyId;
         } catch (JSONException e) {
             logSender.reportError(e);
         }
