@@ -20,11 +20,11 @@ class SignalClient: NSObject {
     private let logger: Logger
     private let signalResetVersion: Int
 
-    init(username: String, accessToken: String, host: String, isLoggable: Bool, signalResetVersion: Int) {
+    init(username: String, accessToken: String, host: String, logger: Logger, signalResetVersion: Int) {
         self.username = username
         self.host = host
         self.signalServer = SignalServer(accessToken: accessToken, host: host)
-        self.logger = Logger(isLoggable: isLoggable)
+        self.logger = logger
         self.signalResetVersion = signalResetVersion
         super.init()
     }
