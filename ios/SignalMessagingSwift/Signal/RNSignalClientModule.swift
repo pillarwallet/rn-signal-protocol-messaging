@@ -24,10 +24,10 @@ class RNSignalClientModule: NSObject {
     private var signalClient: SignalClient
     
     override init() {
-        self.signalResetVersion = 1
+        self.signalResetVersion = 0
         self.username = ""
         self.host = ""
-        self.signalClient = SignalClient(username: "", accessToken: "", host: "", isLoggable: false, signalResetVersion: self.signalResetVersion)
+        self.signalClient = SignalClient(username: "", accessToken: "", host: "", logger: Logger(isLoggable: false), signalResetVersion: self.signalResetVersion)
         super.init()
     }
     
@@ -40,7 +40,18 @@ class RNSignalClientModule: NSObject {
         self.host = config.object(forKey: "host") as! String
         let accessToken = config.object(forKey: "accessToken") as! String
         let isLoggable = config.object(forKey: "isSendingLogs") as! Bool
-        self.signalClient = SignalClient(username: username, accessToken: accessToken, host: host, isLoggable: isLoggable, signalResetVersion: self.signalResetVersion)
+        let logger = Logger(isLoggable: isLoggable)
+        var signalResetVersion = self.signalResetVersion;
+        
+        // ---
+        // check pre key amount in order to reset from a version which was generating large amounts of prekeys
+        let preKeys = ProtocolStorage().get(for: .PRE_KEYS_JSON_FILENAME)
+        if (signalResetVersion == 0 && preKeys.count > 300) {
+            signalResetVersion = signalResetVersion+1;
+        }
+        // ---
+        
+        self.signalClient = SignalClient(username: username, accessToken: accessToken, host: host, logger: logger, signalResetVersion: signalResetVersion)
         if isLoggable {
             do {
                 let sentryDSN = config.object(forKey: "errorTrackingDSN") as! String
@@ -51,11 +62,13 @@ class RNSignalClientModule: NSObject {
             }
         }
         let existingSignalResetVersion = ProtocolStorage().getSignalResetVersion()
+        
         if self.signalResetVersion == existingSignalResetVersion && ProtocolStorage().getLocalUsername() == username && ProtocolStorage().isLocalRegistered() {
             self.signalClient.checkPreKeys()
             resolve("ok")
         } else {
             if (self.signalResetVersion > existingSignalResetVersion || existingSignalResetVersion == 0) {
+                logger.sendInfoMessage(message: "iOS Signal soft reset version triggered: \(self.signalResetVersion)" )
                 ProtocolStorage().destroyAllExceptMessages()
             } else {
                 ProtocolStorage().destroyAll()
@@ -101,7 +114,7 @@ class RNSignalClientModule: NSObject {
             reject(error, message, nil)
         }
     }
-
+    
     @objc func deleteContact(_ username: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         let address = SignalAddress(name: username, deviceId: 1);
         _ = self.signalClient.store()?.sessionStore.deleteSession(for: address)
@@ -135,8 +148,8 @@ class RNSignalClientModule: NSObject {
     @objc func getMessagesByContact(_ username: String, messageTag: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         let sortedMessages = MessagesStorage().getMessages(for: username, tag: messageTag).sorted { (messageOne, messageTwo) -> Bool in
             return messageOne.savedTimestamp > messageTwo.savedTimestamp
-        }.compactMap { (message) -> [String : Any]? in
-            return message.dictionary
+            }.compactMap { (message) -> [String : Any]? in
+                return message.dictionary
         }
         
         if let data = try? JSONSerialization.data(withJSONObject: sortedMessages, options: .prettyPrinted) {
@@ -209,7 +222,7 @@ class RNSignalClientModule: NSObject {
             silent: true,
             failure: { (error) in
                 reject(ERR_NATIVE_FAILED, "\(error)", nil)
-            }
+        }
         );
         
         if (params.isEmpty) {
@@ -220,7 +233,7 @@ class RNSignalClientModule: NSObject {
             let jsonSring = String(data: data, encoding: .utf8)
             resolve(jsonSring)
         }
-
+        
     }
     
     @objc func saveSentMessage(_ messageTag: String, config: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
@@ -254,7 +267,7 @@ class RNSignalClientModule: NSObject {
             success: { (message) in resolve(message) },
             failure: { (error) in
                 reject(ERR_NATIVE_FAILED, "\(error)", nil)
-            }
+        }
         )
     }
     
