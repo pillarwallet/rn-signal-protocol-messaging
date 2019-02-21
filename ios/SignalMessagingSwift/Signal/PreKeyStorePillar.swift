@@ -46,8 +46,13 @@ class PreKeyStorePillar: PreKeyStore {
     
     public func getLastPreKeyIndex() -> UInt32 {
         let identities = self.storage().get(for: .PRE_KEYS_JSON_FILENAME)
+        var index: UInt32 = 0;
         do {
-            return UInt32(identities.count)
+            _ = identities.keys.forEach { key in
+                let keyNumeric = UInt32(key)!
+                index = index < keyNumeric ? keyNumeric : index;
+            }
+            return UInt32(index)
         } catch {
             return 0
         }
