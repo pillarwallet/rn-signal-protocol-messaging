@@ -41,15 +41,16 @@ class RNSignalClientModule: NSObject {
         let accessToken = config.object(forKey: "accessToken") as! String
         let isLoggable = config.object(forKey: "isSendingLogs") as! Bool
         let logger = Logger(isLoggable: isLoggable)
-        var signalResetVersion = self.signalResetVersion;
+        let signalResetVersion = self.signalResetVersion
+        let existingSignalResetVersion = ProtocolStorage().getSignalResetVersion()
         
         // ---
         // check pre key amount in order to reset from a version which was generating large amounts of prekeys
         let preKeys = ProtocolStorage().get(for: .PRE_KEYS_JSON_FILENAME)
-        if (signalResetVersion == 0 && preKeys.count > 300) {
-            signalResetVersion = signalResetVersion+1;
-        }
+        let preKeyCountCheck = preKeys.count > 300
         // ---
+        
+        let performSoftReset = preKeyCountCheck || (existingSignalResetVersion != 0 && signalResetVersion > existingSignalResetVersion)
         
         self.signalClient = SignalClient(username: username, accessToken: accessToken, host: host, logger: logger, signalResetVersion: signalResetVersion)
         if isLoggable {
@@ -61,13 +62,12 @@ class RNSignalClientModule: NSObject {
                 // sentry unavailable
             }
         }
-        let existingSignalResetVersion = ProtocolStorage().getSignalResetVersion()
         
-        if self.signalResetVersion == existingSignalResetVersion && ProtocolStorage().getLocalUsername() == username && ProtocolStorage().isLocalRegistered() {
+        if !performSoftReset && signalResetVersion == existingSignalResetVersion && ProtocolStorage().getLocalUsername() == username && ProtocolStorage().isLocalRegistered() {
             self.signalClient.checkPreKeys()
             resolve("ok")
         } else {
-            if (self.signalResetVersion > existingSignalResetVersion || existingSignalResetVersion == 0) {
+            if (performSoftReset) {
                 logger.sendInfoMessage(message: "iOS Signal soft reset version triggered: \(self.signalResetVersion)" )
                 ProtocolStorage().destroyAllExceptMessages()
             } else {
