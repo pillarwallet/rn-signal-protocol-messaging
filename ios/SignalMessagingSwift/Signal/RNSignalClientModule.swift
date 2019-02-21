@@ -50,8 +50,6 @@ class RNSignalClientModule: NSObject {
         let preKeyCountCheck = preKeys.count > 300
         // ---
         
-        let performSoftReset = preKeyCountCheck || (existingSignalResetVersion != 0 && signalResetVersion > existingSignalResetVersion)
-        
         self.signalClient = SignalClient(username: username, accessToken: accessToken, host: host, logger: logger, signalResetVersion: signalResetVersion)
         if isLoggable {
             do {
