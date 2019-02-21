@@ -51,13 +51,11 @@ class RNSignalClientModule: NSObject {
             }
         }
         let existingSignalResetVersion = ProtocolStorage().getSignalResetVersion()
-        print("existingSignalResetVersion \(existingSignalResetVersion)")
         if self.signalResetVersion == existingSignalResetVersion && ProtocolStorage().getLocalUsername() == username && ProtocolStorage().isLocalRegistered() {
             self.signalClient.checkPreKeys()
             resolve("ok")
         } else {
             if (self.signalResetVersion > existingSignalResetVersion || existingSignalResetVersion == 0) {
-                print("RESET HAPPENING")
                 ProtocolStorage().destroyAllExceptMessages()
             } else {
                 ProtocolStorage().destroyAll()
