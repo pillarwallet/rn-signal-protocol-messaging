@@ -47,7 +47,7 @@ class RNSignalClientModule: NSObject {
         // ---
         // check pre key amount in order to reset from a version which was generating large amounts of prekeys
         let preKeys = ProtocolStorage().get(for: .PRE_KEYS_JSON_FILENAME)
-        let preKeyCountCheck = preKeys.count > 300
+        let performSoftReset = preKeys.count > 300
         // ---
         
         self.signalClient = SignalClient(username: username, accessToken: accessToken, host: host, logger: logger, signalResetVersion: signalResetVersion)
