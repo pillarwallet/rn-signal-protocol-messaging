@@ -110,9 +110,10 @@ class ProtocolStorage: NSObject {
         let url = manager.urls(for: .documentDirectory, in: .userDomainMask).first! as NSURL
         let path = url.appendingPathComponent("signal")!
         let typePath = path.appendingPathComponent(type.rawValue)
-        
         do {
-            try manager.removeItem(atPath: typePath.path)
+            if (manager.fileExists(atPath: typePath.path)) {
+                try manager.removeItem(atPath: typePath.path)
+            }
         } catch {
             print(error)
         }
