@@ -1,0 +1,27 @@
+{
+  "/v1/accounts/bootstrap": {
+    "body": {
+      "timestamp": 1551278268
+    },
+    "status": 200
+  },
+  "/v2/keys/receiver-username-1/1": {
+    "body": {
+      "identityKey": "BXgTg9ZCLJcEW5oEf8/fLnuWrBL3Wm4rclQIBYcCJVpo",
+      "devices": [{
+        "deviceId": 1,
+        "registrationId": 2081,
+        "signedPreKey": {
+          "keyId": 1,
+          "publicKey": "BQDhha4XNjvAuoKKCrr0qJREWUywEBVmIemWfErmPLEF",
+          "signature": "FlKtW+lazqNzoOJaC5uSlGNMj3AL64HqDR2I7OENtx80qs0g6ZbxnP3jpVdWH3sDV2vftFc4ohGtAY6kAniQhg=="
+        },
+        "preKey": {
+          "keyId": 1,
+          "publicKey": "BWRpgmbn9KAcYDc/fa2+jzegRoZULSTWHuZB/ENyWctk"
+        }
+      }]
+    },
+    "status": 200
+  }
+}

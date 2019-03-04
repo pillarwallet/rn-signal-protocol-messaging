@@ -41,7 +41,7 @@ public class ProtocolStorage implements SignalProtocolStore {
         this.absolutePath = absolutePath;
     }
 
-    private String readFromStorage(String fileName) {
+    public String readFromStorage(String fileName) {
         String dirPath = absolutePath + "/signal";
         File file = new File(dirPath, fileName);
         if (file.exists()){
@@ -64,7 +64,7 @@ public class ProtocolStorage implements SignalProtocolStore {
         }
     }
 
-    private void writeToStorageFile(String fileName, String data) {
+    public void writeToStorageFile(String fileName, String data) {
         try {
             String dirPath = absolutePath + "/signal";
             File dir = new File(dirPath);

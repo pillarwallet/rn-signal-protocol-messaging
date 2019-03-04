@@ -155,7 +155,7 @@ public class SignalServer {
         });
     }
 
-    private String getFullApiUrl(String targetUrl) {
+    public String getFullApiUrl(String targetUrl) {
         return host + targetUrl;
     }
 
@@ -174,11 +174,6 @@ public class SignalServer {
             logSender.reportError(e);
             return "";
         }
-    }
-
-    public boolean isActiveInternetConnection(Context context){
-        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        return cm.getActiveNetworkInfo() != null;
     }
 
     private String buildPayloadHeader(ECKey identityKey, String method, String url, RequestBody requestBody, String timestamp){
@@ -219,7 +214,7 @@ public class SignalServer {
         return "0x" + hexR + hexS + hexV;
     }
 
-    private boolean isNetworkAvailable() {
+    public boolean isNetworkAvailable() {
         ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
