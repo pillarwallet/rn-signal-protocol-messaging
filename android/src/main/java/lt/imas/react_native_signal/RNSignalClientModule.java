@@ -121,11 +121,12 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void addContact(String username, String userId, String userConnectionAccessToken, boolean forceAdd, Promise promise){
+    public void addContact(ReadableMap params, boolean forceAdd, Promise promise){
         try {
+            String username = params.getString("username");
             SignalProtocolAddress address = new SignalProtocolAddress(username, 1);
             if (!protocolStorage.containsSession(address) || forceAdd){
-                signalClient.requestPreKeys(username, userId, userConnectionAccessToken, promise);
+                signalClient.requestPreKeys(username, params.getString("userId"), params.getString("targetUserId"), params.getString("sourceIdentityKey"), params.getString("targetIdentityKey"), promise);
             } else {
                 promise.resolve("ok");
             }
@@ -216,7 +217,7 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void sendSilentMessageByContact(String tag, ReadableMap params, final Promise promise) {
         try {
-            signalClient.sendMessage(params.getString("username"), params.getString("message"), params.getString("userId"), params.getString("userConnectionAccessToken"), tag, true, promise);
+            signalClient.sendMessage(params.getString("username"), params.getString("message"), params.getString("userId"), params.getString("targetUserId"), params.getString("sourceIdentityKey"), params.getString("targetIdentityKey"), tag, true, promise);
         } catch (Throwable e) {
             logSender.reportError(e);
             promise.reject(e);
@@ -226,7 +227,7 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void sendMessageByContact(String tag, ReadableMap params, final Promise promise) {
         try {
-            signalClient.sendMessage(params.getString("username"), params.getString("message"), params.getString("userId"), params.getString("userConnectionAccessToken"), tag, false, promise);
+            signalClient.sendMessage(params.getString("username"), params.getString("message"), params.getString("userId"), params.getString("targetUserId"), params.getString("sourceIdentityKey"), params.getString("targetIdentityKey"), tag, false, promise);
         } catch (Throwable e) {
             logSender.reportError(e);
             promise.reject(e);
@@ -246,7 +247,7 @@ public class RNSignalClientModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void prepareApiBody(String tag, ReadableMap params, final Promise promise) {
         try {
-            JSONObject request = signalClient.prepareApiBody(params.getString("username"), params.getString("message"), params.getString("userId"), params.getString("userConnectionAccessToken"), tag, false);
+            JSONObject request = signalClient.prepareApiBody(params.getString("username"), params.getString("message"), params.getString("userId"), params.getString("targetUserId"), params.getString("sourceIdentityKey"), params.getString("targetIdentityKey"), tag, false);
             promise.resolve(request.toString());
         } catch (JSONException
                 | IllegalArgumentException
