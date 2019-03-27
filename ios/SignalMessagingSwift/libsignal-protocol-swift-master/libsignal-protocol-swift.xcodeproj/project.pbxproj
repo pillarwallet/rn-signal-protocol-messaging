@@ -1904,7 +1904,7 @@
 				TargetAttributes = {
 					CE1F0C34203467B3003F1C04 = {
 						CreatedOnToolsVersion = 9.3;
-						LastSwiftMigration = 0930;
+						LastSwiftMigration = "";
 					};
 					CE1F0C3D203467B3003F1C04 = {
 						CreatedOnToolsVersion = 9.3;
