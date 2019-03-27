@@ -1904,7 +1904,7 @@
 				TargetAttributes = {
 					CE1F0C34203467B3003F1C04 = {
 						CreatedOnToolsVersion = 9.3;
-						LastSwiftMigration = 0930;
+						LastSwiftMigration = "";
 					};
 					CE1F0C3D203467B3003F1C04 = {
 						CreatedOnToolsVersion = 9.3;
@@ -2725,7 +2725,8 @@
 				PRODUCT_NAME = SignalProtocol;
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 4.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = On;
+				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -2757,7 +2758,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "christophhagen.libsignal-protocol-swift";
 				PRODUCT_NAME = SignalProtocol;
 				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 4.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = On;
+				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
