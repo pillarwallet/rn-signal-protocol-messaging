@@ -1,13 +1,17 @@
+def safeExtGet(prop, fallback) {
+    rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
+}
+
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 27
-    buildToolsVersion "27.0.3"
+    compileSdkVersion safeExtGet('compileSdkVersion', 27)
+    buildToolsVersion safeExtGet('buildToolsVersion', '28.0.3')
 
 
     defaultConfig {
-        minSdkVersion 19
-        targetSdkVersion 27
+        minSdkVersion safeExtGet('minSdkVersion', 19)
+        targetSdkVersion safeExtGet('targetSdkVersion', 27)
         versionCode 1
         versionName "1.0"
 
@@ -25,21 +29,21 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.facebook.react:react-native:+'
-    compile 'com.android.support:appcompat-v7:27.1.1'
-    compile 'org.whispersystems:signal-protocol-android:2.6.2'
-    compile 'com.squareup.okhttp3:okhttp:3.10.0'
-    compile 'com.jakewharton.timber:timber:4.7.0'
-    compile 'io.sentry:sentry:1.7.10'
-    compile 'org.slf4j:slf4j-nop:1.7.25'
-    compile 'com.fasterxml.jackson.core:jackson-core:2.8.5'
-    compile 'org.web3j:core:3.3.1-android'
-    compile('org.bitcoinj:bitcoinj-core:0.14.7') {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.facebook.react:react-native:+'
+    implementation 'com.android.support:appcompat-v7:27.1.1'
+    implementation 'org.whispersystems:signal-protocol-android:2.6.2'
+    implementation 'com.squareup.okhttp3:okhttp:3.10.0'
+    implementation 'com.jakewharton.timber:timber:4.7.0'
+    implementation 'io.sentry:sentry:1.7.10'
+    implementation 'org.slf4j:slf4j-nop:1.7.25'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.8.5'
+    implementation 'org.web3j:core:3.3.1-android'
+    implementation('org.bitcoinj:bitcoinj-core:0.14.7') {
         exclude module: 'scrypt'
     }
-    testCompile 'junit:junit:4.12'
-    androidTestCompile('com.android.support.test.espresso:espresso-core:3.0.2', {
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation('com.android.support.test.espresso:espresso-core:3.0.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
 
