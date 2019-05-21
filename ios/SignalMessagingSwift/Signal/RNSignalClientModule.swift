@@ -17,12 +17,12 @@ let ERR_ADD_CONTACT_FAILED = "ERR_ADD_CONTACT_FAILED"
 
 @objc(RNSignalClientModule)
 class RNSignalClientModule: NSObject {
-    
+
     private var signalResetVersion: Int
     private var username: String
     private var host: String
     private var signalClient: SignalClient
-    
+
     override init() {
         self.signalResetVersion = 0
         self.username = ""
@@ -30,11 +30,11 @@ class RNSignalClientModule: NSObject {
         self.signalClient = SignalClient(username: "", accessToken: "", host: "", logger: Logger(isLoggable: false), signalResetVersion: self.signalResetVersion)
         super.init()
     }
-    
+
     @objc static func requiresMainQueueSetup() -> Bool {
         return true
     }
-    
+
     @objc func createClient(_ config: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         self.username = config.object(forKey: "username") as! String
         self.host = config.object(forKey: "host") as! String
@@ -43,13 +43,13 @@ class RNSignalClientModule: NSObject {
         let logger = Logger(isLoggable: isLoggable)
         let signalResetVersion = self.signalResetVersion
         let existingSignalResetVersion = ProtocolStorage().getSignalResetVersion()
-        
+
         // ---
         // check pre key amount in order to reset from a version which was generating large amounts of prekeys
         let preKeys = ProtocolStorage().get(for: .PRE_KEYS_JSON_FILENAME)
         let performSoftReset = preKeys.count > 300
         // ---
-        
+
         self.signalClient = SignalClient(username: username, accessToken: accessToken, host: host, logger: logger, signalResetVersion: signalResetVersion)
         if isLoggable {
             do {
@@ -60,7 +60,7 @@ class RNSignalClientModule: NSObject {
                 // sentry unavailable
             }
         }
-        
+
         if !performSoftReset && ProtocolStorage().getLocalUsername() == username && ProtocolStorage().isLocalRegistered() {
             self.signalClient.checkPreKeys()
             resolve("ok")
@@ -78,7 +78,7 @@ class RNSignalClientModule: NSObject {
             }
         }
     }
-    
+
     @objc func registerAccount(_ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         self.signalClient.register(success: { (success) in
             resolve(success)
@@ -86,12 +86,12 @@ class RNSignalClientModule: NSObject {
             reject(error, message, nil)
         }
     }
-    
+
     @objc func resetAccount(_ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         ProtocolStorage().destroyAll()
         resolve("ok")
     }
-    
+
     @objc func addContact(_ config: NSDictionary, forceAdd: Bool, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         let username = (config.object(forKey: "username") as? String) ?? ""
         let userId = (config.object(forKey: "userId") as? String) ?? ""
@@ -109,7 +109,7 @@ class RNSignalClientModule: NSObject {
             resolve("ok")
         }
     }
-    
+
     @objc func setFcmId(_ fcmId: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         self.signalClient.saveFCMId(fcmId: fcmId, success: {
             resolve("ok")
@@ -117,7 +117,7 @@ class RNSignalClientModule: NSObject {
             reject(error, message, nil)
         }
     }
-    
+
     @objc func deleteContact(_ username: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         let address = SignalAddress(name: username, deviceId: 1);
         _ = self.signalClient.store()?.sessionStore.deleteSession(for: address)
@@ -130,7 +130,7 @@ class RNSignalClientModule: NSObject {
         }
         resolve("ok")
     }
-    
+
     @objc func deleteContactMessages(_ username: String, messageTag: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         MessagesStorage().deleteContactMessages(for: username, tag: messageTag)
         self.signalClient.deleteContactPendingMessages(username: username, messageTag: messageTag, success: { (success) in
@@ -139,7 +139,7 @@ class RNSignalClientModule: NSObject {
             reject(error, message, nil)
         }
     }
-    
+
     @objc func receiveNewMessagesByContact(_ username: String, messageTag: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         self.signalClient.getContactMessages(username: username, messageTag: messageTag, decodeAndSave: true, success: { (success) in
             resolve(success)
@@ -147,27 +147,27 @@ class RNSignalClientModule: NSObject {
             reject(error, message, nil)
         }
     }
-    
+
     @objc func getMessagesByContact(_ username: String, messageTag: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         let sortedMessages = MessagesStorage().getMessages(for: username, tag: messageTag).sorted { (messageOne, messageTwo) -> Bool in
             return messageOne.savedTimestamp > messageTwo.savedTimestamp
             }.compactMap { (message) -> [String : Any]? in
                 return message.dictionary
         }
-        
+
         if let data = try? JSONSerialization.data(withJSONObject: sortedMessages, options: .prettyPrinted) {
             let jsonSring = String(data: data, encoding: .utf8)
             resolve(jsonSring)
         }
     }
-    
+
     @objc func getExistingMessages(_ messageTag: String, resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         if let data = try? JSONSerialization.data(withJSONObject: self.signalClient.getAllContactMessages(messageTag: messageTag), options: .prettyPrinted) {
             let jsonSring = String(data: data, encoding: .utf8)
             resolve(jsonSring)
         }
     }
-    
+
     @objc func getUnreadMessagesCount(_ messageTag: String, resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         self.signalClient.getContactMessages(username: "", messageTag: messageTag, decodeAndSave: false, success: { (dict) in
             if let data = try? JSONSerialization.data(withJSONObject: dict, options: .prettyPrinted) {
@@ -180,7 +180,7 @@ class RNSignalClientModule: NSObject {
             reject(error, message, nil)
         }
     }
-    
+
     @objc func sendMessageByContact(_ messageTag: String, config: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         let userId = config.object(forKey: "userId") as? String;
         let targetUserId = config.object(forKey: "targetUserId") as? String;
@@ -200,7 +200,7 @@ class RNSignalClientModule: NSObject {
             reject(error, message, nil)
         }
     }
-    
+
     @objc func sendSilentMessageByContact(_ messageTag: String, config: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         let userId = config.object(forKey: "userId") as? String;
         let targetUserId = config.object(forKey: "targetUserId") as? String;
@@ -220,7 +220,7 @@ class RNSignalClientModule: NSObject {
             reject(error, message, nil)
         }
     }
-    
+
     @objc func prepareApiBody(_ messageTag: String, config: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         let userId = config.object(forKey: "userId") as? String;
         let targetUserId = config.object(forKey: "targetUserId") as? String;
@@ -234,23 +234,23 @@ class RNSignalClientModule: NSObject {
             sourceIdentityKey: sourceIdentityKey != nil ? sourceIdentityKey! : "",
             targetIdentityKey: targetIdentityKey != nil ? targetIdentityKey! : "",
             messageTag: messageTag,
-            silent: true,
+            silent: false,
             failure: { (error) in
                 reject(ERR_NATIVE_FAILED, "\(error)", nil)
         }
         );
-        
+
         if (params.isEmpty) {
             return
         }
-        
+
         if let data = try? JSONSerialization.data(withJSONObject: params, options: .prettyPrinted) {
             let jsonSring = String(data: data, encoding: .utf8)
             resolve(jsonSring)
         }
-        
+
     }
-    
+
     @objc func saveSentMessage(_ messageTag: String, config: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         self.signalClient.saveSentMessage(
             messageTag: messageTag,
@@ -260,7 +260,7 @@ class RNSignalClientModule: NSObject {
         );
         resolve("ok")
     }
-    
+
     @objc func decryptReceivedBody(_ receivedBody: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         let decryptedBytes = self.signalClient.decryptReceivedBody(body: receivedBody)
         if (decryptedBytes.length == 0) {
@@ -274,7 +274,7 @@ class RNSignalClientModule: NSObject {
         }
         resolve(encoded)
     }
-    
+
     @objc func decryptSignalMessage(_ messageTag: String, receivedMessage: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         self.signalClient.decryptSignalMessage(
             messageTag: messageTag,
@@ -285,8 +285,8 @@ class RNSignalClientModule: NSObject {
         }
         )
     }
-    
-    
+
+
     @objc func deleteSignalMessage(_ username: String, timestamp: NSInteger, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         self.signalClient.deleteSignalMessage(
             username: username,
