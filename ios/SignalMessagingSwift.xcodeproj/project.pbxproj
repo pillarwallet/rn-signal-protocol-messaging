@@ -7,12 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		690DC5BB2216A250001EB112 /* Sentry.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 690DC5BA2216A250001EB112 /* Sentry.framework */; };
 		690DC61D22173C6E001EB112 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 690DC61722173C6E001EB112 /* Logger.swift */; };
 		691307102107F5B900B3C1FD /* SignalProtocol.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 95A5233720F47B4300EDA8BA /* SignalProtocol.framework */; };
 		6979038D21E2831B00484ABB /* legacy_message.m in Sources */ = {isa = PBXBuildFile; fileRef = 6979038921E2831B00484ABB /* legacy_message.m */; };
 		6979038E21E2831B00484ABB /* NSData+OWS.m in Sources */ = {isa = PBXBuildFile; fileRef = 6979038C21E2831B00484ABB /* NSData+OWS.m */; };
 		6979039021E2844400484ABB /* LegacyMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6979038F21E2844400484ABB /* LegacyMessage.swift */; };
+		69D45C8A241AB1D60008AEE9 /* Sentry.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 69D45C89241AB1D60008AEE9 /* Sentry.framework */; };
 		9573BEC820F3D6B700C720C3 /* MessagesStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9573BEBD20F3D6B600C720C3 /* MessagesStorage.swift */; };
 		9573BEC920F3D6B700C720C3 /* SenderKeyStorePillar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9573BEBE20F3D6B600C720C3 /* SenderKeyStorePillar.swift */; };
 		9573BECA20F3D6B700C720C3 /* MessageDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9573BEBF20F3D6B600C720C3 /* MessageDTO.swift */; };
@@ -93,6 +93,12 @@
 		6979038B21E2831B00484ABB /* legacy_message.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = legacy_message.h; path = "SignalMessagingSwift/legacy-support/legacy_message.h"; sourceTree = SOURCE_ROOT; };
 		6979038C21E2831B00484ABB /* NSData+OWS.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSData+OWS.m"; path = "SignalMessagingSwift/legacy-support/NSData+OWS.m"; sourceTree = SOURCE_ROOT; };
 		6979038F21E2844400484ABB /* LegacyMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyMessage.swift; sourceTree = "<group>"; };
+		69CC15B2241AA89800F2D3CE /* Sentry.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Sentry.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		69CC15B4241AA8D300F2D3CE /* Sentry.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Sentry.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		69CC15C3241AA95B00F2D3CE /* Sentry.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Sentry.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		69CC15D1241AAA7800F2D3CE /* libSentry.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libSentry.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		69CC15EA241AAD9500F2D3CE /* Sentry.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Sentry.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		69D45C89241AB1D60008AEE9 /* Sentry.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Sentry.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		9573BEBD20F3D6B600C720C3 /* MessagesStorage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MessagesStorage.swift; path = SignalMessagingSwift/Signal/MessagesStorage.swift; sourceTree = SOURCE_ROOT; };
 		9573BEBE20F3D6B600C720C3 /* SenderKeyStorePillar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = SenderKeyStorePillar.swift; path = SignalMessagingSwift/Signal/SenderKeyStorePillar.swift; sourceTree = SOURCE_ROOT; };
 		9573BEBF20F3D6B600C720C3 /* MessageDTO.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MessageDTO.swift; path = SignalMessagingSwift/Signal/MessageDTO.swift; sourceTree = SOURCE_ROOT; };
@@ -116,7 +122,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				690DC5BB2216A250001EB112 /* Sentry.framework in Frameworks */,
+				69D45C8A241AB1D60008AEE9 /* Sentry.framework in Frameworks */,
 				691307102107F5B900B3C1FD /* SignalProtocol.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -127,6 +133,12 @@
 		6913070A2107F5B900B3C1FD /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				69D45C89241AB1D60008AEE9 /* Sentry.framework */,
+				69CC15EA241AAD9500F2D3CE /* Sentry.framework */,
+				69CC15D1241AAA7800F2D3CE /* libSentry.a */,
+				69CC15C3241AA95B00F2D3CE /* Sentry.framework */,
+				69CC15B4241AA8D300F2D3CE /* Sentry.framework */,
+				69CC15B2241AA89800F2D3CE /* Sentry.framework */,
 				690DC5BA2216A250001EB112 /* Sentry.framework */,
 			);
 			name = Frameworks;
@@ -457,7 +469,10 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 5J32DX293G;
-				HEADER_SEARCH_PATHS = "${SRCROOT}/../../../ios/Pods/Headers/**";
+				HEADER_SEARCH_PATHS = (
+					"${SRCROOT}/../../../ios/Pods/Headers/Public/React-Core/**",
+					"${SRCROOT}/../../../ios/Pods/Headers/Public/Yoga/**",
+				);
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -481,7 +496,10 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 5J32DX293G;
-				HEADER_SEARCH_PATHS = "${SRCROOT}/../../../ios/Pods/Headers/**";
+				HEADER_SEARCH_PATHS = (
+					"${SRCROOT}/../../../ios/Pods/Headers/Public/React-Core/**",
+					"${SRCROOT}/../../../ios/Pods/Headers/Public/Yoga/**",
+				);
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
