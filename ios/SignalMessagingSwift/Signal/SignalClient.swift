@@ -208,9 +208,12 @@ class SignalClient: NSObject {
         }
     }
 
-    func requestPreKeys(username: String, success: @escaping (_ success: String) -> Void, failure: @escaping (_ error: String, _ message: String) -> Void) {
+    func requestPreKeys(username: String, userId: String, targetUserId: String, success: @escaping (_ success: String) -> Void, failure: @escaping (_ error: String, _ message: String) -> Void) {
         var callUrl = URL_KEYS + "/" + username + "/1";
-        self.signalServer.call(urlPath: callUrl, method: .GET, success: { (dict) in
+        var parameters = [String : Any]()
+        parameters["userId"] = userId
+        parameters["targetUserId"] = targetUserId
+        self.signalServer.call(urlPath: callUrl, method: .PUT, parameters: parameters, success: { (dict) in
             if let devices = dict["devices"] as? [[String : Any]],
                 let identityKey: String = dict["identityKey"] as? String,
                 let identityData = Data(base64Encoded: identityKey),
@@ -449,9 +452,9 @@ class SignalClient: NSObject {
         }
     }
 
-    func sendMessage(username: String, messageString: String, messageTag: String, silent: Bool, success: @escaping (_ success: String) -> Void, failure: @escaping (_ error: String, _ message: String) -> Void) {
+    func sendMessage(username: String, messageString: String, userId: String, targetUserId: String, messageTag: String, silent: Bool, success: @escaping (_ success: String) -> Void, failure: @escaping (_ error: String, _ message: String) -> Void) {
 
-        let params = self.prepareApiBody(username: username, messageString: messageString, messageTag: messageTag, silent: silent, failure: { (error) in
+        let params = self.prepareApiBody(username: username, messageString: messageString, userId: userId, targetUserId: targetUserId, messageTag: messageTag, silent: silent, failure: { (error) in
             failure(ERR_NATIVE_FAILED, "\(error)")
         });
 
@@ -462,8 +465,8 @@ class SignalClient: NSObject {
         self.signalServer.call(urlPath: URL_MESSAGES + "/" + username, method: .PUT, parameters: params, success: { (dict) in
             if dict.count != 0 && dict["staleDevices"] != nil {
                 // staleDevices found, request new user PreKey and retry message send
-                self.requestPreKeys(username: username, success: { _ in
-                    self.sendMessage(username: username, messageString: messageString, messageTag: messageTag, silent: silent, success: { (message) in
+                self.requestPreKeys(username: username, userId: userId, targetUserId: targetUserId, success: { _ in
+                    self.sendMessage(username: username, messageString: messageString, userId: userId, targetUserId: targetUserId, messageTag: messageTag, silent: silent, success: { (message) in
                         success(message)
                     }, failure: { (code, error) in
                         failure(code, "\(error)")
@@ -480,7 +483,7 @@ class SignalClient: NSObject {
         }
     }
 
-    func prepareApiBody(username: String, messageString: String, messageTag: String, silent: Bool, failure: @escaping (_ message: String) -> Void) -> [String : Any] {
+    func prepareApiBody(username: String, messageString: String, userId: userId, targetUserId: targetUserId, messageTag: String, silent: Bool, failure: @escaping (_ message: String) -> Void) -> [String : Any] {
         guard let store = self.store() else {
             failure("Store is invalid")
             return [:]
@@ -506,6 +509,12 @@ class SignalClient: NSObject {
         message["destination"] = username
         message["content"] = ""
         message["tag"] = messageTag
+        if (userId != nil && !userId.isEmpty){
+            message["userId"] = userId
+        }
+        if (targetUserId != nil && !targetUserId.isEmpty){
+            message["targetUserId"] = targetUserId
+        }
         message["silent"] = silent
         message["destinationDeviceId"] = 1
         message["destinationRegistrationId"] = remoteRegistrationId
