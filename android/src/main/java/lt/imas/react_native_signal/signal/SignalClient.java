@@ -150,18 +150,9 @@ public class SignalClient {
         }
     }
 
-    public void requestPreKeys(final String username, final String userId, final String targetUserId, final String sourceIdentityKey, final String targetIdentityKey, final Promise promise, final Runnable callback){
+    public void requestPreKeys(final String username, final Promise promise, final Runnable callback){
         String url = String.format("%s/%s/1", URL_KEYS, username);
-        JSONObject requestJSON = new JSONObject();
-        try {
-            requestJSON.put("userId", userId);
-            requestJSON.put("targetUserId", targetUserId);
-            requestJSON.put("sourceIdentityKey", sourceIdentityKey);
-            requestJSON.put("targetIdentityKey", targetIdentityKey);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        signalServer.call(url, "PUT", requestJSON, new Callback() {
+        signalServer.call(url, "GET", new Callback() {
             @Override
             public void onFailure(Call call, final IOException e) {
                 signalServer.mainThreadCallback(new Runnable() {
@@ -239,8 +230,8 @@ public class SignalClient {
         });
     }
 
-    public void requestPreKeys(final String username, final String userId, final String targetUserId, final String sourceIdentityKey, final String targetIdentityKey, final Promise promise){
-        requestPreKeys(username, userId, targetUserId, sourceIdentityKey, targetIdentityKey, promise, null);
+    public void requestPreKeys(final String username, final Promise promise){
+        requestPreKeys(username, promise, null);
     }
 
     public void checkRemotePreKeys(final Promise promise){
@@ -548,7 +539,7 @@ public class SignalClient {
         });
     }
 
-    public void sendMessage(final String username, final String messageString, final String userId, final String targetUserId, final String sourceIdentityKey, final String targetIdentityKey, final String messageTag, final boolean silent, final Promise promise) {
+    public void sendMessage(final String username, final String messageString, final String messageTag, final boolean silent, final Promise promise) {
         signalServer.requestServerTimestamp(new Callback() {
             @Override
             public void onFailure(Call call, final IOException e) {
@@ -569,7 +560,7 @@ public class SignalClient {
                     public void run() {
                         final int timestamp = serverResponse.getResponseJSONObject().optInt("timestamp", 0);
                         try {
-                            JSONObject requestJSONO = prepareApiBody(username, messageString, userId, targetUserId, sourceIdentityKey, targetIdentityKey, messageTag, silent);
+                            JSONObject requestJSONO = prepareApiBody(username, messageString, messageTag, silent);
                             signalServer.call(URL_MESSAGES + "/" + username, "PUT", requestJSONO, new Callback() {
                                 @Override
                                 public void onFailure(Call call, final IOException e) {
@@ -594,10 +585,10 @@ public class SignalClient {
                                                 Runnable retrySendMessage = new Runnable() {
                                                     @Override
                                                     public void run() {
-                                                        sendMessage(username, messageString, userId, targetUserId, sourceIdentityKey, targetIdentityKey, messageTag, silent, promise);
+                                                        sendMessage(username, messageString, messageTag, silent, promise);
                                                     }
                                                 };
-                                                requestPreKeys(username, userId, targetUserId, sourceIdentityKey, targetIdentityKey, null, retrySendMessage);
+                                                requestPreKeys(username, null, retrySendMessage);
                                             } else {
                                                 saveSentMessage(messageTag, username, messageString, timestamp, promise);
                                             }
@@ -649,7 +640,7 @@ public class SignalClient {
         }
     }
 
-    public JSONObject prepareApiBody(String username, String message, String userId, String targetUserId, String sourceIdentityKey, String targetIdentityKey, String tag, boolean silent)
+    public JSONObject prepareApiBody(String username, String message, String tag, boolean silent)
             throws JSONException, UnsupportedEncodingException, UntrustedIdentityException {
         SignalProtocolAddress address = new SignalProtocolAddress(username, 1);
         SessionCipher sessionCipher = new SessionCipher(signalProtocolStore, address);
@@ -659,10 +650,6 @@ public class SignalClient {
         JSONObject messageJSONO = new JSONObject();
         messageJSONO.put("type", 1);
         messageJSONO.put("tag", tag);
-        if (userId != null && !userId.isEmpty()) messageJSONO.put("userId", userId);
-        if (targetUserId != null && !targetUserId.isEmpty()) messageJSONO.put("targetUserId", targetUserId);
-        if (sourceIdentityKey != null && !sourceIdentityKey.isEmpty()) messageJSONO.put("sourceIdentityKey", sourceIdentityKey);
-        if (targetIdentityKey != null && !targetIdentityKey.isEmpty()) messageJSONO.put("targetIdentityKey", targetIdentityKey);
         messageJSONO.put("destination", username);
         messageJSONO.put("silent", silent);
         messageJSONO.put("content", ""); //Base64.encodeBytes(String.valueOf(signalProtocolStore.getLocalRegistrationId()).getBytes()));
