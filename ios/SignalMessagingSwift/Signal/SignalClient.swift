@@ -483,7 +483,7 @@ class SignalClient: NSObject {
         }
     }
 
-    func prepareApiBody(username: String, messageString: String, userId: userId, targetUserId: targetUserId, messageTag: String, silent: Bool, failure: @escaping (_ message: String) -> Void) -> [String : Any] {
+    func prepareApiBody(username: String, messageString: String, userId: String, targetUserId: String, messageTag: String, silent: Bool, failure: @escaping (_ message: String) -> Void) -> [String : Any] {
         guard let store = self.store() else {
             failure("Store is invalid")
             return [:]
