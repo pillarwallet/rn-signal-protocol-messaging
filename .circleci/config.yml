@@ -1,9 +1,13 @@
-version: 2
+version: 2.1
+
+orbs:
+  slack: circleci/slack@3.4.2
+
 jobs:
   build-publish:
     working_directory: ~/rn-signal-protocol-messaging
     docker:
-      - image: circleci/node:8.9.4
+      - image: circleci/node:10.14.0
     steps:
       - checkout
       - run:
@@ -23,6 +27,10 @@ jobs:
           command: |
             chmod +x .circleci/announcePublish.sh
             .circleci/announcePublish.sh "Signal Protocol React Native module" "$(node -e "console.log(require('./package.json').name)")@$(node -e "console.log(require('./package.json').version)")"
+      - slack/status:
+          fail_only: true
+          failure_message: "Triggered by: *${CIRCLE_USERNAME}* \n\n Ooops! The *$CIRCLE_JOB* job has failed! :circleci-fail:"
+          webhook: "${SLACK_STATUS_WEBHOOK}"
 
 workflows:
   version: 2
