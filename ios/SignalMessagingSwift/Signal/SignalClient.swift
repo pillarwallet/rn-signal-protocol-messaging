@@ -8,7 +8,6 @@
 
 import UIKit
 import SignalProtocol
-import Sentry
 
 class SignalClient: NSObject {
 

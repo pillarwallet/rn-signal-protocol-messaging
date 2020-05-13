@@ -8,7 +8,6 @@
 
 import UIKit
 import SignalProtocol
-import Sentry
 
 let ERR_WRONG_CONFIG = "ERR_WRONG_CONFIG"
 let ERR_SERVER_FAILED = "ERR_SERVER_FAILED"
@@ -51,15 +50,15 @@ class RNSignalClientModule: NSObject {
         // ---
 
         self.signalClient = SignalClient(username: username, accessToken: accessToken, host: host, logger: logger, signalResetVersion: signalResetVersion)
-        if isLoggable {
-            do {
-                let sentryDSN = config.object(forKey: "errorTrackingDSN") as! String
-                Client.shared = try Client(dsn: sentryDSN)
-                try Client.shared?.startCrashHandler()
-            } catch {
-                // sentry unavailable
-            }
-        }
+//        if isLoggable {
+//            do {
+//                let sentryDSN = config.object(forKey: "errorTrackingDSN") as! String
+//                Client.shared = try Client(dsn: sentryDSN)
+//                try Client.shared?.startCrashHandler()
+//            } catch {
+//                // sentry unavailable
+//            }
+//        }
 
         if !performSoftReset && ProtocolStorage().getLocalUsername() == username && ProtocolStorage().isLocalRegistered() {
             self.signalClient.checkPreKeys()

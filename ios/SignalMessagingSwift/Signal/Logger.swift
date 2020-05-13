@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import Sentry
 
 
 class Logger: NSObject {
@@ -20,25 +19,29 @@ class Logger: NSObject {
     }
     
     func sendInfoMessage(message: String) {
-        if (!isLoggable) { return }
-        let event = Event(level: .info)
-        event.message = message
-        sendEvent(event: event)
+//        if (!isLoggable) { return }
+//        let event = Event(level: .info)
+//        event.message = message
+//        sendEvent(event: event)
     }
     
     func sendErrorMessage(message: String) {
-        if (!isLoggable) { return }
-        Client.shared?.snapshotStacktrace {
-            let event = Event(level: .error)
-            event.message = message
-            Client.shared?.appendStacktrace(to: event)
-            self.sendEvent(event: event)
-        }
+//        if (!isLoggable) { return }
+//        Client.shared?.snapshotStacktrace {
+//            let event = Event(level: .error)
+//            event.message = message
+//            Client.shared?.appendStacktrace(to: event)
+//            self.sendEvent(event: event)
+//        }
     }
     
-    func sendEvent(event: Event) {
-        if (!isLoggable) { return }
-        Client.shared?.send(event: event)
+    func sendEvent() {
+        //
     }
+    
+//    func sendEvent(event: Event) {
+//        if (!isLoggable) { return }
+//        Client.shared?.send(event: event)
+//    }
     
 }
